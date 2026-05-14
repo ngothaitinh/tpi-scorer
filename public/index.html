@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPI Content Scorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #0d0f14;
+  --bg1: #13161e;
+  --bg2: #1a1e28;
+  --bg3: #222733;
+  --line: #2a3040;
+  --line2: #353d50;
+  --ink: #e8eaf0;
+  --ink2: #9ba3b8;
+  --ink3: #5c6478;
+  --accent: #e05c3a;
+  --accent2: #f07a58;
+  --green: #4caf82;
+  --gold: #d4a649;
+  --blue: #5b8dd9;
+  --red: #e05555;
+  --shadow: 0 4px 24px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg0);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.syne { font-family: 'Syne', sans-serif; }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* === TOPBAR === */
+.topbar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--line);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 24px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: .04em;
+  color: var(--ink);
+}
+.logo span { color: var(--accent); }
+.topbar-nav { display: flex; gap: 4px; margin-left: auto; }
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--ink3);
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-btn:hover, .nav-btn.active { background: var(--bg3); color: var(--ink); }
+.nav-btn.active { color: var(--accent); }
+.user-chip {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  border-radius: 100px;
+  padding: 4px 12px 4px 8px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink2);
+}
+.user-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.user-dot.pending { background: var(--gold); }
+.logout-btn {
+  background: none; border: none;
+  color: var(--ink3); font-size: 12px;
+  cursor: pointer; padding: 4px 8px;
+  font-family: 'DM Mono', monospace;
+  transition: color .15s;
+}
+.logout-btn:hover { color: var(--accent); }
+
+/* === PAGES === */
+.page { display: none; max-width: 900px; margin: 0 auto; padding: 48px 32px; }
+.page.active { display: block; }
+
+/* === AUTH PAGE === */
+.auth-wrap {
+  max-width: 420px; margin: 80px auto;
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 40px;
+}
+.auth-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 28px;
+  margin-bottom: 8px;
+}
+.auth-logo span { color: var(--accent); }
+.auth-sub { color: var(--ink3); font-size: 14px; margin-bottom: 32px; }
+.tab-row { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
+.tab {
+  background: none; border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--ink3); padding: 10px 20px;
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all .15s;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink3); margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px; color: var(--ink);
+  outline: none; transition: border-color .15s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--ink3); }
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  border: none; border-radius: 4px;
+  padding: 13px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: .04em;
+  color: #fff; cursor: pointer;
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--accent2); }
+.btn-primary:disabled { background: var(--bg3); color: var(--ink3); cursor: not-allowed; }
+
+.auth-msg { text-align: center; margin-top: 16px; font-size: 13px; }
+.auth-msg.ok { color: var(--green); }
+.auth-msg.err { color: var(--red); }
+
+/* === DASHBOARD === */
+.page-head { margin-bottom: 40px; }
+.page-head h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 32px;
+  letter-spacing: -.01em; margin-bottom: 6px;
+}
+.page-head p { color: var(--ink2); font-size: 15px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 6px; padding: 20px;
+}
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink3); margin-bottom: 8px;
+}
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800;
+  color: var(--ink); line-height: 1;
+}
+.stat-val.green { color: var(--green); }
+.stat-val.gold { color: var(--gold); }
+.stat-val.red { color: var(--red); }
+
+/* === SUBMIT FORM === */
+.submit-card {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 8px; padding: 32px;
+  margin-bottom: 24px;
+}
+.submit-card h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 18px;
+  margin-bottom: 20px; letter-spacing: -.01em;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-hint { font-size: 12px; color: var(--ink3); margin-top: 6px; }
+
+.intent-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.intent-chip {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: 4px; padding: 8px 16px;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--ink2); cursor: pointer; transition: all .15s;
+}
+.intent-chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.textarea {
+  width: 100%; min-height: 280px;
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: 4px; padding: 14px;
+  font-family: 'Lora', serif; font-size: 14px;
+  color: var(--ink); resize: vertical; outline: none;
+  transition: border-color .15s; line-height: 1.65;
+}
+.textarea:focus { border-color: var(--accent); }
+.textarea::placeholder { color: var(--ink3); }
+
+.word-counter { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 6px; }
+
+.limit-bar {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+  font-family: 'DM Mono', monospace; font-size: 13px;
+}
+.limit-dots { display: flex; gap: 6px; }
+.limit-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); transition: background .2s; }
+.limit-dot.used { background: var(--bg3); }
+.limit-text { color: var(--ink2); }
+.limit-reset { margin-left: auto; color: var(--ink3); font-size: 11px; }
+
+/* === RESULT PANEL === */
+.result-panel {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 8px; overflow: hidden;
+  margin-top: 24px;
+}
+.result-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--line);
+  padding: 20px 28px;
+  display: flex; align-items: center; gap: 16px;
+}
+.score-big {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 48px; line-height: 1;
+}
+.score-big.pass { color: var(--green); }
+.score-big.fail { color: var(--red); }
+.score-big.mid { color: var(--gold); }
+.score-meta { flex: 1; }
+.score-status {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 16px;
+  margin-bottom: 4px;
+}
+.score-desc { color: var(--ink2); font-size: 13px; }
+
+.result-body { padding: 28px; }
+
+.tier-results { margin-bottom: 28px; }
+.tier-result {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.tier-result:last-child { border-bottom: none; }
+.tier-result-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
+.tier-progress { flex: 2; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.tier-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.tier-score-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); width: 60px; text-align: right; }
+
+.fixes-title {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.fix-card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px; padding: 16px 20px; margin-bottom: 12px;
+}
+.fix-card.ok { border-left-color: var(--green); }
+.fix-header {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
+}
+.fix-num {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--accent); font-weight: 500;
+}
+.fix-card.ok .fix-num { color: var(--green); }
+.fix-crit-id {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  background: var(--bg0); padding: 2px 7px; border-radius: 3px;
+  color: var(--ink3);
+}
+.fix-issue { color: var(--ink2); font-size: 13px; margin-bottom: 6px; }
+.fix-suggestion { color: var(--ink); font-size: 14px; font-style: italic; }
+
+/* === HISTORY TABLE === */
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th {
+  text-align: left; padding: 10px 14px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  font-weight: 500; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink3);
+  border-bottom: 1px solid var(--line);
+}
+.history-table td {
+  padding: 14px; border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.history-table tr:last-child td { border-bottom: none; }
+.score-pill {
+  display: inline-block;
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
+  padding: 3px 10px; border-radius: 100px;
+}
+.score-pill.pass { background: rgba(76,175,130,.15); color: var(--green); }
+.score-pill.fail { background: rgba(224,85,85,.12); color: var(--red); }
+.score-pill.mid { background: rgba(212,166,73,.12); color: var(--gold); }
+
+/* === ADMIN PANEL === */
+.admin-notice {
+  background: rgba(224,92,58,.1); border: 1px solid rgba(224,92,58,.3);
+  border-radius: 6px; padding: 14px 20px;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--accent); margin-bottom: 28px;
+}
+.user-list { display: grid; gap: 12px; }
+.user-row {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: 6px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.user-info { flex: 1; }
+.user-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; }
+.user-email { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); }
+.user-status {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 4px 10px; border-radius: 100px; font-weight: 500;
+}
+.status-active { background: rgba(76,175,130,.15); color: var(--green); }
+.status-pending { background: rgba(212,166,73,.15); color: var(--gold); }
+.user-actions { display: flex; gap: 8px; }
+
+.btn-sm {
+  font-family: 'Syne', sans-serif; font-size: 11px;
+  font-weight: 700; letter-spacing: .06em;
+  padding: 6px 14px; border-radius: 4px;
+  cursor: pointer; border: 1px solid; transition: all .15s;
+}
+.btn-approve { background: rgba(76,175,130,.1); border-color: var(--green); color: var(--green); }
+.btn-approve:hover { background: var(--green); color: var(--bg0); }
+.btn-danger { background: rgba(224,85,85,.1); border-color: var(--red); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-edit { background: rgba(91,141,217,.1); border-color: var(--blue); color: var(--blue); }
+.btn-edit:hover { background: var(--blue); color: #fff; }
+
+.config-section { margin-top: 36px; }
+.config-section h3 {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+  margin-bottom: 16px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.config-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.config-row:last-child { border-bottom: none; }
+.config-key { font-family: 'DM Mono', monospace; font-size: 13px; flex: 1; }
+.config-desc { color: var(--ink3); font-size: 12px; flex: 2; }
+.config-val {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: 4px; padding: 6px 10px;
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  color: var(--ink); width: 80px; text-align: center;
+  outline: none;
+}
+.config-val:focus { border-color: var(--accent); }
+.btn-save-config {
+  background: var(--accent); border: none; border-radius: 4px;
+  padding: 8px 20px; font-family: 'Syne', sans-serif;
+  font-size: 12px; font-weight: 700; color: #fff;
+  cursor: pointer; transition: background .15s;
+}
+.btn-save-config:hover { background: var(--accent2); }
+
+/* === API KEY CONFIG === */
+.api-section {
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: 6px; padding: 20px; margin-bottom: 20px;
+}
+.api-section h3 {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+  margin-bottom: 14px;
+}
+.api-row { display: flex; gap: 10px; }
+.api-row .form-input { flex: 1; }
+.btn-outline {
+  background: none; border: 1px solid var(--line2);
+  border-radius: 4px; padding: 10px 18px;
+  font-family: 'Syne', sans-serif; font-size: 12px;
+  font-weight: 700; color: var(--ink2); cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* === LOADER === */
+.loader-wrap {
+  text-align: center; padding: 60px 20px;
+}
+.loader {
+  display: inline-block; width: 40px; height: 40px;
+  border: 3px solid var(--bg3);
+  border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { color: var(--ink2); font-family: 'DM Mono', monospace; font-size: 13px; }
+
+.preflight-fail {
+  background: rgba(224,85,85,.08); border: 1px solid rgba(224,85,85,.3);
+  border-radius: 6px; padding: 20px; margin-top: 20px;
+}
+.preflight-fail h3 {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  color: var(--red); margin-bottom: 10px; font-size: 15px;
+}
+.preflight-fail ul { padding-left: 16px; color: var(--ink2); font-size: 13px; }
+.preflight-fail li { margin-bottom: 6px; }
+
+/* === RESPONSIVE === */
+@media (max-width: 720px) {
+  .topbar { padding: 0 16px; }
+  .page { padding: 32px 16px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.result-panel { animation: fadeIn .4s ease; }
+.fix-card { animation: fadeIn .3s ease backwards; }
+.fix-card:nth-child(1) { animation-delay: .05s; }
+.fix-card:nth-child(2) { animation-delay: .1s; }
+.fix-card:nth-child(3) { animation-delay: .15s; }
+.fix-card:nth-child(4) { animation-delay: .2s; }
+.fix-card:nth-child(5) { animation-delay: .25s; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar" style="display:none">
+  <div class="logo">TPI<span>.</span>SCORER</div>
+  <nav class="topbar-nav" id="topbar-nav"></nav>
+  <div class="user-chip">
+    <div class="user-dot" id="user-dot"></div>
+    <span id="user-label" class="mono">—</span>
+  </div>
+  <button class="logout-btn" onclick="logout()">↩ Thoát</button>
+</header>
+
+<!-- AUTH PAGE -->
+<div id="page-auth">
+  <div class="auth-wrap">
+    <div class="auth-logo">TPI<span>.</span>SCORER</div>
+    <div class="auth-sub">Hệ thống chấm bài viết SEO/GEO · TPI Land</div>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('login')">Đăng nhập</button>
+      <button class="tab" onclick="switchTab('register')">Đăng ký</button>
+    </div>
+
+    <!-- Login -->
+    <div id="tab-login">
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập</label>
+        <input class="form-input mono" id="l-user" placeholder="username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu</label>
+        <input class="form-input mono" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-primary syne" onclick="doLogin()">Đăng nhập</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </div>
+
+    <!-- Register -->
+    <div id="tab-register" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Họ tên</label>
+        <input class="form-input" id="r-name" placeholder="Nguyễn Văn A">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập</label>
+        <input class="form-input mono" id="r-user" placeholder="nguyen.van.a">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mật khẩu</label>
+        <input class="form-input mono" id="r-pass" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary syne" onclick="doRegister()">Gửi đăng ký</button>
+      <div class="auth-msg" id="register-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="page-app" style="display:none">
+
+  <!-- SUBMIT PAGE -->
+  <div id="view-submit" class="page active">
+    <div class="page-head">
+      <h1 class="syne">Nộp bài chấm</h1>
+      <p id="welcome-text">—</p>
+    </div>
+
+    <!-- Limit bar -->
+    <div class="limit-bar" id="limit-bar">
+      <div class="limit-dots" id="limit-dots"></div>
+      <span class="limit-text" id="limit-text">—</span>
+      <span class="limit-reset" id="limit-reset"></span>
+    </div>
+
+    <!-- API Key notice -->
+    <div class="api-section" id="api-section">
+      <h3>🔑 Cấu hình API Key</h3>
+      <div class="api-row">
+        <input class="form-input mono" id="api-key-input" type="password" placeholder="sk-ant-api03-...">
+        <button class="btn-outline" onclick="saveApiKey()">Lưu</button>
+        <button class="btn-outline" onclick="testApiKey()">Test</button>
+      </div>
+      <div class="form-hint">API key lưu trong trình duyệt của bạn, không gửi đi đâu ngoài Anthropic.</div>
+      <div id="api-key-msg" style="margin-top:8px; font-size:13px;"></div>
+    </div>
+
+    <!-- Submit form -->
+    <div class="submit-card">
+      <h2 class="syne">Thông tin bài viết</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Từ khóa chính *</label>
+          <input class="form-input mono" id="f-keyword" placeholder="căn hộ vũng tàu view biển">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Main Entity *</label>
+          <input class="form-input" id="f-entity" placeholder="Căn hộ Blanca City">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ý định tìm kiếm (Search Intent) *</label>
+        <div class="intent-chips">
+          <div class="intent-chip selected" data-val="Know" onclick="selectIntent(this)">Know — Tìm hiểu</div>
+          <div class="intent-chip" data-val="Do" onclick="selectIntent(this)">Do — Hành động</div>
+          <div class="intent-chip" data-val="Hybrid" onclick="selectIntent(this)">Hybrid — Hỗn hợp</div>
+          <div class="intent-chip" data-val="Go" onclick="selectIntent(this)">Go — Điều hướng</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nội dung bài viết * <span style="color:var(--ink3);font-size:11px;">(paste HTML từ Google Docs hoặc text thuần)</span></label>
+        <textarea class="textarea" id="f-content" placeholder="Dán nội dung bài viết vào đây... Hệ thống tự nhận diện heading (## cho H2, ### cho H3) hoặc HTML tags." oninput="updateWordCount()"></textarea>
+        <div class="word-counter"><span id="word-count">0</span> từ</div>
+      </div>
+      <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
+        Chấm bài →
+      </button>
+    </div>
+
+    <!-- Preflight fail -->
+    <div id="preflight-result" style="display:none"></div>
+
+    <!-- Result -->
+    <div id="result-wrap" style="display:none"></div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="view-history" class="page">
+    <div class="page-head">
+      <h1 class="syne">Lịch sử chấm bài</h1>
+      <p>Các bài viết đã nộp và điểm số tương ứng.</p>
+    </div>
+    <div id="history-content"></div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div id="view-admin" class="page">
+    <div class="page-head">
+      <h1 class="syne">Quản lý Admin</h1>
+      <p>Duyệt tài khoản, cấu hình hệ thống.</p>
+    </div>
+    <div class="admin-notice mono">⚡ Admin mode — Jimmy T7 · TPI Land</div>
+
+    <div class="config-section">
+      <h3 class="syne">Cấu hình hệ thống</h3>
+      <div class="config-row">
+        <span class="config-key mono">daily_limit</span>
+        <span class="config-desc">Giới hạn bài/ngày cho user thường</span>
+        <input class="config-val mono" id="cfg-daily" type="number" min="1" max="50" value="5">
+      </div>
+      <div class="config-row">
+        <span class="config-key mono">pass_score</span>
+        <span class="config-desc">Điểm tối thiểu để PASS</span>
+        <input class="config-val mono" id="cfg-pass" type="number" min="50" max="90" value="70">
+      </div>
+      <div class="config-row">
+        <span class="config-key mono">skip_llm_threshold</span>
+        <span class="config-desc">Điểm rule &lt; threshold → skip LLM tier 3+4 (tiết kiệm token)</span>
+        <input class="config-val mono" id="cfg-skip" type="number" min="0" max="55" value="30">
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn-save-config syne" onclick="saveConfig()">Lưu cấu hình</button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 class="syne">Danh sách tài khoản</h3>
+      <div class="user-list" id="user-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// FUNCTION INDEX — tìm nhanh bằng Ctrl+F tên nhóm
+// ============================================================
+// STORE:    DB.get, DB.set | initDB
+// AUTH:     hashPass | switchTab | doLogin | doRegister
+//           logout | checkSession | enterApp
+// NAV:      renderTopbar | showView
+// LIMIT:    getTodayKey | getDailyCount | incrementDaily | renderLimitBar
+// API KEY:  loadApiKey | saveApiKey | testApiKey
+// PARSE:    parseArticle
+// SCORING:  scoreRules (rule, free)
+//           runPreflight (5 checks)
+//           callClaude (raw API wrapper)
+//           scoreLLMSimple (Haiku — 8 tiêu chí S1S2S5P1R1R3R5R6)
+//           scoreLLMComplex (Sonnet — 6 tiêu chí R2R4I1I2I3I4 + top5)
+//           submitArticle (orchestrator chính)
+//           generateRuleFixes (fallback khi skip LLM)
+// RENDER:   renderResult | renderHistory
+// ADMIN:    loadConfig | saveConfig | renderAdmin
+//           approveUser | setLimit | removeUser
+// UTILS:    selectIntent | updateWordCount
+// BOOT:     DOMContentLoaded → checkSession
+// ============================================================
+
+// ============================================================
+// DATA STORE (localStorage)
+// ============================================================
+const DB = {
+  get(k, def) {
+    try { const v = localStorage.getItem('tpi_' + k); return v ? JSON.parse(v) : def; } catch { return def; }
+  },
+  set(k, v) { localStorage.setItem('tpi_' + k, JSON.stringify(v)); },
+};
+
+// SEED: admin account
+function initDB() {
+  if (!DB.get('users', null)) {
+    DB.set('users', {
+      admin: { name: 'Jimmy T7', pass: hashPass('admin2024'), role: 'admin', status: 'active', dailyLimit: 999, submissions: [] }
+    });
+  }
+  if (!DB.get('config', null)) {
+    DB.set('config', { daily_limit: 5, pass_score: 70, skip_llm_threshold: 30 });
+  }
+  if (!DB.get('submissions', null)) DB.set('submissions', []);
+}
+
+function hashPass(p) {
+  // Simple hash for demo — in production use bcrypt server-side
+  let h = 0;
+  for (let i = 0; i < p.length; i++) h = (Math.imul(31, h) + p.charCodeAt(i)) | 0;
+  return h.toString(36);
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let selectedIntent = 'Know';
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (tab==='login')));
+  document.getElementById('tab-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
+}
+
+function doLogin() {
+  const username = document.getElementById('l-user').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  const msg = document.getElementById('login-msg');
+  const users = DB.get('users', {});
+
+  if (!username || !pass) { msg.className = 'auth-msg err'; msg.textContent = 'Vui lòng điền đầy đủ.'; return; }
+
+  const user = users[username];
+  if (!user || user.pass !== hashPass(pass)) {
+    msg.className = 'auth-msg err'; msg.textContent = 'Sai tên đăng nhập hoặc mật khẩu.'; return;
+  }
+  if (user.status === 'pending') {
+    msg.className = 'auth-msg err'; msg.textContent = 'Tài khoản đang chờ admin duyệt. Vui lòng liên hệ Jimmy T7.'; return;
+  }
+
+  currentUser = { username, ...user };
+  DB.set('session', username);
+  enterApp();
+}
+
+function doRegister() {
+  const name = document.getElementById('r-name').value.trim();
+  const username = document.getElementById('r-user').value.trim();
+  const pass = document.getElementById('r-pass').value;
+  const msg = document.getElementById('register-msg');
+
+  if (!name || !username || !pass) { msg.className = 'auth-msg err'; msg.textContent = 'Vui lòng điền đầy đủ.'; return; }
+  if (pass.length < 6) { msg.className = 'auth-msg err'; msg.textContent = 'Mật khẩu ít nhất 6 ký tự.'; return; }
+
+  const users = DB.get('users', {});
+  if (users[username]) { msg.className = 'auth-msg err'; msg.textContent = 'Tên đăng nhập đã tồn tại.'; return; }
+
+  users[username] = {
+    name, pass: hashPass(pass), role: 'user',
+    status: 'pending',
+    dailyLimit: DB.get('config', {}).daily_limit || 5,
+    submissions: []
+  };
+  DB.set('users', users);
+  msg.className = 'auth-msg ok';
+  msg.textContent = '✓ Đã gửi đăng ký! Admin sẽ duyệt và thông báo cho bạn.';
+}
+
+function logout() {
+  currentUser = null;
+  DB.set('session', null);
+  document.getElementById('page-auth').style.display = '';
+  document.getElementById('page-app').style.display = 'none';
+  document.getElementById('topbar').style.display = 'none';
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  document.getElementById('login-msg').textContent = '';
+}
+
+function checkSession() {
+  initDB();
+  const saved = DB.get('session', null);
+  if (saved) {
+    const users = DB.get('users', {});
+    if (users[saved] && users[saved].status === 'active') {
+      currentUser = { username: saved, ...users[saved] };
+      enterApp();
+      return;
+    }
+  }
+  document.getElementById('page-auth').style.display = '';
+}
+
+function enterApp() {
+  document.getElementById('page-auth').style.display = 'none';
+  document.getElementById('page-app').style.display = '';
+  document.getElementById('topbar').style.display = '';
+  renderTopbar();
+  showView('submit');
+  renderLimitBar();
+  loadApiKey();
+  loadConfig();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function renderTopbar() {
+  const nav = document.getElementById('topbar-nav');
+  const isAdmin = currentUser.role === 'admin';
+  const views = [
+    { id: 'submit', label: 'Nộp bài' },
+    { id: 'history', label: 'Lịch sử' },
+    ...(isAdmin ? [{ id: 'admin', label: '⚙ Admin' }] : [])
+  ];
+  nav.innerHTML = views.map(v =>
+    `<button class="nav-btn syne" id="nav-${v.id}" onclick="showView('${v.id}')">${v.label}</button>`
+  ).join('');
+
+  document.getElementById('user-label').textContent = currentUser.name;
+  const dot = document.getElementById('user-dot');
+  dot.className = 'user-dot' + (currentUser.role === 'admin' ? '' : '');
+  document.getElementById('welcome-text').textContent =
+    `Xin chào, ${currentUser.name}. Mỗi ngày bạn có thể nộp tối đa ${currentUser.dailyLimit} bài.`;
+}
+
+function showView(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('nav-' + id);
+  if (btn) btn.classList.add('active');
+
+  if (id === 'history') renderHistory();
+  if (id === 'admin') renderAdmin();
+}
+
+// ============================================================
+// LIMIT BAR
+// ============================================================
+function getTodayKey() { return new Date().toISOString().slice(0, 10); }
+
+function getDailyCount() {
+  const key = 'daily_' + currentUser.username + '_' + getTodayKey();
+  return DB.get(key, 0);
+}
+
+function incrementDaily() {
+  const key = 'daily_' + currentUser.username + '_' + getTodayKey();
+  DB.set(key, getDailyCount() + 1);
+}
+
+function renderLimitBar() {
+  const limit = currentUser.dailyLimit;
+  const used = getDailyCount();
+  const left = Math.max(0, limit - used);
+
+  const dots = document.getElementById('limit-dots');
+  dots.innerHTML = Array.from({ length: limit }, (_, i) =>
+    `<div class="limit-dot${i < used ? ' used' : ''}"></div>`
+  ).join('');
+
+  document.getElementById('limit-text').textContent =
+    left > 0 ? `Còn ${left}/${limit} lượt hôm nay` : `Đã dùng hết ${limit}/${limit} lượt hôm nay`;
+  document.getElementById('limit-reset').textContent = 'Reset lúc 00:00';
+
+  const btn = document.getElementById('submit-btn');
+  if (left === 0) {
+    btn.disabled = true;
+    btn.textContent = 'Hết lượt hôm nay';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Chấm bài →';
+  }
+}
+
+// ============================================================
+// API KEY
+// ============================================================
+function loadApiKey() {
+  const key = DB.get('apikey_' + currentUser.username, '');
+  if (key) {
+    document.getElementById('api-key-input').value = key;
+    document.getElementById('api-section').style.borderColor = 'var(--green)';
+  }
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const msg = document.getElementById('api-key-msg');
+  if (!key.startsWith('sk-ant-')) {
+    msg.style.color = 'var(--red)'; msg.textContent = 'API key phải bắt đầu bằng sk-ant-'; return;
+  }
+  DB.set('apikey_' + currentUser.username, key);
+  msg.style.color = 'var(--green)'; msg.textContent = '✓ Đã lưu API key.';
+}
+
+async function testApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const msg = document.getElementById('api-key-msg');
+  msg.style.color = 'var(--ink2)'; msg.textContent = 'Đang kiểm tra...';
+  try {
+    const res = await callClaude('Say "OK" in one word.', key, 'claude-haiku-4-5-20251001', 5);
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ API key hợp lệ! Model phản hồi: ' + res.slice(0, 40);
+  } catch (e) {
+    msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
+  }
+}
+
+// ============================================================
+// ARTICLE PARSING
+// ============================================================
+function parseArticle(raw) {
+  const text = raw.trim();
+  const words = text.split(/\s+/).filter(w => w.length > 0);
+  const wordCount = words.length;
+
+  // Parse headings — support Markdown ## or HTML <h2>
+  const headings = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
+    const mdMatch = line.match(/^(#{1,4})\s+(.+)/);
+    if (mdMatch) { headings.push({ level: mdMatch[1].length, text: mdMatch[2].trim() }); continue; }
+    const htmlMatch = line.match(/<h([1-4])[^>]*>(.*?)<\/h[1-4]>/i);
+    if (htmlMatch) { headings.push({ level: parseInt(htmlMatch[1]), text: htmlMatch[2].replace(/<[^>]+>/g, '').trim() }); }
+  }
+
+  const h1 = headings.filter(h => h.level === 1);
+  const h2 = headings.filter(h => h.level === 2);
+  const h3 = headings.filter(h => h.level === 3);
+
+  return { text, wordCount, headings, h1, h2, h3 };
+}
+
+// ============================================================
+// RULE-BASED SCORING (free, no API)
+// ============================================================
+function scoreRules(parsed, meta) {
+  const { text, wordCount, headings, h1, h2, h3 } = parsed;
+  const results = {};
+
+  // S3 — Heading Hierarchy
+  let s3 = 5;
+  headings.forEach((h, i) => {
+    if (h.level === 3) {
+      const parent = headings.slice(0, i).reverse().find(p => p.level < 3);
+      if (!parent || parent.level !== 2) s3 = Math.max(0, s3 - 1.5);
+    }
+  });
+  results.S3 = Math.round(s3 * 10) / 10;
+
+  // S4 — Contextual Coverage
+  const mainHeadings = headings.slice(0, 10);
+  const suppHeadings = headings.slice(10);
+  const mainH3 = mainHeadings.filter(h => h.level === 3).length;
+  const suppH3 = suppHeadings.filter(h => h.level === 3).length;
+  const totalH3 = mainH3 + suppH3;
+  const mainRatio = totalH3 > 0 ? mainH3 / totalH3 : 0;
+  results.S4 = mainRatio >= 0.6 ? 5 : mainRatio >= 0.4 ? 2 : 0;
+
+  // S6 — Supplement ratio (estimate: last 25% of text)
+  const suppWords = Math.round(wordCount * 0.25);
+  const suppLines = text.split('\n').slice(-Math.round(text.split('\n').length * 0.25)).join(' ');
+  const suppWordEst = suppLines.split(/\s+/).length;
+  const suppPct = suppWordEst / wordCount;
+  results.S6 = suppPct <= 0.25 ? 3 : suppPct <= 0.30 ? 1.5 : 0;
+
+  // P2 — Be Certain
+  const hesitantWords = ['có thể', 'có lẽ', 'tương đối', 'sẽ có thể', 'khả năng là', 'có vẻ'];
+  let p2Violations = 0;
+  hesitantWords.forEach(w => {
+    const regex = new RegExp(w, 'gi');
+    const matches = text.match(regex);
+    if (matches) p2Violations += matches.length;
+  });
+  results.P2 = Math.max(0, 5 - p2Violations * 0.5);
+
+  // P3 — Cụ thể vs Chung chung
+  const vagueWords = ['nhiều loại', 'đa dạng', 'rất nhiều', 'phong phú', 'khác nhau', 'rất tốt'];
+  let p3Violations = 0;
+  vagueWords.forEach(w => {
+    const idx = text.toLowerCase().indexOf(w);
+    if (idx !== -1) {
+      const after = text.slice(idx, idx + 80);
+      if (!/\d/.test(after)) p3Violations++;
+    }
+  });
+  results.P3 = Math.max(0, 4 - p3Violations * 0.5);
+
+  // P4 — Số liệu cụ thể
+  const numbers = text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|m²|m2|m\/s|km|tầng|căn|%|phút|giây|ngày|tháng|năm|VND|đồng|USD|ha|phòng|người)\b/gi);
+  const numDensity = (numbers ? numbers.length : 0) / (wordCount / 300);
+  results.P4 = numDensity >= 1 ? 4 : numDensity >= 0.5 ? 2 : 0;
+
+  // P5 — Heading viết hoa
+  let p5Bad = 0;
+  h2.concat(h3).forEach(h => {
+    const words = h.text.split(' ');
+    const shouldCap = words.filter(w => w.length >= 3);
+    const notCapped = shouldCap.filter(w => w[0] !== w[0].toUpperCase());
+    if (notCapped.length > 1) p5Bad++;
+  });
+  results.P5 = Math.max(0, 2 - p5Bad * 0.3);
+
+  // P6 — Internal link (estimate from text)
+  const internalLinks = (text.match(/\[.*?\]\(\/[^)]+\)/g) || []).length +
+                        (text.match(/href=["']\/[^"']+["']/g) || []).length;
+  const mainText = text.slice(0, Math.floor(text.length * 0.6));
+  const mainLinks = (mainText.match(/\[.*?\]\(\/[^)]+\)/g) || []).length;
+  results.P6 = mainLinks === 0 ? 2 : mainLinks <= 2 ? 1 : 0;
+
+  // P7 — No nested numbering
+  const nestedNum = /\d+\.\d+\.\d+/.test(text) || /\n\d+\.\d+\s/.test(text);
+  results.P7 = nestedNum ? 0 : 1;
+
+  // P8 — Sentence length
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  const longSents = sentences.filter(s => s.split(/\s+/).length > 40).length;
+  const longPct = longSents / Math.max(1, sentences.length);
+  results.P8 = longPct > 0.05 ? 0 : longPct > 0.02 ? 0.5 : 1;
+
+  const ruleTotal = Object.values(results).reduce((a, b) => a + b, 0);
+  return { scores: results, total: Math.round(ruleTotal * 10) / 10 };
+}
+
+// ============================================================
+// PREFLIGHT
+// ============================================================
+function runPreflight(parsed, meta) {
+  const fails = [];
+  if (parsed.h1.length === 0) fails.push('Bài viết không có H1. Thêm dòng # Tiêu đề chính ở đầu bài.');
+  if (parsed.h2.length < 3) fails.push(`Bài chỉ có ${parsed.h2.length} H2. Cần ít nhất 3 H2.`);
+  if (parsed.wordCount < 800) fails.push(`Bài có ${parsed.wordCount} từ, cần ít nhất 800 từ.`);
+  if (parsed.wordCount > 10000) fails.push(`Bài có ${parsed.wordCount} từ, vượt giới hạn 10.000 từ.`);
+
+  const h1text = parsed.h1[0]?.text.toLowerCase() || '';
+  const kw = meta.keyword.toLowerCase();
+  const entity = meta.entity.toLowerCase();
+  if (h1text && !h1text.includes(kw.split(' ')[0]) && !h1text.includes(entity.split(' ')[0])) {
+    fails.push('H1 không chứa keyword hoặc main entity. Macro Context có thể bị lệch.');
+  }
+  return fails;
+}
+
+// ============================================================
+// LLM SCORING
+// ============================================================
+async function callClaude(prompt, apiKey, model, maxTokens = 1000) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+const SYSTEM_SIMPLE = `Bạn là chuyên gia chấm bài viết SEO/GEO theo rubric TPI Land. Chỉ trả về JSON thuần, không markdown, không giải thích.`;
+
+async function scoreLLMSimple(parsed, meta, apiKey) {
+  const headingList = parsed.headings.slice(0, 15).map(h => `${'#'.repeat(h.level)} ${h.text}`).join('\n');
+  const preview = parsed.text.slice(0, 3000);
+
+  const prompt = `${SYSTEM_SIMPLE}
+
+Thông tin bài viết:
+- Keyword: ${meta.keyword}
+- Main Entity: ${meta.entity}
+- Intent: ${meta.intent}
+- Business model: real_estate_agency (TPI Land - môi giới BĐS Vũng Tàu)
+
+Heading (tối đa 15 đầu tiên):
+${headingList}
+
+Đoạn đầu bài (3000 ký tự):
+${preview}
+
+Chấm các tiêu chí sau (trả về JSON):
+{
+  "S1": <0-7, H2 có đúng chủ đề H1 không>,
+  "S2": <0-6, 9-10 heading đầu có liên quan keyword/entity không>,
+  "S5": <0-4, flow heading có logic định nghĩa→đặc điểm→lợi ích→hành động không>,
+  "P1": <0-6, câu đầu sau heading có trả lời thẳng không>,
+  "R1": <0-5, heading có liên quan mô hình agency BĐS không>,
+  "R3": <0-4, heading có khớp search intent của keyword không>,
+  "R5": <0-3, cuối bài có heading kết nối về dịch vụ TPI không>,
+  "R6": <0-2, heading đầu và cuối Main Content có kết nối ý nghĩa không>,
+  "reasons": {"S1":"lý do ngắn","S2":"lý do ngắn","S5":"lý do ngắn","P1":"lý do ngắn","R1":"lý do ngắn","R3":"lý do ngắn","R5":"lý do ngắn","R6":"lý do ngắn"}
+}`;
+
+  const raw = await callClaude(prompt, apiKey, 'claude-haiku-4-5-20251001', 700);
+  return JSON.parse(raw.replace(/```json|```/g, '').trim());
+}
+
+async function scoreLLMComplex(parsed, meta, apiKey) {
+  const preview = parsed.text.slice(0, 4000);
+  const prompt = `${SYSTEM_SIMPLE}
+
+Keyword: ${meta.keyword} | Entity: ${meta.entity} | Business: môi giới BĐS TPI Land
+
+Nội dung bài (4000 ký tự đầu):
+${preview}
+
+Chấm các tiêu chí sau và tạo top 5 fixes (JSON thuần):
+{
+  "R2": <0-5, bài có đủ Attribute thiết yếu của loại BĐS: vị trí/tiện ích/pháp lý/giá/chủ đầu tư không>,
+  "R4": <0-6, Attribute-Value có cụ thể (số liệu/danh sách) hay mơ hồ>,
+  "I1": <0 hoặc 3 hoặc 7, có data/case study độc quyền TPI không>,
+  "I2": <0-5, có góc nhìn phân tích riêng không>,
+  "I3": <0-5, tránh văn phong AI generic (0=nhiều AI-flavor, 5=hoàn toàn tự nhiên)>,
+  "I4": <0 hoặc 1.5 hoặc 3, số trích dẫn nguồn rõ ràng>,
+  "reasons": {"R2":"lý do","R4":"lý do","I1":"lý do","I2":"lý do","I3":"lý do","I4":"lý do"},
+  "top5_fixes": [
+    {"priority":1,"criterion_id":"XX","location":"vị trí cụ thể trong bài","issue":"vấn đề","fix":"cách sửa cụ thể"},
+    {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+    {"priority":3,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+    {"priority":4,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+    {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
+  ]
+}`;
+
+  const raw = await callClaude(prompt, apiKey, 'claude-sonnet-4-6', 900);
+  return JSON.parse(raw.replace(/```json|```/g, '').trim());
+}
+
+// ============================================================
+// MAIN SUBMIT
+// ============================================================
+async function submitArticle() {
+  const keyword = document.getElementById('f-keyword').value.trim();
+  const entity = document.getElementById('f-entity').value.trim();
+  const content = document.getElementById('f-content').value.trim();
+  const apiKey = DB.get('apikey_' + currentUser.username, '');
+
+  if (!keyword || !entity) { alert('Vui lòng điền Từ khóa và Main Entity.'); return; }
+  if (!content) { alert('Vui lòng dán nội dung bài viết.'); return; }
+  if (!apiKey) { alert('Vui lòng nhập và lưu API Key trước.'); return; }
+  if (getDailyCount() >= currentUser.dailyLimit) { alert('Bạn đã dùng hết lượt chấm hôm nay.'); return; }
+
+  const meta = { keyword, entity, intent: selectedIntent };
+  const parsed = parseArticle(content);
+
+  // Preflight
+  const fails = runPreflight(parsed, meta);
+  const pfDiv = document.getElementById('preflight-result');
+  if (fails.length > 0) {
+    pfDiv.style.display = '';
+    pfDiv.innerHTML = `<div class="preflight-fail">
+      <h3>⚠ Bài không đủ điều kiện chấm</h3>
+      <p style="color:var(--ink2);font-size:13px;margin-bottom:10px;">Vui lòng sửa các lỗi sau rồi nộp lại:</p>
+      <ul>${fails.map(f => `<li>${f}</li>`).join('')}</ul>
+    </div>`;
+    document.getElementById('result-wrap').style.display = 'none';
+    return;
+  }
+  pfDiv.style.display = 'none';
+
+  // Show loader
+  const resultWrap = document.getElementById('result-wrap');
+  resultWrap.style.display = '';
+  resultWrap.innerHTML = `<div class="loader-wrap">
+    <div class="loader"></div>
+    <div class="loader-text" id="loader-txt">Đang chấm rule-based...</div>
+  </div>`;
+
+  const setLoaderTxt = t => { const el = document.getElementById('loader-txt'); if (el) el.textContent = t; };
+
+  try {
+    // Step 1: Rule scoring (instant)
+    const { scores: ruleScores, total: ruleTotal } = scoreRules(parsed, meta);
+    setLoaderTxt('Chấm rule xong. Đang gọi LLM...');
+
+    const cfg = DB.get('config', { skip_llm_threshold: 30 });
+    let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {};
+
+    if (ruleTotal >= cfg.skip_llm_threshold) {
+      // Step 2: LLM simple (Haiku)
+      setLoaderTxt('Phân tích cấu trúc với AI (Haiku)...');
+      simpleScores = await scoreLLMSimple(parsed, meta, apiKey);
+      allReasons = { ...allReasons, ...simpleScores.reasons };
+
+      // Step 3: LLM complex (Sonnet)
+      setLoaderTxt('Phân tích chuyên sâu với AI (Sonnet)...');
+      complexScores = await scoreLLMComplex(parsed, meta, apiKey);
+      allReasons = { ...allReasons, ...complexScores.reasons };
+      top5 = complexScores.top5_fixes || [];
+    } else {
+      // Skip LLM tier 3+4 — generate basic fixes from rule scores
+      top5 = generateRuleFixes(ruleScores);
+    }
+
+    // Aggregate scores
+    const allScores = {
+      ...ruleScores,
+      S1: simpleScores.S1 || 0, S2: simpleScores.S2 || 0, S5: simpleScores.S5 || 0,
+      P1: simpleScores.P1 || 0, R1: simpleScores.R1 || 0, R3: simpleScores.R3 || 0,
+      R5: simpleScores.R5 || 0, R6: simpleScores.R6 || 0,
+      R2: complexScores.R2 || 0, R4: complexScores.R4 || 0,
+      I1: complexScores.I1 || 0, I2: complexScores.I2 || 0,
+      I3: complexScores.I3 || 0, I4: complexScores.I4 || 0
+    };
+
+    const tierBreakdown = [
+      { name: 'Cấu trúc & Ngữ cảnh', max: 30, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6 },
+      { name: 'Chất lượng đoạn', max: 25, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+allScores.P7+allScores.P8 },
+      { name: 'RPP & Entity', max: 25, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6 },
+      { name: 'Information Gain', max: 20, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4 }
+    ];
+    const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
+    const cfg2 = DB.get('config', { pass_score: 70 });
+    const passed = total >= cfg2.pass_score;
+    const llmUsed = ruleTotal >= cfg.skip_llm_threshold;
+
+    // Save submission
+    const submission = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      keyword, entity, intent: selectedIntent,
+      wordCount: parsed.wordCount,
+      total: Math.round(total),
+      passed,
+      tierBreakdown,
+      top5,
+      llmUsed,
+      submitter: currentUser.username
+    };
+    const subs = DB.get('submissions', []);
+    subs.unshift(submission);
+    DB.set('submissions', subs.slice(0, 200));
+    incrementDaily();
+    renderLimitBar();
+
+    // Render result
+    renderResult(resultWrap, submission, allReasons);
+
+  } catch (e) {
+    resultWrap.innerHTML = `<div class="preflight-fail">
+      <h3>✗ Lỗi khi chấm bài</h3>
+      <p style="color:var(--ink2);font-size:13px;">${e.message}</p>
+      <p style="color:var(--ink3);font-size:12px;margin-top:8px;">Kiểm tra API key và kết nối internet.</p>
+    </div>`;
+  }
+}
+
+function generateRuleFixes(ruleScores) {
+  const fixes = [];
+  const checks = [
+    { id: 'P2', label: 'Bỏ từ do dự', desc: 'Xóa "có thể", "có lẽ", "tương đối" trong các đoạn khẳng định.' },
+    { id: 'P3', label: 'Thêm số liệu', desc: 'Thay "nhiều loại căn hộ" bằng "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".' },
+    { id: 'P4', label: 'Tăng mật độ số liệu', desc: 'Thêm ít nhất 1 con số cụ thể mỗi 300 từ (giá, diện tích, tầng, %).' },
+    { id: 'S3', label: 'Sắp xếp H3 đúng chỗ', desc: 'H3 chỉ được đặt dưới H2. Không để H3 xuất hiện độc lập.' },
+    { id: 'P5', label: 'Viết hoa Heading', desc: 'Mỗi từ chính trong Heading phải viết hoa chữ cái đầu.' }
+  ];
+  checks.forEach((c, i) => {
+    if (ruleScores[c.id] < 3) {
+      fixes.push({ priority: i+1, criterion_id: c.id, location: 'Toàn bài', issue: c.label, fix: c.desc });
+    }
+  });
+  return fixes.slice(0, 5);
+}
+
+function renderResult(wrap, sub, reasons) {
+  const totalRnd = Math.round(sub.total * 10) / 10;
+  const cls = sub.total >= 80 ? 'pass' : sub.total >= 60 ? 'mid' : 'fail';
+  const statusText = sub.passed ? '✓ ĐẠT CHUẨN' : '✗ CHƯA ĐẠT';
+
+  const tierColors = ['#5b8dd9', '#d4a649', '#e05c3a', '#4caf82'];
+
+  wrap.innerHTML = `<div class="result-panel">
+    <div class="result-header">
+      <div class="score-big ${cls}">${totalRnd}</div>
+      <div class="score-meta">
+        <div class="score-status syne" style="color:var(--${cls === 'pass' ? 'green' : cls === 'mid' ? 'gold' : 'red'})">${statusText}</div>
+        <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)} ${sub.llmUsed ? '· AI chấm đầy đủ' : '· Rule-only (tiết kiệm token)'}</div>
+      </div>
+    </div>
+    <div class="result-body">
+      <div class="tier-results">
+        ${sub.tierBreakdown.map((t, i) => `
+          <div class="tier-result">
+            <span class="tier-result-name syne">${t.name}</span>
+            <div class="tier-progress">
+              <div class="tier-bar-fill" style="width:${(t.score/t.max*100).toFixed(0)}%;background:${tierColors[i]}"></div>
+            </div>
+            <span class="tier-score-num mono">${Math.round(t.score * 10)/10}/${t.max}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      ${sub.top5.length > 0 ? `
+      <div class="fixes-title syne">🛠 Top ${sub.top5.length} cần sửa ngay</div>
+      ${sub.top5.map(f => `
+        <div class="fix-card">
+          <div class="fix-header">
+            <span class="fix-num mono">#${f.priority}</span>
+            <span class="fix-crit-id mono">${f.criterion_id}</span>
+            <span style="color:var(--ink3);font-size:12px;">${f.location}</span>
+          </div>
+          <div class="fix-issue">${f.issue}</div>
+          <div class="fix-suggestion">→ ${f.fix}</div>
+        </div>
+      `).join('')}` : '<div style="color:var(--green);font-size:14px;">✓ Bài viết đạt chuẩn tốt, không có vấn đề lớn cần sửa.</div>'}
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function renderHistory() {
+  const subs = DB.get('submissions', [])
+    .filter(s => currentUser.role === 'admin' || s.submitter === currentUser.username);
+  const el = document.getElementById('history-content');
+  if (subs.length === 0) {
+    el.innerHTML = '<div style="color:var(--ink3);font-style:italic;padding:20px 0;">Chưa có bài nào được nộp.</div>';
+    return;
+  }
+  el.innerHTML = `<table class="history-table">
+    <thead><tr>
+      <th>Ngày</th><th>Keyword</th><th>Từ</th><th>Điểm</th><th>Kết quả</th>${currentUser.role === 'admin' ? '<th>User</th>' : ''}
+    </tr></thead>
+    <tbody>${subs.map(s => {
+      const cls = s.total >= 80 ? 'pass' : s.total >= 60 ? 'mid' : 'fail';
+      return `<tr>
+        <td class="mono" style="color:var(--ink3)">${s.date.slice(0,10)}</td>
+        <td>${s.keyword}</td>
+        <td class="mono">${s.wordCount}</td>
+        <td class="mono"><strong>${Math.round(s.total)}</strong></td>
+        <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
+        ${currentUser.role === 'admin' ? `<td class="mono" style="color:var(--ink3)">${s.submitter}</td>` : ''}
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function loadConfig() {
+  const cfg = DB.get('config', { daily_limit: 5, pass_score: 70, skip_llm_threshold: 30 });
+  document.getElementById('cfg-daily').value = cfg.daily_limit;
+  document.getElementById('cfg-pass').value = cfg.pass_score;
+  document.getElementById('cfg-skip').value = cfg.skip_llm_threshold;
+}
+
+function saveConfig() {
+  const cfg = {
+    daily_limit: parseInt(document.getElementById('cfg-daily').value),
+    pass_score: parseInt(document.getElementById('cfg-pass').value),
+    skip_llm_threshold: parseInt(document.getElementById('cfg-skip').value)
+  };
+  DB.set('config', cfg);
+  // Update all users' daily limit
+  const users = DB.get('users', {});
+  Object.keys(users).forEach(u => {
+    if (users[u].role !== 'admin') users[u].dailyLimit = cfg.daily_limit;
+  });
+  DB.set('users', users);
+  if (currentUser.role !== 'admin') currentUser.dailyLimit = cfg.daily_limit;
+  renderLimitBar();
+  alert('✓ Đã lưu cấu hình!');
+}
+
+function renderAdmin() {
+  const users = DB.get('users', {});
+  const el = document.getElementById('user-list');
+  el.innerHTML = Object.entries(users).map(([username, u]) => `
+    <div class="user-row">
+      <div class="user-info">
+        <div class="user-name syne">${u.name} <span style="color:var(--ink3);font-size:11px;">(${username})</span></div>
+        <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày</div>
+      </div>
+      <span class="user-status ${u.status === 'active' ? 'status-active' : 'status-pending'}">
+        ${u.status === 'active' ? 'Active' : 'Chờ duyệt'}
+      </span>
+      <div class="user-actions">
+        ${u.status === 'pending' ? `<button class="btn-sm btn-approve" onclick="approveUser('${username}')">Duyệt</button>` : ''}
+        ${username !== 'admin' ? `
+          <button class="btn-sm btn-edit" onclick="setLimit('${username}')">Giới hạn</button>
+          <button class="btn-sm btn-danger" onclick="removeUser('${username}')">Xóa</button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function approveUser(username) {
+  const users = DB.get('users', {});
+  if (users[username]) {
+    users[username].status = 'active';
+    DB.set('users', users);
+    renderAdmin();
+  }
+}
+
+function setLimit(username) {
+  const newLimit = prompt(`Giới hạn bài/ngày cho "${username}" (hiện tại: ${DB.get('users', {})[username]?.dailyLimit || 5}):`);
+  if (newLimit && !isNaN(newLimit)) {
+    const users = DB.get('users', {});
+    users[username].dailyLimit = parseInt(newLimit);
+    DB.set('users', users);
+    renderAdmin();
+    alert(`✓ Đã cập nhật giới hạn cho ${username}: ${newLimit} bài/ngày`);
+  }
+}
+
+function removeUser(username) {
+  if (!confirm(`Xóa tài khoản "${username}"?`)) return;
+  const users = DB.get('users', {});
+  delete users[username];
+  DB.set('users', users);
+  renderAdmin();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function selectIntent(el) {
+  document.querySelectorAll('.intent-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedIntent = el.dataset.val;
+}
+
+function updateWordCount() {
+  const text = document.getElementById('f-content').value;
+  const count = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById('word-count').textContent = count.toLocaleString('vi-VN');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+document.addEventListener('DOMContentLoaded', checkSession);
+document.addEventListener('keydown', e => {
+  if (e.isComposing || e.keyCode === 229) return;
+  if (e.key === 'Enter' && document.getElementById('page-auth').style.display !== 'none') {
+    if (document.getElementById('tab-login').style.display !== 'none') doLogin();
+  }
+});
+</script>
+</body>
+</html>

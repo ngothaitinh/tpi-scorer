@@ -1,0 +1,12 @@
+# Personal overrides (không commit)
+CLAUDE.local.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Không có node_modules vì không có build step

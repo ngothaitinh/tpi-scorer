@@ -1,0 +1,437 @@
+{
+  "metadata": {
+    "rubric_id": "tpi-v1",
+    "version": "1.0.0",
+    "name": "TPI Content Scoring Rubric",
+    "author": "Jimmy T7",
+    "organization": "TPI Land",
+    "industry_default": "real_estate_vietnam",
+    "language": "vi-VN",
+    "created_at": "2026-05-13",
+    "description": "Rubric chấm bài viết website tối ưu SEO/AEO/GEO cho công ty BĐS TPI Land. Tổng hợp từ framework GEO 9 tín hiệu IRC, 22 quy tắc viết content, và phân tách Main/Supplement Content. Toàn bộ điểm tối đa = 100.",
+    "max_score": 100,
+    "passing_score": 70
+  },
+
+  "input_schema": {
+    "required": [
+      "docs_url",
+      "submitter",
+      "target_keyword",
+      "main_entity",
+      "central_entity",
+      "target_intent"
+    ],
+    "optional": [
+      "site_business_model",
+      "notes"
+    ],
+    "fields": {
+      "docs_url": {
+        "type": "string",
+        "description": "Link Google Docs công khai (anyone with link)",
+        "example": "https://docs.google.com/document/d/abc123"
+      },
+      "submitter": {
+        "type": "string",
+        "description": "Tên người nộp bài",
+        "example": "Nguyen Van A"
+      },
+      "target_keyword": {
+        "type": "string",
+        "description": "Từ khóa chính bài viết nhắm tới",
+        "example": "căn hộ vũng tàu view biển"
+      },
+      "main_entity": {
+        "type": "string",
+        "description": "Thực thể chính của bài viết (Main Entity)",
+        "example": "Căn hộ Blanca City"
+      },
+      "central_entity": {
+        "type": "string",
+        "description": "Thực thể trung tâm của website (Central Entity) — mặc định cho TPI là dịch vụ môi giới BĐS",
+        "default": "Dịch vụ môi giới BĐS Vũng Tàu - TPI Land",
+        "example": "Dịch vụ môi giới BĐS Vũng Tàu - TPI Land"
+      },
+      "target_intent": {
+        "type": "enum",
+        "values": ["Know", "Do", "Go", "Hybrid"],
+        "description": "Ý định tìm kiếm chính của bài. Know=tìm hiểu, Do=hành động, Go=điều hướng, Hybrid=hỗn hợp",
+        "example": "Know"
+      },
+      "site_business_model": {
+        "type": "string",
+        "default": "real_estate_agency",
+        "description": "Mô hình kinh doanh của site. Default cho TPI là agency BĐS"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Ghi chú tùy chọn từ người nộp"
+      }
+    }
+  },
+
+  "preflight_checks": {
+    "description": "Kiểm tra sớm trước khi chấm điểm. Nếu fail thì trả về điểm 0 và không gọi LLM để tiết kiệm token.",
+    "checks": [
+      {
+        "id": "has_h1",
+        "rule": "Bài phải có ít nhất 1 H1",
+        "fail_message": "Bài viết không có H1 (Heading 1). Vui lòng cấu trúc lại bài viết với heading chuẩn trước khi nộp."
+      },
+      {
+        "id": "has_h2",
+        "rule": "Bài phải có ít nhất 3 H2",
+        "fail_message": "Bài viết có ít hơn 3 H2. Không đủ cấu trúc để chấm điểm."
+      },
+      {
+        "id": "min_word_count",
+        "rule": "word_count >= 800",
+        "fail_message": "Bài viết dưới 800 từ. Không đủ độ dài để áp dụng rubric SEO/GEO."
+      },
+      {
+        "id": "max_word_count",
+        "rule": "word_count <= 10000",
+        "fail_message": "Bài viết trên 10,000 từ. Vui lòng tách thành nhiều bài."
+      },
+      {
+        "id": "main_entity_in_h1",
+        "rule": "main_entity hoặc target_keyword phải xuất hiện trong H1",
+        "fail_message": "H1 không chứa Main Entity hoặc Target Keyword. Macro Context bị lệch ngay từ tiêu đề."
+      }
+    ]
+  },
+
+  "tiers": [
+    {
+      "tier_id": "tier_1_structure",
+      "name": "Cấu trúc & Ngữ cảnh",
+      "max_score": 30,
+      "scoring_method": "rule",
+      "description": "Chấm cấu trúc heading, Macro Context, Contextual Flow & Coverage. Hoàn toàn rule-based, không cần LLM.",
+      "criteria": [
+        {
+          "id": "S1",
+          "name": "Macro Context Alignment H1↔H2",
+          "weight": 7,
+          "description": "Các H2 phải đi đúng chủ đề H1, không lệch sang chủ đề khác. H2 cũng phải 'nhái tông giọng' H1 — H1 tích cực thì H2 cũng tích cực.",
+          "scoring_method": "llm",
+          "how_to_score": "Đưa H1 + toàn bộ H2 cho LLM. LLM trả về số H2 lệch chủ đề. Điểm = 7 * (1 - lệch/tổng).",
+          "good_example": "H1='Căn hộ Blanca City Vũng Tàu' → H2='Vị trí Blanca City', 'Tiện ích Blanca City', 'Giá bán Blanca City'",
+          "bad_example": "H1='Căn hộ Blanca City Vũng Tàu' → H2='Lịch sử ngành BĐS Việt Nam' (lệch hoàn toàn Macro Context)"
+        },
+        {
+          "id": "S2",
+          "name": "9-10 Heading đầu chất lượng",
+          "weight": 6,
+          "description": "9-10 heading đầu sau H1 phải chất lượng nhất, phản ánh đúng nội dung Title/H1. Đây là phần Google quét chính.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM đánh giá 10 heading đầu có liên quan trực tiếp đến main_entity và target_keyword không. Điểm theo tỷ lệ heading liên quan.",
+          "good_example": "10 heading đầu đều xoay quanh căn hộ Blanca City: định nghĩa, vị trí, tiện ích, giá, chính sách",
+          "bad_example": "Trong 10 heading đầu có heading 'Top 10 món ăn Vũng Tàu' — lạc đề"
+        },
+        {
+          "id": "S3",
+          "name": "Heading Hierarchy hợp lý",
+          "weight": 5,
+          "description": "H1 → H2 → H3 phải đúng cấp bậc. H3 đào sâu/mở rộng H2. Không nhảy cóc H1→H3. Không nhét H3 vào phần không quan trọng (FAQ, đo lường, công cụ phụ).",
+          "scoring_method": "rule",
+          "how_to_score": "Parse heading tree: -3đ nếu có H3 không có H2 cha. -2đ mỗi H3 nằm dưới H2 phụ trợ (Supplement). Tối thiểu 0đ.",
+          "good_example": "H2 'Tiện ích Blanca City' → H3 'Hồ bơi vô cực', H3 'Sân chơi trẻ em'",
+          "bad_example": "H2 'Câu hỏi thường gặp' → H3 'Blanca City có gần biển không?' (FAQ không nên dùng H3, làm loãng ngữ cảnh chính)"
+        },
+        {
+          "id": "S4",
+          "name": "Contextual Coverage tại Main Content",
+          "weight": 5,
+          "description": "Phần Main Content (9-10 heading đầu) phải có chiều sâu — có H3 đào sâu các Attribute quan trọng của Main Entity. Phần Supplement thì ngược lại, không nên quá sâu.",
+          "scoring_method": "rule",
+          "how_to_score": "Đếm số H3 trong Main Content vs Supplement Content. Main Content phải có >= 60% tổng H3. Điểm = 5 nếu đạt, 2 nếu 40-60%, 0 nếu <40%.",
+          "good_example": "Main Content có 12 H3 đào sâu tiện ích, vị trí, pháp lý. Supplement chỉ có 2 H3 FAQ.",
+          "bad_example": "Main Content chỉ có 2 H3, nhưng Supplement có 8 H3 về 'môi trường Vũng Tàu', 'lịch sử BĐS'"
+        },
+        {
+          "id": "S5",
+          "name": "Contextual Flow logic",
+          "weight": 4,
+          "description": "Thứ tự heading phải mượt mà: định nghĩa → cơ chế/đặc điểm → lợi ích → cách làm/cách mua. Không nhảy lung tung.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM đánh giá trình tự heading có đi theo logic Tổng quát → Cụ thể không. Trả về điểm 0-4.",
+          "good_example": "H2 'Blanca City là gì' → H2 'Vị trí' → H2 'Tiện ích' → H2 'Giá bán' → H2 'Cách đặt mua'",
+          "bad_example": "H2 'Cách đặt mua' (đầu bài) → H2 'Blanca City là gì' (cuối bài) — flow ngược"
+        },
+        {
+          "id": "S6",
+          "name": "Tỷ lệ Supplement Content",
+          "weight": 3,
+          "description": "Supplement Content (heading phụ trợ, FAQ, công cụ liên quan) không được vượt 25% số chữ. Vượt 25% bắt đầu trừ điểm, vượt 30% là 0 điểm.",
+          "scoring_method": "rule",
+          "how_to_score": "Tính % số chữ Supplement / tổng. <=25% = 3đ. 25-30% = 1.5đ. >30% = 0đ.",
+          "good_example": "Bài 3000 chữ, Supplement 600 chữ = 20%",
+          "bad_example": "Bài 3000 chữ, Supplement 1100 chữ = 36.7% — pha loãng Macro Context"
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_2_paragraph_quality",
+      "name": "Chất lượng từng đoạn",
+      "max_score": 25,
+      "scoring_method": "mixed",
+      "description": "Chấm chất lượng câu mở đầu, văn phong, ngôn từ. Phần lớn rule-based bằng regex.",
+      "criteria": [
+        {
+          "id": "P1",
+          "name": "Early Query Answer / No Delay",
+          "weight": 6,
+          "description": "Câu đầu tiên ngay sau heading phải trả lời thẳng vào câu hỏi/chủ đề của heading. Không vòng vo bối cảnh.",
+          "scoring_method": "llm",
+          "how_to_score": "Với mỗi H2/H3 dạng câu hỏi hoặc định nghĩa, LLM check câu đầu có trả lời thẳng không. Điểm = 6 * (số heading đạt / tổng heading).",
+          "good_example": "H2 'Blanca City là gì?' → 'Blanca City là tổ hợp căn hộ ven biển tại Vũng Tàu, do TPI Land phát triển từ 2024.'",
+          "bad_example": "H2 'Blanca City là gì?' → 'Trong bối cảnh thị trường BĐS Vũng Tàu phát triển sôi động, nhiều dự án mới ra đời... và Blanca City là một trong số đó.' (Delay)"
+        },
+        {
+          "id": "P2",
+          "name": "Be Certain — cấm từ do dự",
+          "weight": 5,
+          "description": "Không dùng 'có thể', 'có lẽ', 'tương đối', 'sẽ' trong các fact/định nghĩa/lợi ích. Khẳng định trực tiếp.",
+          "scoring_method": "rule",
+          "how_to_score": "Regex đếm số lần xuất hiện ['có thể', 'có lẽ', 'tương đối', 'khả năng', 'sẽ có thể'] trong văn bản (loại trừ trong ngoặc kép/trích dẫn). Mỗi lần = -0.5đ. Tối thiểu 0đ.",
+          "good_example": "'Blanca City có hồ bơi vô cực tầng 30.'",
+          "bad_example": "'Blanca City có thể có hồ bơi tầng 30 và có lẽ sẽ là tiện ích nổi bật.'"
+        },
+        {
+          "id": "P3",
+          "name": "Cụ thể vs Chung chung",
+          "weight": 4,
+          "description": "Phát hiện cụm từ chung chung không có liệt kê cụ thể đi kèm: 'nhiều', 'đa dạng', 'khác nhau', 'phong phú'. Phải kèm số liệu hoặc liệt kê cụ thể.",
+          "scoring_method": "rule",
+          "how_to_score": "Regex tìm ['nhiều', 'đa dạng', 'khác nhau', 'phong phú', 'rất tốt'] mà sau đó 50 ký tự không có số/danh sách. Mỗi vi phạm -0.5đ.",
+          "good_example": "'Blanca City có 5 loại căn: studio, 1PN, 2PN, 3PN, penthouse.'",
+          "bad_example": "'Blanca City có nhiều loại căn hộ đa dạng.'"
+        },
+        {
+          "id": "P4",
+          "name": "Số liệu cụ thể",
+          "weight": 4,
+          "description": "Bài phải có mật độ số liệu hợp lý: giá, diện tích, số tầng, thời gian, %, v.v. Tối thiểu 1 số liệu/300 chữ.",
+          "scoring_method": "rule",
+          "how_to_score": "Đếm số token là số (vd 30 tầng, 5 phút, 35tr/m2). Tính tỷ lệ: số_liệu / (word_count/300). Tỷ lệ >=1 = 4đ. 0.5-1 = 2đ. <0.5 = 0đ.",
+          "good_example": "'Blanca City cao 30 tầng, gồm 850 căn, giá từ 35 triệu/m², cách biển 200m.'",
+          "bad_example": "'Blanca City là một tòa cao tầng với nhiều căn hộ, vị trí gần biển, giá hợp lý.'"
+        },
+        {
+          "id": "P5",
+          "name": "Heading viết hoa đúng chuẩn",
+          "weight": 2,
+          "description": "Heading viết hoa chữ cái đầu mỗi từ chính (Title Case). Câu hỏi có dấu '?'.",
+          "scoring_method": "rule",
+          "how_to_score": "Check từng heading: chữ cái đầu mỗi từ chính (>=3 ký tự) phải viết hoa. -0.3đ mỗi heading sai.",
+          "good_example": "'Tiện Ích Nổi Bật Tại Blanca City'",
+          "bad_example": "'tiện ích nổi bật tại blanca city'"
+        },
+        {
+          "id": "P6",
+          "name": "Internal link đúng vị trí",
+          "weight": 2,
+          "description": "Internal link KHÔNG nên xuất hiện ở Main Content (9-10 heading đầu), chỉ nên ở Supplement Content. Tránh phân tán người đọc khỏi nội dung chính.",
+          "scoring_method": "rule",
+          "how_to_score": "Đếm internal link trong Main Content. 0 link = 2đ. 1-2 link = 1đ. >2 link = 0đ.",
+          "good_example": "Main Content không có link nào. Cuối bài có link trỏ về '/du-an/blanca-city/'",
+          "bad_example": "Mỗi đoạn trong Main Content có 1-2 internal link, làm người đọc click ra ngoài"
+        },
+        {
+          "id": "P7",
+          "name": "Không hệ thống số đếm nhiều cấp",
+          "weight": 1,
+          "description": "Không dùng đánh số kiểu 1.1, 1.1.2, 1.2.3.4. Dùng bullet point cho danh sách.",
+          "scoring_method": "rule",
+          "how_to_score": "Regex tìm pattern '\\d+\\.\\d+\\.\\d+' hoặc '\\d+\\.\\d+'. Có = 0đ. Không có = 1đ.",
+          "good_example": "Bullet: • Hồ bơi vô cực • Gym • Spa",
+          "bad_example": "1.1 Hồ bơi 1.1.1 Hồ bơi tầng trệt 1.1.2 Hồ bơi tầng 30"
+        },
+        {
+          "id": "P8",
+          "name": "Câu đầy đủ chủ vị, không câu cụt",
+          "weight": 1,
+          "description": "Không có câu cụt, không thiếu chủ ngữ/vị ngữ. Câu ngắn gọn, không câu trên 40 từ.",
+          "scoring_method": "rule",
+          "how_to_score": "Đếm câu >40 từ. >5% = 0đ. 2-5% = 0.5đ. <2% = 1đ.",
+          "good_example": "Câu 15-25 từ là lý tưởng",
+          "bad_example": "Câu 60+ từ liên tục, hoặc câu thiếu chủ ngữ"
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_3_rpp_entity",
+      "name": "RPP Scoring & Entity",
+      "max_score": 25,
+      "scoring_method": "llm",
+      "description": "Chấm theo bộ lọc RPP (Relevance/Prominence/Popularity) và mức độ phủ Entity-Attribute-Value. Cần LLM hiểu được business context.",
+      "criteria": [
+        {
+          "id": "R1",
+          "name": "RPP — Relevance (Độ liên quan business model)",
+          "weight": 5,
+          "description": "Các heading có liên quan đến mô hình kinh doanh của site (môi giới BĐS) không? Heading về 'công cụ AI tối ưu GEO' trên site BĐS = không liên quan.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM nhận business_model='real_estate_agency' + central_entity + danh sách heading. Đánh giá mỗi heading có Relevance 0-2 (0=không liên quan, 1=liên quan gián tiếp, 2=liên quan trực tiếp). Điểm trung bình normalize về thang 5.",
+          "good_example": "H2 'Chính sách thanh toán Blanca City' = Relevance 2 (trực tiếp dịch vụ môi giới)",
+          "bad_example": "H2 'Top 10 nhà hàng Vũng Tàu' trong bài về căn hộ = Relevance 0"
+        },
+        {
+          "id": "R2",
+          "name": "RPP — Prominence (Độ thiết yếu định nghĩa Entity)",
+          "weight": 5,
+          "description": "Heading có thiết yếu để định nghĩa Main Entity không? Bài về 'Căn hộ Blanca City' bắt buộc phải có vị trí, tiện ích, giá, pháp lý. Nếu thiếu một trong các Attribute thiết yếu = trừ điểm.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM kiểm tra bài có cover các Attribute thiết yếu của loại Entity (căn hộ/đất nền/biệt thự) không. Trả về số Attribute còn thiếu. Điểm = 5 * (1 - thiếu/tổng_thiết_yếu).",
+          "good_example": "Bài có đủ: Vị trí, Tiện ích, Pháp lý, Giá, Chính sách thanh toán, Chủ đầu tư",
+          "bad_example": "Bài chỉ có Vị trí và Giá — thiếu Pháp lý, Chủ đầu tư = mất Prominence"
+        },
+        {
+          "id": "R3",
+          "name": "RPP — Popularity (Phù hợp Search Intent)",
+          "weight": 4,
+          "description": "Heading có khớp với những gì người dùng thực sự tìm kiếm không? Ví dụ với từ khóa 'căn hộ vũng tàu view biển', heading về 'view biển' và 'vị trí gần biển' phải nổi bật trong Main Content.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM so sánh heading với target_keyword + target_intent. Đếm heading khớp intent trong Main Content. Điểm = 4 * tỷ lệ.",
+          "good_example": "Target 'căn hộ Vũng Tàu view biển' → có H2 'Tầm view biển từ căn hộ Blanca City'",
+          "bad_example": "Target 'căn hộ Vũng Tàu view biển' nhưng bài tập trung 'lịch sử khu vực Vũng Tàu'"
+        },
+        {
+          "id": "R4",
+          "name": "EAV Coverage (Entity-Attribute-Value)",
+          "weight": 6,
+          "description": "Mỗi Attribute của Main Entity phải có Value cụ thể, không bỏ trống. Ví dụ Attribute='Diện tích' → Value='35-120m²' (cụ thể), không phải 'đa dạng diện tích' (mơ hồ).",
+          "scoring_method": "llm",
+          "how_to_score": "LLM trích xuất các cặp Attribute-Value trong bài. Đếm Attribute có Value cụ thể (số/danh sách) vs Attribute có Value mơ hồ. Điểm = 6 * (cụ thể / tổng).",
+          "good_example": "Vị trí: Bãi Sau Vũng Tàu, cách biển 200m. Diện tích: 35-120m². Giá: 35-65 triệu/m².",
+          "bad_example": "Vị trí: gần biển. Diện tích: đa dạng. Giá: hợp lý."
+        },
+        {
+          "id": "R5",
+          "name": "Central Entity Alignment (cuối bài)",
+          "weight": 3,
+          "description": "Phần Supplement Content cuối bài nên có heading kết nối về Central Entity (dịch vụ môi giới BĐS TPI Land) để tạo conversion. Ví dụ 'Tư vấn mua Blanca City qua TPI Land'.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM kiểm tra Supplement Content có ít nhất 1 heading nối về dịch vụ TPI Land không. Có = 3đ. Không = 0đ.",
+          "good_example": "H2 cuối: 'Đăng ký nhận tư vấn Blanca City từ chuyên viên TPI Land'",
+          "bad_example": "Bài kết thúc bằng FAQ chung chung, không có CTA về dịch vụ TPI"
+        },
+        {
+          "id": "R6",
+          "name": "Heading đầu-cuối Main Content kết nối ngược (nâng cao)",
+          "weight": 2,
+          "description": "Tiêu chí nâng cao, không bắt buộc. Heading đầu và heading cuối của Main Content có thể kết nối bằng cách trái nghĩa hoặc bổ trợ. Ví dụ đầu='Lợi ích đầu tư Blanca City' ↔ cuối='Rủi ro cần lưu ý khi đầu tư'.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM đánh giá có kết nối ý đầu-cuối Main Content không. Có = 2đ. Không = 0đ. KHÔNG trừ điểm bài chuẩn nếu thiếu.",
+          "good_example": "H đầu Main: '5 lý do nên đầu tư Blanca City' ↔ H cuối Main: '3 điều cần cân nhắc trước khi xuống tiền'",
+          "bad_example": "Không có kết nối ngữ nghĩa giữa heading đầu và cuối Main Content (không trừ điểm)"
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_4_information_gain",
+      "name": "Information Gain & Unique Value",
+      "max_score": 20,
+      "scoring_method": "llm",
+      "description": "Chấm giá trị độc quyền và tính 'không phải AI xào nấu'. Đây là tầng quan trọng nhất trong kỷ nguyên AI Search.",
+      "criteria": [
+        {
+          "id": "I1",
+          "name": "Dữ liệu/Case study độc quyền",
+          "weight": 7,
+          "description": "Bài có dữ liệu/case study/insight độc quyền của TPI Land không? Ví dụ: 'Theo dữ liệu giao dịch TPI Q1/2026, 60% khách mua Blanca City là nhà đầu tư Hà Nội.'",
+          "scoring_method": "llm",
+          "how_to_score": "LLM tìm các đoạn có data/case study cụ thể của TPI hoặc nguồn riêng. Trả về 0 (không có), 3 (có 1-2 đoạn), 7 (có >=3 đoạn rõ ràng).",
+          "good_example": "'Theo dữ liệu TPI Land Q1/2026, giá Blanca City tăng 8% so với Q4/2025.'",
+          "bad_example": "'Theo nhiều chuyên gia, giá BĐS Vũng Tàu đang tăng.' (chung chung, không nguồn)"
+        },
+        {
+          "id": "I2",
+          "name": "Góc nhìn mới / quan điểm riêng",
+          "weight": 5,
+          "description": "Bài có góc nhìn/quan điểm phân tích riêng không, hay chỉ là tổng hợp thông tin có sẵn?",
+          "scoring_method": "llm",
+          "how_to_score": "LLM đánh giá bài có ít nhất 1 đoạn phân tích sâu/quan điểm riêng không. 0 (không) - 5 (có rõ).",
+          "good_example": "'Khác với nhận định phổ biến rằng căn hộ ven biển kém thanh khoản, dữ liệu TPI cho thấy...'",
+          "bad_example": "Bài chỉ liệt kê thông số dự án, không có phân tích nào của tác giả"
+        },
+        {
+          "id": "I3",
+          "name": "Tránh văn phong 'AI generic'",
+          "weight": 5,
+          "description": "Phát hiện văn phong AI xào nấu: câu mở đầu 'Trong bối cảnh ngày càng phát triển...', 'Không thể phủ nhận rằng...', 'Đóng vai trò quan trọng...'. Bài chuẩn TPI phải có giọng văn người thật.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM phát hiện các cụm AI-flavor. Đếm tỷ lệ. >5 cụm = 0đ. 3-5 = 2đ. 1-2 = 4đ. 0 = 5đ.",
+          "good_example": "'Blanca City có 3 lý do đáng đầu tư mà ít người để ý: ...'",
+          "bad_example": "'Trong bối cảnh thị trường BĐS Vũng Tàu ngày càng phát triển, không thể phủ nhận Blanca City đóng vai trò quan trọng...'"
+        },
+        {
+          "id": "I4",
+          "name": "Trích dẫn nguồn uy tín",
+          "weight": 3,
+          "description": "Bài có dẫn nguồn cho số liệu không? Ví dụ '(Nguồn: Báo cáo CBRE Q1/2026)' hoặc '(Theo cafef.vn)'.",
+          "scoring_method": "llm",
+          "how_to_score": "LLM đếm số trích dẫn nguồn rõ ràng. >=3 = 3đ. 1-2 = 1.5đ. 0 = 0đ.",
+          "good_example": "'Giá BĐS Vũng Tàu tăng 12% trong 2025 (Nguồn: CBRE Vietnam Market Report Q4/2025)'",
+          "bad_example": "'Giá BĐS Vũng Tàu tăng mạnh trong năm qua' (không nguồn)"
+        }
+      ]
+    }
+  ],
+
+  "output_schema": {
+    "description": "Format báo cáo trả về sau khi chấm",
+    "fields": {
+      "total_score": "number 0-100",
+      "passed": "boolean (total_score >= 70)",
+      "rubric_version": "string ('tpi-v1')",
+      "submitter": "string",
+      "docs_url": "string",
+      "scored_at": "ISO datetime",
+      "preflight": {
+        "passed": "boolean",
+        "failed_checks": "array of check_id"
+      },
+      "tier_scores": [
+        {
+          "tier_id": "string",
+          "score": "number",
+          "max_score": "number",
+          "criteria_scores": [
+            {
+              "criterion_id": "string",
+              "score": "number",
+              "max_weight": "number",
+              "reason": "string — giải thích ngắn vì sao điểm như vậy"
+            }
+          ]
+        }
+      ],
+      "top_5_fixes": {
+        "description": "5 sửa cụ thể, actionable, ưu tiên cao nhất. Đây là phần quan trọng nhất với người viết.",
+        "items": [
+          {
+            "priority": "number 1-5",
+            "criterion_id": "string",
+            "location": "string — vd 'H2 thứ 3: Tiện ích Blanca'",
+            "issue": "string",
+            "suggested_fix": "string"
+          }
+        ]
+      }
+    }
+  },
+
+  "scoring_notes": {
+    "language": "Toàn bộ chấm điểm bằng tiếng Việt. Mọi feedback cho người viết bằng tiếng Việt.",
+    "llm_temperature": 0.2,
+    "llm_model_recommendation": "claude-haiku-4-5 cho tier 1-2, claude-sonnet-4-6 cho tier 3-4",
+    "rubric_versioning": "Không sửa rubric tpi-v1 sau khi production. Mọi thay đổi tạo file mới: rubric.tpi-v2.json",
+    "cost_optimization": "Tier 1 & Tier 2 chấm rule-based và regex trước → nếu bài đã rớt preflight hoặc tier 1+2 < 30/55 thì skip LLM tier 3+4 để tiết kiệm token. Có thể cấu hình ngưỡng skip qua biến môi trường."
+  }
+}
