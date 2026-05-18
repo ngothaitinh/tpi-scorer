@@ -355,8 +355,40 @@ body {
   background: var(--bg0); padding: 2px 7px; border-radius: 3px;
   color: var(--ink3);
 }
-.fix-issue { color: var(--ink2); font-size: 13px; margin-bottom: 6px; }
-.fix-suggestion { color: var(--ink); font-size: 14px; font-style: italic; }
+.fix-issue { color: var(--ink2); font-size: 13px; margin-bottom: 8px; }
+.fix-location {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--gold); background: rgba(212,166,73,0.1);
+  padding: 2px 8px; border-radius: 3px; margin: 6px 0 8px;
+  display: inline-block;
+}
+.fix-suggestion {
+  color: var(--ink); font-size: 13px;
+  padding: 8px 12px; margin-top: 2px;
+  background: rgba(255,255,255,0.04);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+.fix-example {
+  font-size: 12px; color: var(--ink3); margin-top: 5px;
+  font-style: italic;
+}
+
+/* ── Tooltip ── */
+.tt { position: relative; cursor: help; display: inline-block; }
+.tt-box {
+  visibility: hidden; opacity: 0; pointer-events: none;
+  transition: opacity .15s, visibility .15s;
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  background: #161616; border: 1px solid var(--line);
+  color: var(--ink1); font-size: 12px; line-height: 1.65;
+  padding: 10px 14px; border-radius: 8px;
+  white-space: pre-line; min-width: 250px; max-width: 310px;
+  z-index: 9999; box-shadow: 0 6px 24px rgba(0,0,0,.7);
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 400;
+  text-align: left;
+}
+.tt:hover .tt-box { visibility: visible; opacity: 1; }
 .fix-sev-tag {
   font-size: 11px; font-weight: 600; padding: 2px 7px;
   border-radius: 3px; background: var(--bg3);
@@ -1464,6 +1496,34 @@ const CRITERION_MAX = {
   I1:7, I2:5, I3:5, I4:3
 };
 
+// Tooltip giải thích thuật ngữ — hiển thị khi hover vào criterion ID
+const CRITERION_TOOLTIPS = {
+  S1: `Macro Context Alignment (7đ)\nH1 và tất cả H2 phải cùng "câu chuyện" về một entity.\n\nTốt: H1 "Căn hộ Metropolis" → H2 có "Vị trí Metropolis", "Giá Metropolis"\nXấu: H2 toàn chủ đề chung như "Xu hướng BĐS 2024"`,
+  S2: `Heading chất lượng (6đ)\n9-10 heading đầu phải cụ thể, có từ khoá, gây tò mò.\n\nTốt: "3 Lý Do Chọn Tầng Cao Metropolis"\nXấu: "Giới Thiệu" hoặc "Thông Tin Thêm"`,
+  S3: `Heading Hierarchy (5đ)\nCấu trúc H1 > H2 > H3 không được nhảy cấp.\n\nLỗi phổ biến: Dùng H3 trong khi chưa có H2 trước đó`,
+  S4: `Contextual Coverage (5đ)\nH3 phải nằm chủ yếu trong Main Content (70% đầu bài).\n\nLỗi: Nhồi H3 vào phần CTA / danh sách cuối bài`,
+  S5: `Contextual Flow (4đ)\nCác section có logic dẫn dắt tự nhiên, bổ trợ nhau.\n\nVí dụ: Vị trí → Tiện ích → Pháp lý → Giá → CTA`,
+  S6: `Supplement ≤ 25% (3đ)\nNội dung mở rộng (FAQ, tips chung) tối đa 25% bài.\n\nBài 1000 từ → tối đa 250 từ là nội dung "phụ" không liên quan thẳng đến entity`,
+  P1: `Early Answer (6đ)\nCâu trả lời chính phải xuất hiện trong 150 từ đầu.\n\nQuery "giá Metropolis" → đoạn mở đầu phải có "từ X tỷ/căn"\nKhông được mở bài dông dài trước khi trả lời`,
+  P2: `Be Certain (5đ)\nTránh từ do dự: "có thể", "có lẽ", "tương đối", "dường như".\n\nTốt: "Giá 4,5 tỷ/căn 2PN"\nXấu: "Giá có thể khoảng 4-5 tỷ (tương đối)"`,
+  P3: `Cụ thể vs Chung chung (4đ)\nMỗi claim phải có số liệu hoặc ví dụ cụ thể đi kèm.\n\nXấu: "Tiện ích đẳng cấp, vị trí đắc địa"\nTốt: "Hồ bơi 1.500m², gym 500m², cách biển 300m"`,
+  P4: `Số liệu cụ thể (4đ)\n≥ 1 con số/300 từ: m², tỷ đồng, %, tầng, căn...\n\nVí dụ: "33 tầng, 500 căn, pháp lý sổ hồng lâu dài, giá từ 3,8 tỷ"`,
+  P5: `Heading viết hoa (2đ)\nChữ đầu mỗi từ chính trong heading phải viết hoa.\n\nTốt: "Tiện Ích Đẳng Cấp Tại Metropolis"\nXấu: "tiện ích đẳng cấp tại metropolis"`,
+  P6: `Internal Link đúng vị trí (2đ)\nLink nội bộ nằm trong main content, không nhồi ở footer.\n\nLỗi: Liệt kê 5 link cùng lúc ở đoạn cuối bài`,
+  P7: `Không đánh số lồng nhau (1đ)\nTránh hệ thống số kiểu 1.1.2, 2.3.1.\n\nXấu: "2.3.1 Tiện ích nội khu"\nTốt: H3 với tên rõ ràng "Tiện Ích Nội Khu"`,
+  P8: `Câu đầy đủ chủ vị (1đ)\nKhông dùng câu cụt kiểu gạch đầu dòng.\n\nXấu: "• Vị trí trung tâm. • Pháp lý rõ ràng."\nTốt: "Dự án tọa lạc ngay trung tâm Bãi Sau, Vũng Tàu."`,
+  R1: `RPP — Relevance (5đ)\nBài liên quan trực tiếp đến bán/tư vấn BĐS của TPI.\n\nLỗi: Bài "lịch sử Vũng Tàu" không dẫn đến hành động mua bán`,
+  R2: `RPP — Prominence (5đ)\nBài phải nêu đủ 5 thuộc tính thiết yếu của loại BĐS:\n① Vị trí  ② Tiện ích  ③ Pháp lý  ④ Giá  ⑤ Chủ đầu tư`,
+  R3: `RPP — Popularity (4đ)\nNội dung khớp đúng Search Intent của keyword.\n\nQuery "mua căn hộ Vũng Tàu" → bài tư vấn mua\nKhông phải bài lịch sử hay tổng quan chung`,
+  R4: `EAV Coverage (6đ)\nEntity-Attribute-Value: mỗi thuộc tính phải kèm giá trị cụ thể.\n\nXấu: "Giá hợp lý, tiện ích đầy đủ"\nTốt: "Từ 3,8 tỷ/căn 2PN · hồ bơi 1.500m² · sổ hồng lâu dài"`,
+  R5: `Central Entity & CTA (3đ)\n25% cuối bài phải có CTA liên kết về TPI Land.\n\nVí dụ: "Liên hệ TPI Land để nhận báo giá mới nhất: 0909..."`,
+  R6: `Heading đầu-cuối kết nối (2đ)\nH2 cuối bài gợi nhớ keyword/entity từ H1 — tạo vòng tròn.\n\nH1 "Metropolis Vũng Tàu" → H2 cuối "Sở Hữu Metropolis Qua TPI Land"`,
+  I1: `Data độc quyền TPI (7đ)\nBài có case study / số liệu riêng của TPI không có trên mạng.\n\nVí dụ: "TPI đã hỗ trợ 47 khách mua Metropolis trong Q1/2024, giá TB 4,2 tỷ"`,
+  I2: `Góc nhìn riêng (5đ)\nBài có nhận định / phân tích của chính TPI, không phải copy.\n\nXấu: Copy info từ website chủ đầu tư\nTốt: "Theo kinh nghiệm TPI, tầng 15-20 có view biển tốt nhất"`,
+  I3: `Tránh văn phong AI (5đ)\nKhông dùng cụm sáo rỗng thường thấy trong bài AI.\n\nCần tránh: "không thể phủ nhận", "đóng vai trò quan trọng",\n"giải pháp toàn diện", "đáp ứng mọi nhu cầu"`,
+  I4: `Trích dẫn nguồn uy tín (3đ)\nCó ≥ 1 nguồn: CBRE, Savills, JLL, VnExpress, báo cáo thị trường...\n\nVí dụ: "(Theo CBRE Q1/2024, BĐS Vũng Tàu tăng 8% so với cùng kỳ)"`,
+};
+
 function safeParseJSON(raw) {
   let s = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
   const start = s.indexOf('{'), end = s.lastIndexOf('}');
@@ -1544,17 +1604,23 @@ Keyword: ${meta.keyword} | Entity: ${meta.entity} | Business: môi giới BĐS T
 Nội dung bài (4000 ký tự đầu):
 ${preview}
 
-Chấm các tiêu chí sau và tạo top 5 fixes (JSON thuần):
+Chấm các tiêu chí sau và tạo top 5 fixes (JSON thuần).
+
+Quy tắc viết top5_fixes:
+- location: tên heading chứa lỗi (VD: "H2: Tiện Ích Nội Khu") hoặc "Đoạn mở đầu" / "Toàn bài". Phải cụ thể.
+- issue: 1 câu ngắn mô tả chính xác lỗi.
+- fix: đề xuất sửa rõ ràng. Nếu thiếu nội dung → viết 1-2 câu mẫu tiếng Việt làm ví dụ sau dấu xuống dòng "VD:".
+
 {
-  "R2": <0-5, bài có đủ Attribute thiết yếu của loại BĐS: vị trí/tiện ích/pháp lý/giá/chủ đầu tư không>,
-  "R4": <0-6, Attribute-Value có cụ thể (số liệu/danh sách) hay mơ hồ>,
-  "I1": <0 hoặc 3 hoặc 7, có data/case study độc quyền TPI không>,
-  "I2": <0-5, có góc nhìn phân tích riêng không>,
-  "I3": <0-5, tránh văn phong AI generic (0=nhiều AI-flavor, 5=hoàn toàn tự nhiên)>,
-  "I4": <0 hoặc 1.5 hoặc 3, số trích dẫn nguồn rõ ràng>,
-  "reasons": {"R2":"lý do","R4":"lý do","I1":"lý do","I2":"lý do","I3":"lý do","I4":"lý do"},
+  "R2": <0-5, bài có đủ 5 Attribute thiết yếu: vị trí/tiện ích/pháp lý/giá/chủ đầu tư không>,
+  "R4": <0-6, các Attribute-Value có số liệu/danh sách cụ thể hay mơ hồ chung chung>,
+  "I1": <0 hoặc 3 hoặc 7, có data/case study độc quyền của TPI không>,
+  "I2": <0-5, có góc nhìn phân tích riêng của TPI không>,
+  "I3": <0-5, tránh văn phong AI generic (0=rất nhiều cụm sáo, 5=hoàn toàn tự nhiên)>,
+  "I4": <0 hoặc 1.5 hoặc 3, số trích dẫn nguồn uy tín rõ ràng>,
+  "reasons": {"R2":"lý do ngắn","R4":"lý do ngắn","I1":"lý do ngắn","I2":"lý do ngắn","I3":"lý do ngắn","I4":"lý do ngắn"},
   "top5_fixes": [
-    {"priority":1,"criterion_id":"XX","location":"vị trí cụ thể trong bài","issue":"vấn đề","fix":"cách sửa cụ thể"},
+    {"priority":1,"criterion_id":"XX","location":"tên heading hoặc vị trí cụ thể","issue":"mô tả lỗi ngắn gọn","fix":"cách sửa + câu mẫu nếu thiếu nội dung"},
     {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
     {"priority":3,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
     {"priority":4,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
@@ -1738,16 +1804,21 @@ function renderResult(wrap, sub, reasons, allScores) {
   function renderFixCard(f) {
     const sev = getSev(f);
     const cname = CRITERION_NAMES[f.criterion_id] || f.criterion_id;
+    const tip = CRITERION_TOOLTIPS[f.criterion_id] || '';
     const borderColor = sev.label === 'Critical' ? 'var(--red)' : sev.label === 'Major' ? 'var(--gold)' : 'var(--green)';
+    // Tách ví dụ khỏi fix nếu có "VD:" hoặc "Ví dụ:" hoặc "→ ví dụ"
+    const fixParts = f.fix.split(/\n(?=VD:|Ví dụ:|→ ví dụ)/i);
+    const fixMain = fixParts[0].trim();
+    const fixExample = fixParts.slice(1).join('\n').trim();
     return `<div class="fix-card" style="border-left-color:${borderColor}">
       <div class="fix-header">
         <span class="fix-num mono">#${f.priority}</span>
-        <span class="fix-crit-id mono">${f.criterion_id}: ${cname}</span>
+        <span class="fix-crit-id mono"><span class="tt">${f.criterion_id}<span class="tt-box">${tip}</span></span>: ${cname}</span>
         <span class="fix-sev-tag sev-${sev.label.toLowerCase()}">${sev.tag} ${sev.label}</span>
-        <span style="color:var(--ink3);font-size:12px;margin-left:auto;">${f.location}</span>
       </div>
+      <div class="fix-location">📍 ${f.location || 'Toàn bài'}</div>
       <div class="fix-issue">${f.issue}</div>
-      <div class="fix-suggestion">→ ${f.fix}</div>
+      <div class="fix-suggestion">💡 ${fixMain}${fixExample ? `<div class="fix-example">${fixExample}</div>` : ''}</div>
     </div>`;
   }
 
