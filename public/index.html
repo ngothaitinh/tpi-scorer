@@ -677,17 +677,40 @@ body {
           <input class="form-input mono" id="f-keyword" placeholder="căn hộ vũng tàu view biển">
         </div>
         <div class="form-group">
-          <label class="form-label">Main Entity *</label>
+          <label class="form-label"><span class="tt">Main Entity<span class="tt-box">Entity (Thực thể chính)
+Nhân vật trung tâm của bài: tên dự án, thương hiệu, địa danh...
+
+Ví dụ: "Căn hộ Metropolis", "Vinhomes Ocean Park"
+Khác keyword: keyword là cụm tìm kiếm, entity là thứ bài nói về</span></span> *</label>
           <input class="form-input" id="f-entity" placeholder="Căn hộ Blanca City">
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Ý định tìm kiếm (Search Intent) *</label>
+        <label class="form-label">Ý định tìm kiếm (<span class="tt">Search Intent<span class="tt-box">Search Intent (Ý định tìm kiếm)
+Mục đích người dùng khi gõ keyword vào Google.
+
+Know — tìm hiểu thông tin
+Do — muốn hành động (mua, đặt lịch)
+Hybrid — vừa tìm hiểu vừa hành động
+Go — điều hướng đến trang/địa điểm cụ thể</span></span>) *</label>
         <div class="intent-chips">
-          <div class="intent-chip selected" data-val="Know" onclick="selectIntent(this)">Know — Tìm hiểu</div>
-          <div class="intent-chip" data-val="Do" onclick="selectIntent(this)">Do — Hành động</div>
-          <div class="intent-chip" data-val="Hybrid" onclick="selectIntent(this)">Hybrid — Hỗn hợp</div>
-          <div class="intent-chip" data-val="Go" onclick="selectIntent(this)">Go — Điều hướng</div>
+          <div class="intent-chip selected" data-val="Know" onclick="selectIntent(this)"><span class="tt">Know<span class="tt-box">Know Intent
+Người dùng muốn học/tìm hiểu, chưa có ý định mua.
+
+Ví dụ: "căn hộ vũng tàu là gì", "Metropolis bao nhiêu tầng"</span></span> — Tìm hiểu</div>
+          <div class="intent-chip" data-val="Do" onclick="selectIntent(this)"><span class="tt">Do<span class="tt-box">Do Intent
+Người dùng muốn thực hiện hành động cụ thể ngay.
+
+Ví dụ: "mua căn hộ vũng tàu", "đặt lịch xem nhà Metropolis"</span></span> — Hành động</div>
+          <div class="intent-chip" data-val="Hybrid" onclick="selectIntent(this)"><span class="tt">Hybrid<span class="tt-box">Hybrid Intent
+Vừa tìm hiểu vừa đang cân nhắc hành động.
+
+Ví dụ: "căn hộ Metropolis giá bao nhiêu"
+→ vừa hỏi giá vừa ngầm muốn mua</span></span> — Hỗn hợp</div>
+          <div class="intent-chip" data-val="Go" onclick="selectIntent(this)"><span class="tt">Go<span class="tt-box">Go / Navigational Intent
+Người dùng muốn đến trang/địa điểm cụ thể.
+
+Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> — Điều hướng</div>
         </div>
       </div>
       <div class="form-group">
@@ -1524,6 +1547,52 @@ const CRITERION_TOOLTIPS = {
   I4: `Trích dẫn nguồn uy tín (3đ)\nCó ≥ 1 nguồn: CBRE, Savills, JLL, VnExpress, báo cáo thị trường...\n\nVí dụ: "(Theo CBRE Q1/2024, BĐS Vũng Tàu tăng 8% so với cùng kỳ)"`,
 };
 
+// Tooltip cho thuật ngữ chuyên ngành ngoài criterion IDs
+const TERM_TOOLTIPS = {
+  'Main Entity':
+    `Entity (Thực thể chính)\nNhân vật trung tâm của bài: tên dự án, thương hiệu, địa danh...\n\nVí dụ: "Căn hộ Metropolis", "Vinhomes Ocean Park"\nKhác keyword: keyword là cụm tìm kiếm, entity là thứ bài nói về`,
+  'Search Intent':
+    `Search Intent (Ý định tìm kiếm)\nMục đích người dùng khi gõ keyword vào Google.\n\nKnow — tìm hiểu thông tin\nDo — muốn hành động (mua, đặt lịch)\nHybrid — vừa tìm hiểu vừa hành động\nGo — điều hướng đến trang/địa điểm cụ thể`,
+  'Know':
+    `Know Intent\nNgười dùng muốn học/tìm hiểu, chưa có ý định mua.\n\nVí dụ: "căn hộ vũng tàu là gì", "Metropolis bao nhiêu tầng"`,
+  'Do':
+    `Do Intent\nNgười dùng muốn thực hiện hành động cụ thể ngay.\n\nVí dụ: "mua căn hộ vũng tàu", "đặt lịch xem nhà Metropolis"`,
+  'Hybrid':
+    `Hybrid Intent\nVừa tìm hiểu vừa đang cân nhắc hành động.\n\nVí dụ: "căn hộ Metropolis giá bao nhiêu"\n→ vừa hỏi giá vừa ngầm muốn mua`,
+  'Go':
+    `Go / Navigational Intent\nNgười dùng muốn đến trang/địa điểm cụ thể.\n\nVí dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"`,
+  'RPP':
+    `RPP = Relevance · Prominence · Popularity\n3 tiêu chí Google dùng để xếp hạng entity trong Knowledge Graph.\n\nRelevance: bài có liên quan đến business không?\nProminence: bài có nêu đủ attributes thiết yếu không?\nPopularity: bài có khớp điều người hay tìm không?`,
+  'EAV':
+    `EAV = Entity · Attribute · Value\nCấu trúc dữ liệu Google dùng để hiểu bài viết.\n\nEntity: Metropolis Vũng Tàu\nAttribute: diện tích, giá, pháp lý...\nValue: 1.500m², từ 3,8 tỷ, sổ hồng lâu dài`,
+  'Preflight':
+    `Preflight Checks — 5 điều kiện bắt buộc\nBài phải pass hết 5 điều kiện này trước khi được chấm.\n\n① Có ít nhất 1 H1\n② Có ít nhất 3 H2\n③ Từ 800 từ trở lên\n④ Không quá 10.000 từ\n⑤ H1 phải chứa keyword hoặc main entity`,
+  'Information Gain':
+    `Information Gain — Tầng 4 (20đ)\nNhững gì bài cung cấp mà Google / AI chưa có sẵn.\n\nI1 — data độc quyền TPI\nI2 — góc nhìn phân tích riêng\nI3 — văn phong tự nhiên (không AI)\nI4 — trích dẫn nguồn uy tín`,
+  'T1':
+    `Tầng 1 — Cấu trúc & Ngữ cảnh (30đ)\n6 tiêu chí: S1 S2 S3 S4 S5 S6\n\nĐánh giá heading structure, macro context alignment\nvà tỷ lệ nội dung supplement`,
+  'T2':
+    `Tầng 2 — Chất lượng đoạn (25đ)\n8 tiêu chí: P1 P2 P3 P4 P5 P6 P7 P8\n\nĐánh giá độ cụ thể, số liệu, early answer,\nvà câu từ rõ ràng`,
+  'T3':
+    `Tầng 3 — RPP & Entity (25đ)\n6 tiêu chí: R1 R2 R3 R4 R5 R6\n\nĐánh giá relevance, prominence, popularity\nvà EAV coverage theo framework Google Knowledge Graph`,
+  'T4':
+    `Tầng 4 — Information Gain (20đ)\n4 tiêu chí: I1 I2 I3 I4\n\nĐánh giá tính độc quyền, góc nhìn riêng\nvà bằng chứng bài không phải AI generic`,
+  'GEO':
+    `GEO — Generative Engine Optimization\nTối ưu nội dung để AI (ChatGPT, Gemini, Perplexity) trích dẫn bài.\n\nKhác SEO: SEO tối ưu cho Google Search ranking,\nGEO tối ưu để được AI mention khi trả lời câu hỏi`,
+  'SEO':
+    `SEO — Search Engine Optimization\nTối ưu nội dung để xếp hạng cao trên Google Search.\n\nBộ tiêu chí TPI kết hợp cả SEO + GEO:\nHeading structure (SEO) + Entity/EAV (GEO)`,
+  'H1': `H1 — Heading cấp 1\nTiêu đề chính của bài, thường là tên dự án hoặc từ khoá chính.\n\nMỗi bài chỉ nên có 1 H1. Bắt buộc chứa keyword hoặc entity.`,
+  'H2': `H2 — Heading cấp 2\nCác mục chính của bài, chia bài thành sections.\n\nBài cần ít nhất 3 H2. H2 cần cụ thể, chứa từ khoá liên quan.`,
+  'H3': `H3 — Heading cấp 3\nMục con dưới H2, đi sâu vào chi tiết.\n\nH3 phải nằm trong Main Content (70% đầu bài), không nhồi cuối bài.`,
+};
+
+// Helper: bọc term trong span tooltip
+function tt(term, tipKey) {
+  const tip = TERM_TOOLTIPS[tipKey || term] || CRITERION_TOOLTIPS[tipKey || term];
+  if (!tip) return term;
+  return `<span class="tt">${term}<span class="tt-box">${tip}</span></span>`;
+}
+
 function safeParseJSON(raw) {
   let s = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
   const start = s.indexOf('{'), end = s.lastIndexOf('}');
@@ -1790,7 +1859,7 @@ function renderResult(wrap, sub, reasons, allScores) {
   const totalColor = cls === 'pass' ? 'var(--green)' : cls === 'mid' ? 'var(--gold)' : 'var(--red)';
   const statusText = sub.passed ? '✓ ĐẠT CHUẨN' : '✗ CHƯA ĐẠT';
   const tierColors = ['#5b8dd9', '#d4a649', '#e05c3a', '#4caf82'];
-  const tierLabels = ['T1', 'T2', 'T3', 'T4'];
+  const tierLabels = [tt('T1'), tt('T2'), tt('T3'), tt('T4')];
 
   function getSev(f) {
     const max = CRITERION_MAX[f.criterion_id] || 5;
@@ -1853,17 +1922,23 @@ function renderResult(wrap, sub, reasons, allScores) {
         </div>
       </div>
       <div class="scorecard-tiers">
-        ${sub.tierBreakdown.map((t, i) => `
+        ${sub.tierBreakdown.map((t, i) => {
+          // Thêm tooltip vào tên tầng nếu có thuật ngữ chuyên ngành
+          let tname = t.name
+            .replace('RPP', tt('RPP'))
+            .replace('Information Gain', tt('Information Gain'));
+          return `
           <div class="scorecard-tier-row">
             <span class="scorecard-tier-label mono">${tierLabels[i]}</span>
-            <span class="scorecard-tier-name">${t.name}</span>
+            <span class="scorecard-tier-name">${tname}</span>
             <div class="tier-progress">
               <div class="tier-bar-fill" style="width:${(t.score/t.max*100).toFixed(0)}%;background:${tierColors[i]}"></div>
             </div>
             <span class="tier-score-num mono">${Math.round(t.score*10)/10}/${t.max}</span>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
-      <div class="scorecard-preflight">✅ Preflight PASS (5/5)</div>`
+      <div class="scorecard-preflight">✅ ${tt('Preflight')} PASS (5/5)</div>`
     : `<div class="scorecard-header syne">⚡ Kiểm Tra Nhanh (Không AI)</div>
       <div class="scorecard-total">
         <div class="score-big ${rulePct>=75?'pass':rulePct>=50?'mid':'fail'}">${Math.round(sub.total)}<span class="scorecard-max">/${RULE_MAX}</span></div>
@@ -1874,32 +1949,32 @@ function renderResult(wrap, sub, reasons, allScores) {
       </div>
       <div class="scorecard-tiers">
         <div class="scorecard-tier-row">
-          <span class="scorecard-tier-label mono">T1</span>
+          <span class="scorecard-tier-label mono">${tt('T1')}</span>
           <span class="scorecard-tier-name">Cấu trúc (rule)</span>
           <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT1/RULE_MAX_T1*100)}%;background:${tierColors[0]}"></div></div>
           <span class="tier-score-num mono">${Math.round(ruleT1*10)/10}/${RULE_MAX_T1}</span>
         </div>
         <div class="scorecard-tier-row">
-          <span class="scorecard-tier-label mono">T2</span>
+          <span class="scorecard-tier-label mono">${tt('T2')}</span>
           <span class="scorecard-tier-name">Chất lượng (rule)</span>
           <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT2/RULE_MAX_T2*100)}%;background:${tierColors[1]}"></div></div>
           <span class="tier-score-num mono">${Math.round(ruleT2*10)/10}/${RULE_MAX_T2}</span>
         </div>
         <div class="scorecard-tier-row">
-          <span class="scorecard-tier-label mono">T3</span>
-          <span class="scorecard-tier-name">RPP &amp; Entity <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
+          <span class="scorecard-tier-label mono">${tt('T3')}</span>
+          <span class="scorecard-tier-name">${tt('RPP')} &amp; Entity <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
           <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT3/RULE_MAX_T3*100)}%;background:${tierColors[2]};opacity:0.7"></div></div>
           <span class="tier-score-num mono">${Math.round(ruleT3*10)/10}/${RULE_MAX_T3} <span style="color:var(--ink3);font-size:10px">est.</span></span>
         </div>
         <div class="scorecard-tier-row">
-          <span class="scorecard-tier-label mono">T4</span>
-          <span class="scorecard-tier-name">Info Gain <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
+          <span class="scorecard-tier-label mono">${tt('T4')}</span>
+          <span class="scorecard-tier-name">${tt('Information Gain')} <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
           <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT4/RULE_MAX_T4*100)}%;background:${tierColors[3]};opacity:0.7"></div></div>
           <span class="tier-score-num mono">${Math.round(ruleT4*10)/10}/${RULE_MAX_T4} <span style="color:var(--ink3);font-size:10px">est.</span></span>
         </div>
       </div>
-      <div class="rule-only-hint">💡 R1/R3/R4/R6, I1/I2 chưa ước tính — dùng AI để chấm đủ 100 điểm</div>
-      <div class="scorecard-preflight">✅ Preflight PASS (5/5)</div>`;
+      <div class="rule-only-hint">💡 ${['R1','R3','R4','R6','I1','I2'].map(id=>tt(id,id)).join('/')} chưa ước tính — dùng AI để chấm đủ 100 điểm</div>
+      <div class="scorecard-preflight">✅ ${tt('Preflight')} PASS (5/5)</div>`;
 
   const fixesTitle = sub.llmUsed ? '🛠 Issues cần xử lý' : '🛠 Sửa ngay — ưu tiên cao nhất';
 
