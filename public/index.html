@@ -1795,7 +1795,7 @@ function renderResult(wrap, sub, reasons, allScores) {
       <div class="scorecard-preflight">✅ Preflight PASS (5/5)</div>`
     : `<div class="scorecard-header syne">⚡ Kiểm Tra Nhanh (Không AI)</div>
       <div class="scorecard-total">
-        <div class="score-big ${rulePct>=75?'pass':rulePct>=50?'mid':'fail'}">${Math.round(sub.total)}<span class="scorecard-max">/32</span></div>
+        <div class="score-big ${rulePct>=75?'pass':rulePct>=50?'mid':'fail'}">${Math.round(sub.total)}<span class="scorecard-max">/${RULE_MAX}</span></div>
         <div class="scorecard-meta">
           <div class="score-status syne" style="color:${ruleClr}">Điểm cốt lõi · ${rulePct}%</div>
           <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)}</div>
