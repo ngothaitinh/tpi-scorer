@@ -689,7 +689,7 @@ body {
       </div>
       <label class="force-llm-row">
         <input type="checkbox" id="force-llm">
-        Chấm đầy đủ LLM (bỏ qua threshold tiết kiệm)
+        Chấm đầy đủ với AI (tốn lượt, chính xác hơn)
       </label>
       <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
         Chấm bài →
@@ -1615,12 +1615,12 @@ async function submitArticle() {
   try {
     // Step 1: Rule scoring (instant)
     const { scores: ruleScores, total: ruleTotal } = scoreRules(parsed, meta);
-    setLoaderTxt('Chấm rule xong. Đang gọi LLM...');
+    setLoaderTxt(forceLLM ? 'Chấm rule xong. Đang gọi AI...' : 'Đang phân tích nhanh (không AI)...');
 
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
     let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {};
 
-    if (ruleTotal >= cfg.skip_llm_threshold || forceLLM) {
+    if (forceLLM) {
       // Step 2: LLM simple
       setLoaderTxt('Phân tích cấu trúc với AI (' + apiCfg.provider + ')...');
       simpleScores = await scoreLLMSimple(parsed, meta);
@@ -1632,6 +1632,7 @@ async function submitArticle() {
       allReasons = { ...allReasons, ...complexScores.reasons };
       top5 = complexScores.top5_fixes || [];
     } else {
+      // Quick check — rule + heuristics only, không gọi LLM
       top5 = generateRuleFixes(ruleScores);
     }
 
@@ -1663,7 +1664,7 @@ async function submitArticle() {
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
     const passed = total >= cfg2.pass_score;
-    const llmUsed = ruleTotal >= cfg.skip_llm_threshold || forceLLM;
+    const llmUsed = forceLLM; // Checkbox là điều khiển duy nhất — không tự động trigger LLM
 
     // Save submission
     const submission = {
