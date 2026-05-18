@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TPI Content Scorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg0: #0d0f14;
@@ -32,13 +32,13 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg0);
   color: var(--ink);
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
 }
 
-.syne { font-family: 'Syne', sans-serif; }
+.syne { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; }
 .mono { font-family: 'DM Mono', monospace; }
 
 /* === TOPBAR === */
@@ -53,7 +53,7 @@ body {
   position: sticky; top: 0; z-index: 100;
 }
 .logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
   font-size: 17px;
   letter-spacing: .04em;
@@ -65,7 +65,7 @@ body {
   background: none;
   border: none;
   color: var(--ink3);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .08em;
@@ -111,7 +111,7 @@ body {
   padding: 40px;
 }
 .auth-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 28px;
   margin-bottom: 8px;
 }
@@ -120,7 +120,7 @@ body {
 .tab-row { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
 .tab {
   background: none; border: none;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 13px; font-weight: 600;
   color: var(--ink3); padding: 10px 20px;
   cursor: pointer; border-bottom: 2px solid transparent;
@@ -154,7 +154,7 @@ body {
   background: var(--accent);
   border: none; border-radius: 4px;
   padding: 13px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 14px; font-weight: 700;
   letter-spacing: .04em;
   color: #fff; cursor: pointer;
@@ -163,6 +163,9 @@ body {
 .btn-primary:hover { background: var(--accent2); }
 .btn-primary:disabled { background: var(--bg3); color: var(--ink3); cursor: not-allowed; }
 
+.force-llm-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink2); margin-bottom:10px; cursor:pointer; user-select:none; }
+.force-llm-row input { accent-color:var(--accent); cursor:pointer; }
+
 .auth-msg { text-align: center; margin-top: 16px; font-size: 13px; }
 .auth-msg.ok { color: var(--green); }
 .auth-msg.err { color: var(--red); }
@@ -170,7 +173,7 @@ body {
 /* === DASHBOARD === */
 .page-head { margin-bottom: 40px; }
 .page-head h1 {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 32px;
   letter-spacing: -.01em; margin-bottom: 6px;
 }
@@ -189,7 +192,7 @@ body {
   color: var(--ink3); margin-bottom: 8px;
 }
 .stat-val {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 28px; font-weight: 800;
   color: var(--ink); line-height: 1;
 }
@@ -205,7 +208,7 @@ body {
   margin-bottom: 24px;
 }
 .submit-card h2 {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 700; font-size: 18px;
   margin-bottom: 20px; letter-spacing: -.01em;
 }
@@ -226,7 +229,7 @@ body {
   width: 100%; min-height: 280px;
   background: var(--bg2); border: 1px solid var(--line2);
   border-radius: 4px; padding: 14px;
-  font-family: 'Lora', serif; font-size: 14px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px;
   color: var(--ink); resize: vertical; outline: none;
   transition: border-color .15s; line-height: 1.65;
 }
@@ -234,6 +237,44 @@ body {
 .textarea::placeholder { color: var(--ink3); }
 
 .word-counter { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 6px; }
+
+/* === CONTENT INPUT MODES === */
+.content-mode-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.mode-tab { background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); cursor: pointer; transition: all .15s; }
+.mode-tab:hover { color: var(--ink); border-color: var(--line); }
+.mode-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.content-editor { width: 100%; min-height: 280px; max-height: 520px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 14px 16px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; color: var(--ink); outline: none; line-height: 1.75; transition: border-color .15s; }
+.content-editor:focus { border-color: var(--accent); }
+.content-editor:empty:before { content: attr(data-placeholder); color: var(--ink3); pointer-events: none; display: block; }
+.content-editor h1 { font-size: 1.45em; font-weight: 700; margin: .8em 0 .4em; }
+.content-editor h2 { font-size: 1.2em; font-weight: 600; margin: .75em 0 .35em; }
+.content-editor h3 { font-size: 1.05em; font-weight: 600; margin: .6em 0 .3em; color: var(--ink2); }
+.content-editor h4 { font-size: .95em; font-weight: 500; margin: .5em 0 .25em; color: var(--ink3); }
+.content-editor p { margin: 0 0 .7em; }
+.content-editor strong, .content-editor b { font-weight: 700; }
+.content-editor ul, .content-editor ol { padding-left: 1.4em; margin: 0 0 .7em; }
+.content-editor li { margin-bottom: .2em; }
+.content-editor a { color: var(--accent); }
+
+.fetch-url-row { display: flex; gap: 8px; }
+.fetch-url-row .form-input { flex: 1; }
+.btn-fetch { background: var(--bg3); border: 1px solid var(--line2); border-radius: 4px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); cursor: pointer; white-space: nowrap; transition: all .15s; }
+.btn-fetch:hover { border-color: var(--accent); color: var(--accent); }
+.btn-fetch:disabled { opacity: .5; cursor: not-allowed; }
+.fetch-status { font-family: 'DM Mono', monospace; font-size: 12px; min-height: 20px; margin-top: 8px; }
+.fetch-source { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 6px; word-break: break-all; }
+
+.content-preview { width: 100%; min-height: 180px; max-height: 520px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 20px 24px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; color: var(--ink); line-height: 1.75; }
+.content-preview h1 { font-size: 1.45em; font-weight: 700; margin: .8em 0 .4em; }
+.content-preview h2 { font-size: 1.2em; font-weight: 600; margin: .75em 0 .35em; }
+.content-preview h3 { font-size: 1.05em; font-weight: 600; margin: .6em 0 .3em; color: var(--ink2); }
+.content-preview h4 { font-size: .95em; color: var(--ink3); margin: .5em 0 .25em; }
+.content-preview p { margin: 0 0 .75em; }
+.content-preview strong, .content-preview b { font-weight: 700; }
+.content-preview a { color: var(--accent); text-decoration: none; }
+.content-preview ul, .content-preview ol { padding-left: 1.4em; margin: 0 0 .75em; }
+.content-preview li { margin-bottom: .25em; }
 
 .limit-bar {
   background: var(--bg2); border: 1px solid var(--line);
@@ -262,7 +303,7 @@ body {
   display: flex; align-items: center; gap: 16px;
 }
 .score-big {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 48px; line-height: 1;
 }
 .score-big.pass { color: var(--green); }
@@ -270,7 +311,7 @@ body {
 .score-big.mid { color: var(--gold); }
 .score-meta { flex: 1; }
 .score-status {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 700; font-size: 16px;
   margin-bottom: 4px;
 }
@@ -285,13 +326,13 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .tier-result:last-child { border-bottom: none; }
-.tier-result-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
+.tier-result-name { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
 .tier-progress { flex: 2; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
 .tier-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
 .tier-score-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); width: 60px; text-align: right; }
 
 .fixes-title {
-  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700;
   font-size: 16px; margin-bottom: 16px;
   display: flex; align-items: center; gap: 8px;
 }
@@ -316,6 +357,57 @@ body {
 }
 .fix-issue { color: var(--ink2); font-size: 13px; margin-bottom: 6px; }
 .fix-suggestion { color: var(--ink); font-size: 14px; font-style: italic; }
+.fix-sev-tag {
+  font-size: 11px; font-weight: 600; padding: 2px 7px;
+  border-radius: 3px; background: var(--bg3);
+}
+.sev-critical { color: var(--red); }
+.sev-major    { color: var(--gold); }
+.sev-minor    { color: var(--green); }
+.fixes-group-title {
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700;
+  font-size: 13px; color: var(--ink2);
+  margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* === SCORECARD === */
+.scorecard-block {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.scorecard-header {
+  font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink3); margin-bottom: 16px;
+}
+.scorecard-total {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+}
+.scorecard-max {
+  font-size: 20px; font-weight: 400; color: var(--ink3); margin-left: 2px;
+}
+.scorecard-meta { flex: 1; }
+.scorecard-tiers { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+.scorecard-tier-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--line);
+}
+.scorecard-tier-row:last-child { border-bottom: none; }
+.scorecard-tier-label {
+  font-size: 11px; color: var(--ink3); width: 22px; flex-shrink: 0;
+}
+.scorecard-tier-name {
+  font-size: 13px; font-weight: 500; flex: 1; min-width: 0;
+}
+.scorecard-preflight {
+  font-size: 12px; color: var(--green); margin-top: 4px;
+}
+.rule-only-hint {
+  font-size: 12px; color: var(--gold); margin-top: 8px;
+  padding: 6px 10px; background: rgba(212,166,73,0.08);
+  border-radius: 6px; border-left: 2px solid var(--gold);
+}
 
 /* === HISTORY TABLE === */
 .history-table { width: 100%; border-collapse: collapse; }
@@ -354,7 +446,7 @@ body {
   display: flex; align-items: center; gap: 16px;
 }
 .user-info { flex: 1; }
-.user-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; }
+.user-name { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; font-size: 14px; }
 .user-email { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); }
 .user-status {
   font-family: 'DM Mono', monospace; font-size: 11px;
@@ -365,7 +457,7 @@ body {
 .user-actions { display: flex; gap: 8px; }
 
 .btn-sm {
-  font-family: 'Syne', sans-serif; font-size: 11px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 11px;
   font-weight: 700; letter-spacing: .06em;
   padding: 6px 14px; border-radius: 4px;
   cursor: pointer; border: 1px solid; transition: all .15s;
@@ -379,7 +471,7 @@ body {
 
 .config-section { margin-top: 36px; }
 .config-section h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 16px;
   margin-bottom: 16px; padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
@@ -400,7 +492,7 @@ body {
 .config-val:focus { border-color: var(--accent); }
 .btn-save-config {
   background: var(--accent); border: none; border-radius: 4px;
-  padding: 8px 20px; font-family: 'Syne', sans-serif;
+  padding: 8px 20px; font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 12px; font-weight: 700; color: #fff;
   cursor: pointer; transition: background .15s;
 }
@@ -412,7 +504,7 @@ body {
   border-radius: 6px; padding: 20px; margin-bottom: 20px;
 }
 .api-section h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 15px;
   margin-bottom: 14px;
 }
 .api-row { display: flex; gap: 10px; }
@@ -420,7 +512,7 @@ body {
 .btn-outline {
   background: none; border: 1px solid var(--line2);
   border-radius: 4px; padding: 10px 18px;
-  font-family: 'Syne', sans-serif; font-size: 12px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px;
   font-weight: 700; color: var(--ink2); cursor: pointer;
   transition: all .15s; white-space: nowrap;
 }
@@ -445,7 +537,7 @@ body {
   border-radius: 6px; padding: 20px; margin-top: 20px;
 }
 .preflight-fail h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700;
   color: var(--red); margin-bottom: 10px; font-size: 15px;
 }
 .preflight-fail ul { padding-left: 16px; color: var(--ink2); font-size: 13px; }
@@ -544,18 +636,6 @@ body {
       <span class="limit-reset" id="limit-reset"></span>
     </div>
 
-    <!-- API Key notice -->
-    <div class="api-section" id="api-section">
-      <h3>🔑 Cấu hình API Key</h3>
-      <div class="api-row">
-        <input class="form-input mono" id="api-key-input" type="password" placeholder="sk-ant-api03-...">
-        <button class="btn-outline" onclick="saveApiKey()">Lưu</button>
-        <button class="btn-outline" onclick="testApiKey()">Test</button>
-      </div>
-      <div class="form-hint">API key lưu trong trình duyệt của bạn, không gửi đi đâu ngoài Anthropic.</div>
-      <div id="api-key-msg" style="margin-top:8px; font-size:13px;"></div>
-    </div>
-
     <!-- Submit form -->
     <div class="submit-card">
       <h2 class="syne">Thông tin bài viết</h2>
@@ -579,10 +659,38 @@ body {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Nội dung bài viết * <span style="color:var(--ink3);font-size:11px;">(paste HTML từ Google Docs hoặc text thuần)</span></label>
-        <textarea class="textarea" id="f-content" placeholder="Dán nội dung bài viết vào đây... Hệ thống tự nhận diện heading (## cho H2, ### cho H3) hoặc HTML tags." oninput="updateWordCount()"></textarea>
+        <label class="form-label">Nội dung bài viết *</label>
+        <div class="content-mode-tabs">
+          <button class="mode-tab active" id="tab-paste" onclick="switchContentMode('paste')">📋 Dán bài</button>
+          <button class="mode-tab" id="tab-url" onclick="switchContentMode('url')">🔗 Fetch URL</button>
+        </div>
+
+        <!-- Paste mode -->
+        <div id="mode-paste">
+          <div class="content-editor" id="f-content-editor" contenteditable="true"
+               data-placeholder="Dán bài viết từ Google Docs, Word... Định dạng H1, H2, bold sẽ được giữ nguyên."
+               oninput="updateWordCount()"></div>
+        </div>
+
+        <!-- URL mode -->
+        <div id="mode-url" style="display:none">
+          <div class="fetch-url-row">
+            <input class="form-input" id="f-url" placeholder="https://tpiland.vn/bai-viet/...">
+            <button class="btn-fetch" id="fetch-btn" onclick="fetchArticleFromUrl()">Fetch →</button>
+          </div>
+          <div class="fetch-status" id="fetch-status"></div>
+          <div class="content-preview" id="fetch-preview" style="display:none"></div>
+          <div class="fetch-source" id="fetch-source"></div>
+        </div>
+
+        <!-- Hidden store for submitArticle -->
+        <textarea id="f-content" style="display:none"></textarea>
         <div class="word-counter"><span id="word-count">0</span> từ</div>
       </div>
+      <label class="force-llm-row">
+        <input type="checkbox" id="force-llm">
+        Chấm đầy đủ LLM (bỏ qua threshold tiết kiệm)
+      </label>
       <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
         Chấm bài →
       </button>
@@ -631,6 +739,64 @@ body {
       </div>
       <div style="margin-top:16px">
         <button class="btn-save-config syne" onclick="saveConfig()">Lưu cấu hình</button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 class="syne">🔑 API & Model</h3>
+      <div class="config-row">
+        <span class="config-key mono">provider</span>
+        <span class="config-desc">Nhà cung cấp AI</span>
+        <select class="config-val mono" id="cfg-provider" onchange="onProviderChange()" style="width:270px">
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="google">Google (Gemini)</option>
+          <option value="openai">OpenAI (GPT)</option>
+          <option value="kimi">Kimi — Moonshot AI</option>
+          <option value="minimax">MiniMax</option>
+          <option value="custom">Custom / OpenAI-compatible</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <span class="config-key mono">api_key</span>
+        <span class="config-desc" id="api-key-desc">API Key của provider</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="config-val mono" id="cfg-api-key" type="password" placeholder="sk-ant-api03-..." style="width:220px;font-size:12px">
+          <button class="btn-outline" style="padding:6px 10px" onclick="toggleApiKeyVis()">👁</button>
+        </div>
+      </div>
+      <div class="config-row" id="row-custom-endpoint" style="display:none">
+        <span class="config-key mono">endpoint</span>
+        <span class="config-desc">Base URL (OpenAI-compatible)</span>
+        <input class="config-val mono" id="cfg-custom-endpoint" placeholder="https://llm.chiasegpu.vn/v1" style="width:320px;font-size:12px">
+      </div>
+      <div id="row-select-models">
+        <div class="config-row">
+          <span class="config-key mono">model_simple</span>
+          <span class="config-desc">Model chấm tiêu chí đơn giản (S1,S2,P1...)</span>
+          <select class="config-val mono" id="cfg-model-simple" style="width:280px"></select>
+        </div>
+        <div class="config-row">
+          <span class="config-key mono">model_complex</span>
+          <span class="config-desc">Model chấm tiêu chí phức tạp + top5 fixes</span>
+          <select class="config-val mono" id="cfg-model-complex" style="width:280px"></select>
+        </div>
+      </div>
+      <div id="row-custom-models" style="display:none">
+        <div class="config-row">
+          <span class="config-key mono">model_simple</span>
+          <span class="config-desc">Model chấm tiêu chí đơn giản</span>
+          <input class="config-val mono" id="cfg-custom-model-simple" placeholder="gpt-4o-mini" style="width:280px;font-size:12px">
+        </div>
+        <div class="config-row">
+          <span class="config-key mono">model_complex</span>
+          <span class="config-desc">Model chấm tiêu chí phức tạp + top5 fixes</span>
+          <input class="config-val mono" id="cfg-custom-model-complex" placeholder="gpt-4o" style="width:280px;font-size:12px">
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+        <button class="btn-save-config syne" onclick="saveApiConfig()">Lưu</button>
+        <button class="btn-outline" onclick="testApiConfig()">Test</button>
+        <span id="api-config-msg" style="font-size:13px"></span>
       </div>
     </div>
 
@@ -702,6 +868,7 @@ function hashPass(p) {
 // ============================================================
 let currentUser = null;
 let selectedIntent = 'Know';
+let _tok = { in: 0, out: 0 }; // token accumulator, reset trước mỗi lần chấm
 
 // ============================================================
 // AUTH
@@ -769,16 +936,11 @@ function logout() {
 
 function checkSession() {
   initDB();
-  const saved = DB.get('session', null);
-  if (saved) {
-    const users = DB.get('users', {});
-    if (users[saved] && users[saved].status === 'active') {
-      currentUser = { username: saved, ...users[saved] };
-      enterApp();
-      return;
-    }
-  }
-  document.getElementById('page-auth').style.display = '';
+  // DEV MODE: bỏ qua đăng nhập, tự động login admin
+  const users = DB.get('users', {});
+  DB.set('session', 'admin');
+  currentUser = { username: 'admin', ...users['admin'] };
+  enterApp();
 }
 
 function enterApp() {
@@ -788,8 +950,8 @@ function enterApp() {
   renderTopbar();
   showView('submit');
   renderLimitBar();
-  loadApiKey();
   loadConfig();
+  if (currentUser.role === 'admin') loadApiConfig();
 }
 
 // ============================================================
@@ -844,82 +1006,250 @@ function renderLimitBar() {
   const limit = currentUser.dailyLimit;
   const used = getDailyCount();
   const left = Math.max(0, limit - used);
-
   const dots = document.getElementById('limit-dots');
-  dots.innerHTML = Array.from({ length: limit }, (_, i) =>
-    `<div class="limit-dot${i < used ? ' used' : ''}"></div>`
-  ).join('');
 
-  document.getElementById('limit-text').textContent =
-    left > 0 ? `Còn ${left}/${limit} lượt hôm nay` : `Đã dùng hết ${limit}/${limit} lượt hôm nay`;
-  document.getElementById('limit-reset').textContent = 'Reset lúc 00:00';
-
-  const btn = document.getElementById('submit-btn');
-  if (left === 0) {
-    btn.disabled = true;
-    btn.textContent = 'Hết lượt hôm nay';
+  if (currentUser.role === 'admin') {
+    dots.innerHTML = `<span class="mono" style="font-size:24px;font-weight:700;color:var(--accent)">${used}</span><span style="color:var(--ink3);font-size:13px;margin-left:8px">bài đã chấm hôm nay</span>`;
+    document.getElementById('limit-text').textContent = '';
   } else {
-    btn.disabled = false;
-    btn.textContent = 'Chấm bài →';
+    dots.innerHTML = Array.from({ length: limit }, (_, i) =>
+      `<div class="limit-dot${i < used ? ' used' : ''}"></div>`
+    ).join('');
+    document.getElementById('limit-text').textContent =
+      left > 0 ? `Còn ${left}/${limit} lượt hôm nay` : `Đã dùng hết ${limit}/${limit} lượt hôm nay`;
+  }
+
+  document.getElementById('limit-reset').textContent = 'Reset lúc 00:00';
+  const btn = document.getElementById('submit-btn');
+  if (left === 0 && currentUser.role !== 'admin') {
+    btn.disabled = true; btn.textContent = 'Hết lượt hôm nay';
+  } else {
+    btn.disabled = false; btn.textContent = 'Chấm bài →';
   }
 }
 
 // ============================================================
-// API KEY
+// API CONFIG — multi-provider
 // ============================================================
-function loadApiKey() {
-  const key = DB.get('apikey_' + currentUser.username, '');
-  if (key) {
-    document.getElementById('api-key-input').value = key;
-    document.getElementById('api-section').style.borderColor = 'var(--green)';
+const PROVIDER_MODELS = {
+  anthropic: [
+    { id: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 — nhanh, rẻ' },
+    { id: 'claude-sonnet-4-6',         label: 'Claude Sonnet 4.6 — cân bằng' },
+    { id: 'claude-opus-4-7',           label: 'Claude Opus 4.7 — mạnh nhất' },
+  ],
+  google: [
+    { id: 'gemini-2.0-flash',                  label: 'Gemini 2.0 Flash — nhanh, rẻ' },
+    { id: 'gemini-1.5-flash',                  label: 'Gemini 1.5 Flash' },
+    { id: 'gemini-1.5-pro',                    label: 'Gemini 1.5 Pro' },
+    { id: 'gemini-2.5-pro-preview-05-06',      label: 'Gemini 2.5 Pro (preview)' },
+  ],
+  openai: [
+    { id: 'gpt-4o-mini',   label: 'GPT-4o Mini — nhanh, rẻ' },
+    { id: 'gpt-4o',        label: 'GPT-4o' },
+    { id: 'gpt-4-turbo',   label: 'GPT-4 Turbo' },
+    { id: 'o4-mini',       label: 'o4-mini' },
+  ],
+  kimi: [
+    { id: 'moonshot-v1-8k',   label: 'Moonshot v1-8k' },
+    { id: 'moonshot-v1-32k',  label: 'Moonshot v1-32k' },
+    { id: 'moonshot-v1-128k', label: 'Moonshot v1-128k' },
+  ],
+  minimax: [
+    { id: 'abab6.5s-chat',    label: 'abab6.5s — nhanh' },
+    { id: 'MiniMax-Text-01',  label: 'MiniMax Text-01' },
+  ],
+  custom: [],
+};
+
+const KEY_PLACEHOLDERS = {
+  anthropic: 'sk-ant-api03-...', google: 'AIzaSy...',
+  openai: 'sk-...', kimi: 'sk-...', minimax: 'eyJh...', custom: 'API key...',
+};
+
+function getApiConfig() {
+  return DB.get('api_config', {
+    provider: 'anthropic', api_key: '',
+    model_simple: 'claude-haiku-4-5-20251001', model_complex: 'claude-sonnet-4-6',
+    custom_endpoint: '', custom_model_simple: '', custom_model_complex: '',
+  });
+}
+
+function loadApiConfig() {
+  const cfg = getApiConfig();
+  document.getElementById('cfg-provider').value = cfg.provider;
+  document.getElementById('cfg-api-key').value = cfg.api_key || '';
+  document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[cfg.provider] || 'API key...';
+  document.getElementById('cfg-custom-endpoint').value = cfg.custom_endpoint || '';
+  updateModelDropdowns(cfg.provider, cfg.model_simple, cfg.model_complex, cfg.custom_model_simple, cfg.custom_model_complex);
+}
+
+function onProviderChange() {
+  const p = document.getElementById('cfg-provider').value;
+  document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[p] || 'API key...';
+  updateModelDropdowns(p);
+}
+
+function updateModelDropdowns(provider, ms, mc, cms, cmc) {
+  const isCustom = provider === 'custom';
+  document.getElementById('row-custom-endpoint').style.display = isCustom ? '' : 'none';
+  document.getElementById('row-select-models').style.display  = isCustom ? 'none' : '';
+  document.getElementById('row-custom-models').style.display  = isCustom ? '' : 'none';
+  if (!isCustom) {
+    const models = PROVIDER_MODELS[provider] || [];
+    ['cfg-model-simple', 'cfg-model-complex'].forEach((id, i) => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+      sel.value = i === 0 ? (ms || models[0]?.id) : (mc || models[models.length - 1]?.id);
+      if (!sel.value && models[0]) sel.value = models[0].id;
+    });
+  } else {
+    if (cms) document.getElementById('cfg-custom-model-simple').value = cms;
+    if (cmc) document.getElementById('cfg-custom-model-complex').value = cmc;
   }
 }
 
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  const msg = document.getElementById('api-key-msg');
-  if (!key.startsWith('sk-ant-')) {
-    msg.style.color = 'var(--red)'; msg.textContent = 'API key phải bắt đầu bằng sk-ant-'; return;
-  }
-  DB.set('apikey_' + currentUser.username, key);
-  msg.style.color = 'var(--green)'; msg.textContent = '✓ Đã lưu API key.';
+function toggleApiKeyVis() {
+  const inp = document.getElementById('cfg-api-key');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
-async function testApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  const msg = document.getElementById('api-key-msg');
+function saveApiConfig() {
+  const provider = document.getElementById('cfg-provider').value;
+  const isCustom = provider === 'custom';
+  const cfg = {
+    provider,
+    api_key:              document.getElementById('cfg-api-key').value.trim(),
+    model_simple:         isCustom ? '' : document.getElementById('cfg-model-simple').value,
+    model_complex:        isCustom ? '' : document.getElementById('cfg-model-complex').value,
+    custom_endpoint:      isCustom ? document.getElementById('cfg-custom-endpoint').value.trim() : '',
+    custom_model_simple:  isCustom ? document.getElementById('cfg-custom-model-simple').value.trim() : '',
+    custom_model_complex: isCustom ? document.getElementById('cfg-custom-model-complex').value.trim() : '',
+  };
+  DB.set('api_config', cfg);
+  const msg = document.getElementById('api-config-msg');
+  msg.style.color = 'var(--green)'; msg.textContent = '✓ Đã lưu.';
+  setTimeout(() => { msg.textContent = ''; }, 3000);
+}
+
+async function testApiConfig() {
+  const provider = document.getElementById('cfg-provider').value;
+  const api_key  = document.getElementById('cfg-api-key').value.trim();
+  const msg = document.getElementById('api-config-msg');
+  if (!api_key) { msg.style.color = 'var(--red)'; msg.textContent = 'Chưa nhập API key.'; return; }
   msg.style.color = 'var(--ink2)'; msg.textContent = 'Đang kiểm tra...';
   try {
-    const res = await callClaude('Say "OK" in one word.', key, 'claude-haiku-4-5-20251001', 5);
-    msg.style.color = 'var(--green)'; msg.textContent = '✓ API key hợp lệ! Model phản hồi: ' + res.slice(0, 40);
+    const isCustom = provider === 'custom';
+    const model = isCustom
+      ? document.getElementById('cfg-custom-model-simple').value.trim()
+      : (PROVIDER_MODELS[provider]?.[0]?.id || '');
+    const endpoint = isCustom ? document.getElementById('cfg-custom-endpoint').value.trim() : '';
+    await callLLM('Say "OK" in one word.', { provider, api_key, model, custom_endpoint: endpoint }, 10);
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ Kết nối OK — ' + provider;
   } catch (e) {
     msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
   }
+}
+
+async function callLLM(prompt, cfg, maxTokens) {
+  const { provider, api_key, model, custom_endpoint } = cfg;
+  if (!api_key) throw new Error('Chưa nhập API key. Vào Admin → API Key & Model để cấu hình.');
+  if (!model)   throw new Error('Chưa chọn model. Vào Admin → API Key & Model để lưu lại cấu hình.');
+  if (provider === 'anthropic') return callAnthropic(prompt, api_key, model, maxTokens);
+  if (provider === 'google')    return callGemini(prompt, api_key, model, maxTokens);
+  const ep = provider === 'openai'   ? 'https://api.openai.com/v1/chat/completions'
+           : provider === 'kimi'     ? 'https://api.moonshot.cn/v1/chat/completions'
+           : provider === 'minimax'  ? 'https://api.minimax.chat/v1/text/chatcompletion_v2'
+           : custom_endpoint;
+  return callOpenAICompat(prompt, api_key, model, maxTokens, ep);
+}
+
+function _parseApiBody(body, status) {
+  // Nếu response là HTML (proxy/firewall chặn) — báo lỗi rõ ràng
+  if (body.trimStart().startsWith('<')) {
+    throw new Error(`Nhận HTML thay vì JSON (HTTP ${status}). Có thể: API key sai, mạng bị chặn, hoặc endpoint không đúng.`);
+  }
+  try { return JSON.parse(body); } catch (_) {
+    throw new Error(`Phản hồi không hợp lệ (HTTP ${status}): ${body.slice(0, 80)}`);
+  }
+}
+
+async function callAnthropic(prompt, apiKey, model, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey,
+               'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const body = await res.text();
+  const data = _parseApiBody(body, res.status);
+  if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
+  if (data.usage) { _tok.in += data.usage.input_tokens || 0; _tok.out += data.usage.output_tokens || 0; }
+  return data.content[0].text;
+}
+
+async function callGemini(prompt, apiKey, model, maxTokens) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: maxTokens } }),
+  });
+  const body = await res.text();
+  const data = _parseApiBody(body, res.status);
+  if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
+  const m = data.usageMetadata;
+  if (m) { _tok.in += m.promptTokenCount || 0; _tok.out += m.candidatesTokenCount || 0; }
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function callOpenAICompat(prompt, apiKey, model, maxTokens, endpoint) {
+  if (!endpoint) throw new Error('Chưa nhập endpoint URL cho Custom provider.');
+  const url = endpoint.includes('/chat/completions') ? endpoint
+            : endpoint.replace(/\/$/, '') + '/chat/completions';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const body = await res.text();
+  const data = _parseApiBody(body, res.status);
+  if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
+  if (data.usage) { _tok.in += data.usage.prompt_tokens || 0; _tok.out += data.usage.completion_tokens || 0; }
+  return data.choices[0].message.content;
 }
 
 // ============================================================
 // ARTICLE PARSING
 // ============================================================
 function parseArticle(raw) {
-  const text = raw.trim();
-  const words = text.split(/\s+/).filter(w => w.length > 0);
-  const wordCount = words.length;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = raw.trim();
 
-  // Parse headings — support Markdown ## or HTML <h2>
+  // Plain text cho word count và LLM (không có HTML tags)
+  const plainText = (tmp.textContent || tmp.innerText || '').trim();
+  const wordCount = plainText ? plainText.split(/\s+/).filter(w => w.length > 0).length : 0;
+
+  // Headings: dùng DOM querySelectorAll — hoạt động đúng với HTML từ contenteditable
   const headings = [];
-  const lines = text.split('\n');
-  for (const line of lines) {
-    const mdMatch = line.match(/^(#{1,4})\s+(.+)/);
-    if (mdMatch) { headings.push({ level: mdMatch[1].length, text: mdMatch[2].trim() }); continue; }
-    const htmlMatch = line.match(/<h([1-4])[^>]*>(.*?)<\/h[1-4]>/i);
-    if (htmlMatch) { headings.push({ level: parseInt(htmlMatch[1]), text: htmlMatch[2].replace(/<[^>]+>/g, '').trim() }); }
+  tmp.querySelectorAll('h1,h2,h3,h4').forEach(el => {
+    const level = parseInt(el.tagName[1]);
+    const text = el.textContent.trim();
+    if (text) headings.push({ level, text });
+  });
+
+  // Fallback: Markdown headings (## ...) nếu không tìm thấy HTML heading
+  if (headings.length === 0) {
+    for (const line of plainText.split('\n')) {
+      const m = line.match(/^(#{1,4})\s+(.+)/);
+      if (m) headings.push({ level: m[1].length, text: m[2].trim() });
+    }
   }
 
   const h1 = headings.filter(h => h.level === 1);
   const h2 = headings.filter(h => h.level === 2);
   const h3 = headings.filter(h => h.level === 3);
 
-  return { text, wordCount, headings, h1, h2, h3 };
+  return { text: plainText, wordCount, headings, h1, h2, h3 };
 }
 
 // ============================================================
@@ -945,8 +1275,12 @@ function scoreRules(parsed, meta) {
   const mainH3 = mainHeadings.filter(h => h.level === 3).length;
   const suppH3 = suppHeadings.filter(h => h.level === 3).length;
   const totalH3 = mainH3 + suppH3;
-  const mainRatio = totalH3 > 0 ? mainH3 / totalH3 : 0;
-  results.S4 = mainRatio >= 0.6 ? 5 : mainRatio >= 0.4 ? 2 : 0;
+  if (totalH3 === 0) {
+    results.S4 = 2; // Bài không có H3 — thiếu chiều sâu, nhưng không phải 0 hoàn toàn
+  } else {
+    const mainRatio = mainH3 / totalH3;
+    results.S4 = mainRatio >= 0.6 ? 5 : mainRatio >= 0.4 ? 2 : 0;
+  }
 
   // S6 — Supplement ratio (estimate: last 25% of text)
   const suppWords = Math.round(wordCount * 0.25);
@@ -956,29 +1290,42 @@ function scoreRules(parsed, meta) {
   results.S6 = suppPct <= 0.25 ? 3 : suppPct <= 0.30 ? 1.5 : 0;
 
   // P2 — Be Certain
-  const hesitantWords = ['có thể', 'có lẽ', 'tương đối', 'sẽ có thể', 'khả năng là', 'có vẻ'];
+  // Nhóm 1: từ do dự thuần tuý (luôn phạt)
+  const hesitantAlways = ['có thể', 'có lẽ', 'tương đối', 'sẽ có thể', 'khả năng là', 'có vẻ', 'dường như'];
+  // Nhóm 2: từ ước lượng (chỉ phạt khi KHÔNG đi kèm số liệu)
+  const hesitantIfNoNum = ['khoảng', 'dự kiến', 'ước tính'];
   let p2Violations = 0;
-  hesitantWords.forEach(w => {
+  hesitantAlways.forEach(w => {
     const regex = new RegExp(w, 'gi');
     const matches = text.match(regex);
     if (matches) p2Violations += matches.length;
+  });
+  hesitantIfNoNum.forEach(w => {
+    const regex = new RegExp(w, 'gi');
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      // Lấy context ±15 ký tự xung quanh từ — nếu không có số → tính vi phạm
+      const ctx = text.slice(Math.max(0, m.index - 5), m.index + w.length + 15);
+      if (!/\d/.test(ctx)) p2Violations++;
+    }
   });
   results.P2 = Math.max(0, 5 - p2Violations * 0.5);
 
   // P3 — Cụ thể vs Chung chung
   const vagueWords = ['nhiều loại', 'đa dạng', 'rất nhiều', 'phong phú', 'khác nhau', 'rất tốt'];
   let p3Violations = 0;
+  const lowerText = text.toLowerCase();
   vagueWords.forEach(w => {
-    const idx = text.toLowerCase().indexOf(w);
-    if (idx !== -1) {
-      const after = text.slice(idx, idx + 80);
+    const regex = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    for (const m of lowerText.matchAll(regex)) {
+      const after = text.slice(m.index, m.index + 80);
       if (!/\d/.test(after)) p3Violations++;
     }
   });
   results.P3 = Math.max(0, 4 - p3Violations * 0.5);
 
   // P4 — Số liệu cụ thể
-  const numbers = text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|m²|m2|m\/s|km|tầng|căn|%|phút|giây|ngày|tháng|năm|VND|đồng|USD|ha|phòng|người)\b/gi);
+  const numbers = text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|tỷ đồng|m²|m2|m\/s|km|km²|tầng|căn|block|tòa|tháp|lô|nền|%|phút|giây|ngày|tháng|năm|VND|đồng|USD|ha|phòng|người)\b/gi);
   const numDensity = (numbers ? numbers.length : 0) / (wordCount / 300);
   results.P4 = numDensity >= 1 ? 4 : numDensity >= 0.5 ? 2 : 0;
 
@@ -1008,6 +1355,47 @@ function scoreRules(parsed, meta) {
   const longSents = sentences.filter(s => s.split(/\s+/).length > 40).length;
   const longPct = longSents / Math.max(1, sentences.length);
   results.P8 = longPct > 0.05 ? 0 : longPct > 0.02 ? 0.5 : 1;
+
+  // ===== HEURISTIC SCORING (không cần LLM, dùng làm fallback) =====
+  const lText = text.toLowerCase();
+
+  // S1 — Macro Context (heuristic: % H2 chứa token từ keyword/entity)
+  const kwTokens = [...meta.keyword.split(/\s+/), ...meta.entity.split(/\s+/)]
+    .map(t => t.toLowerCase()).filter(t => t.length >= 3);
+  const h2matched = h2.filter(h => kwTokens.some(t => h.text.toLowerCase().includes(t))).length;
+  results.S1 = h2.length > 0 ? Math.round(7 * (h2matched / h2.length) * 10) / 10 : 0;
+
+  // R2 — Prominence (heuristic: bài có đủ 5 attributes thiết yếu BĐS không)
+  const r2Attrs = [
+    ['vị trí', 'tọa lạc', 'địa chỉ', 'nằm tại', 'mặt tiền'],
+    ['tiện ích', 'amenities', 'hồ bơi', 'gym', 'spa', 'cảnh quan'],
+    ['pháp lý', 'sổ đỏ', 'sổ hồng', 'giấy phép', 'quyền sở hữu'],
+    ['giá', 'triệu', 'tỷ đồng', 'thanh toán', 'chính sách'],
+    ['chủ đầu tư', 'cđt', 'developer', 'tập đoàn', 'sonkim', 'novaland', 'vingroup']
+  ];
+  const r2Found = r2Attrs.filter(patterns => patterns.some(p => lText.includes(p))).length;
+  results.R2 = Math.round(5 * r2Found / r2Attrs.length * 10) / 10;
+
+  // R5 — Central Entity / CTA (heuristic: 25% cuối bài có CTA/TPI không)
+  const tail25 = lText.slice(-Math.floor(lText.length * 0.25));
+  const ctaHits = ['tpi', 'tư vấn', 'liên hệ', 'đăng ký', 'nhận tư vấn', 'đặt lịch', 'hotline', 'xem nhà'];
+  results.R5 = ctaHits.some(p => tail25.includes(p)) ? 3 : 0;
+
+  // I3 — Tránh văn phong AI (heuristic: đếm AI-flavor clichés)
+  const aiCliches = [
+    'không thể phủ nhận', 'trong bối cảnh', 'đóng vai trò quan trọng', 'nhìn chung',
+    'không kém phần', 'xứng đáng là', 'lựa chọn hoàn hảo', 'tiềm năng vượt trội',
+    'giải pháp toàn diện', 'đáp ứng mọi nhu cầu', 'không ngừng phát triển',
+    'có thể thấy rằng', 'rõ ràng là', 'điều này cho thấy'
+  ];
+  const aiCount = aiCliches.filter(c => lText.includes(c)).length;
+  results.I3 = aiCount === 0 ? 5 : aiCount <= 2 ? 4 : aiCount <= 4 ? 2 : 0;
+
+  // I4 — Trích dẫn nguồn (heuristic: đếm citation patterns)
+  const citePatterns = ['(nguồn:', '(theo ', 'theo cbre', 'theo báo cáo', 'theo dữ liệu',
+    'theo savills', 'theo jll', 'cafef.vn', 'vnexpress', 'tpi land q'];
+  const citeCount = citePatterns.filter(c => lText.includes(c)).length;
+  results.I4 = citeCount >= 3 ? 3 : citeCount >= 1 ? 1.5 : 0;
 
   const ruleTotal = Object.values(results).reduce((a, b) => a + b, 0);
   return { scores: results, total: Math.round(ruleTotal * 10) / 10 };
@@ -1058,9 +1446,59 @@ async function callClaude(prompt, apiKey, model, maxTokens = 1000) {
   return data.content[0].text;
 }
 
+// Tên và max weight của từng tiêu chí — mirror từ rubric.tpi-v1.json (v1 frozen, không sửa)
+const CRITERION_NAMES = {
+  S1:'Macro Context H1↔H2', S2:'9-10 Heading đầu chất lượng', S3:'Heading Hierarchy',
+  S4:'Contextual Coverage', S5:'Contextual Flow logic', S6:'Tỷ lệ Supplement Content',
+  P1:'Early Query Answer', P2:'Be Certain', P3:'Cụ thể vs Chung chung',
+  P4:'Số liệu cụ thể', P5:'Heading viết hoa', P6:'Internal link đúng vị trí',
+  P7:'Không hệ thống số đếm', P8:'Câu đầy đủ chủ vị',
+  R1:'RPP — Relevance', R2:'RPP — Prominence', R3:'RPP — Popularity',
+  R4:'EAV Coverage', R5:'Central Entity Alignment', R6:'Heading đầu-cuối kết nối',
+  I1:'Dữ liệu độc quyền TPI', I2:'Góc nhìn mới', I3:'Tránh văn phong AI', I4:'Trích dẫn nguồn'
+};
+const CRITERION_MAX = {
+  S1:7, S2:6, S3:5, S4:5, S5:4, S6:3,
+  P1:6, P2:5, P3:4, P4:4, P5:2, P6:2, P7:1, P8:1,
+  R1:5, R2:5, R3:4, R4:6, R5:3, R6:2,
+  I1:7, I2:5, I3:5, I4:3
+};
+
+function safeParseJSON(raw) {
+  let s = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const start = s.indexOf('{'), end = s.lastIndexOf('}');
+  if (start !== -1 && end !== -1) s = s.slice(start, end + 1);
+  if (!s) throw new Error('LLM trả về phản hồi rỗng.');
+
+  // Try 1: strict JSON
+  try { return JSON.parse(s); } catch (_) {}
+
+  // Sanitize literal newlines/tabs inside string values
+  s = s.replace(/("(?:[^"\\]|\\.)*")/gs, m =>
+    m.replace(/\n/g, '\\n').replace(/\r/g, '').replace(/\t/g, '\\t')
+  );
+  // Try 2: after newline sanitization
+  try { return JSON.parse(s); } catch (_) {}
+
+  // Fix common LLM JSON quirks: JS comments, single-quoted keys, unquoted keys, trailing commas
+  s = s
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/'([^'\\]*)'\s*:/g, '"$1":')
+    .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+    .replace(/:\s*'((?:[^'\\]|\\.)*)'/g, ': "$1"')
+    .replace(/,(\s*[}\]])/g, '$1');
+  // Try 3: after all regex fixes
+  try { return JSON.parse(s); } catch (_) {}
+
+  // Try 4: JS eval as last resort
+  try { return Function('return (' + s + ')')(); } catch (_) {}
+
+  throw new Error('Phản hồi LLM không đúng định dạng JSON. Vui lòng thử lại hoặc đổi model.');
+}
+
 const SYSTEM_SIMPLE = `Bạn là chuyên gia chấm bài viết SEO/GEO theo rubric TPI Land. Chỉ trả về JSON thuần, không markdown, không giải thích.`;
 
-async function scoreLLMSimple(parsed, meta, apiKey) {
+async function scoreLLMSimple(parsed, meta) {
   const headingList = parsed.headings.slice(0, 15).map(h => `${'#'.repeat(h.level)} ${h.text}`).join('\n');
   const preview = parsed.text.slice(0, 3000);
 
@@ -1091,11 +1529,13 @@ Chấm các tiêu chí sau (trả về JSON):
   "reasons": {"S1":"lý do ngắn","S2":"lý do ngắn","S5":"lý do ngắn","P1":"lý do ngắn","R1":"lý do ngắn","R3":"lý do ngắn","R5":"lý do ngắn","R6":"lý do ngắn"}
 }`;
 
-  const raw = await callClaude(prompt, apiKey, 'claude-haiku-4-5-20251001', 700);
-  return JSON.parse(raw.replace(/```json|```/g, '').trim());
+  const apicfg = getApiConfig();
+  const model = apicfg.provider === 'custom' ? apicfg.custom_model_simple : apicfg.model_simple;
+  const raw = await callLLM(prompt, { ...apicfg, model }, 700);
+  return safeParseJSON(raw);
 }
 
-async function scoreLLMComplex(parsed, meta, apiKey) {
+async function scoreLLMComplex(parsed, meta) {
   const preview = parsed.text.slice(0, 4000);
   const prompt = `${SYSTEM_SIMPLE}
 
@@ -1122,8 +1562,10 @@ Chấm các tiêu chí sau và tạo top 5 fixes (JSON thuần):
   ]
 }`;
 
-  const raw = await callClaude(prompt, apiKey, 'claude-sonnet-4-6', 900);
-  return JSON.parse(raw.replace(/```json|```/g, '').trim());
+  const apicfg2 = getApiConfig();
+  const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
+  const raw = await callLLM(prompt, { ...apicfg2, model: model2 }, 900);
+  return safeParseJSON(raw);
 }
 
 // ============================================================
@@ -1133,13 +1575,15 @@ async function submitArticle() {
   const keyword = document.getElementById('f-keyword').value.trim();
   const entity = document.getElementById('f-entity').value.trim();
   const content = document.getElementById('f-content').value.trim();
-  const apiKey = DB.get('apikey_' + currentUser.username, '');
+  const apiCfg  = getApiConfig();
+  const forceLLM = document.getElementById('force-llm')?.checked || false;
 
   if (!keyword || !entity) { alert('Vui lòng điền Từ khóa và Main Entity.'); return; }
   if (!content) { alert('Vui lòng dán nội dung bài viết.'); return; }
-  if (!apiKey) { alert('Vui lòng nhập và lưu API Key trước.'); return; }
+  if (!apiCfg.api_key) { alert('Vui lòng cấu hình API Key trong trang Admin.'); return; }
   if (getDailyCount() >= currentUser.dailyLimit) { alert('Bạn đã dùng hết lượt chấm hôm nay.'); return; }
 
+  _tok = { in: 0, out: 0 }; // reset token counter
   const meta = { keyword, entity, intent: selectedIntent };
   const parsed = parseArticle(content);
 
@@ -1176,31 +1620,38 @@ async function submitArticle() {
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
     let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {};
 
-    if (ruleTotal >= cfg.skip_llm_threshold) {
-      // Step 2: LLM simple (Haiku)
-      setLoaderTxt('Phân tích cấu trúc với AI (Haiku)...');
-      simpleScores = await scoreLLMSimple(parsed, meta, apiKey);
+    if (ruleTotal >= cfg.skip_llm_threshold || forceLLM) {
+      // Step 2: LLM simple
+      setLoaderTxt('Phân tích cấu trúc với AI (' + apiCfg.provider + ')...');
+      simpleScores = await scoreLLMSimple(parsed, meta);
       allReasons = { ...allReasons, ...simpleScores.reasons };
 
-      // Step 3: LLM complex (Sonnet)
-      setLoaderTxt('Phân tích chuyên sâu với AI (Sonnet)...');
-      complexScores = await scoreLLMComplex(parsed, meta, apiKey);
+      // Step 3: LLM complex
+      setLoaderTxt('Phân tích chuyên sâu với AI (' + apiCfg.provider + ')...');
+      complexScores = await scoreLLMComplex(parsed, meta);
       allReasons = { ...allReasons, ...complexScores.reasons };
       top5 = complexScores.top5_fixes || [];
     } else {
-      // Skip LLM tier 3+4 — generate basic fixes from rule scores
       top5 = generateRuleFixes(ruleScores);
     }
 
-    // Aggregate scores
+    // Aggregate scores — LLM overrides rule; nếu LLM không chạy thì giữ heuristic rule
     const allScores = {
       ...ruleScores,
-      S1: simpleScores.S1 || 0, S2: simpleScores.S2 || 0, S5: simpleScores.S5 || 0,
-      P1: simpleScores.P1 || 0, R1: simpleScores.R1 || 0, R3: simpleScores.R3 || 0,
-      R5: simpleScores.R5 || 0, R6: simpleScores.R6 || 0,
-      R2: complexScores.R2 || 0, R4: complexScores.R4 || 0,
-      I1: complexScores.I1 || 0, I2: complexScores.I2 || 0,
-      I3: complexScores.I3 || 0, I4: complexScores.I4 || 0
+      S1: simpleScores.S1  ?? ruleScores.S1  ?? 0,
+      S2: simpleScores.S2  || 0,
+      S5: simpleScores.S5  || 0,
+      P1: simpleScores.P1  || 0,
+      R1: simpleScores.R1  || 0,
+      R2: complexScores.R2 ?? ruleScores.R2  ?? 0,
+      R3: simpleScores.R3  || 0,
+      R4: complexScores.R4 || 0,
+      R5: simpleScores.R5  ?? ruleScores.R5  ?? 0,
+      R6: simpleScores.R6  || 0,
+      I1: complexScores.I1 || 0,
+      I2: complexScores.I2 || 0,
+      I3: complexScores.I3 ?? ruleScores.I3  ?? 0,
+      I4: complexScores.I4 ?? ruleScores.I4  ?? 0
     };
 
     const tierBreakdown = [
@@ -1212,7 +1663,7 @@ async function submitArticle() {
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
     const passed = total >= cfg2.pass_score;
-    const llmUsed = ruleTotal >= cfg.skip_llm_threshold;
+    const llmUsed = ruleTotal >= cfg.skip_llm_threshold || forceLLM;
 
     // Save submission
     const submission = {
@@ -1225,16 +1676,16 @@ async function submitArticle() {
       tierBreakdown,
       top5,
       llmUsed,
+      tokens: { in: _tok.in, out: _tok.out, total: _tok.in + _tok.out },
       submitter: currentUser.username
     };
     const subs = DB.get('submissions', []);
     subs.unshift(submission);
     DB.set('submissions', subs.slice(0, 200));
-    incrementDaily();
-    renderLimitBar();
+    if (llmUsed) { incrementDaily(); renderLimitBar(); } // Kiểm tra nhanh không tính lượt
 
     // Render result
-    renderResult(resultWrap, submission, allReasons);
+    renderResult(resultWrap, submission, allReasons, allScores);
 
   } catch (e) {
     resultWrap.innerHTML = `<div class="preflight-fail">
@@ -1246,63 +1697,147 @@ async function submitArticle() {
 }
 
 function generateRuleFixes(ruleScores) {
-  const fixes = [];
   const checks = [
-    { id: 'P2', label: 'Bỏ từ do dự', desc: 'Xóa "có thể", "có lẽ", "tương đối" trong các đoạn khẳng định.' },
-    { id: 'P3', label: 'Thêm số liệu', desc: 'Thay "nhiều loại căn hộ" bằng "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".' },
-    { id: 'P4', label: 'Tăng mật độ số liệu', desc: 'Thêm ít nhất 1 con số cụ thể mỗi 300 từ (giá, diện tích, tầng, %).' },
-    { id: 'S3', label: 'Sắp xếp H3 đúng chỗ', desc: 'H3 chỉ được đặt dưới H2. Không để H3 xuất hiện độc lập.' },
-    { id: 'P5', label: 'Viết hoa Heading', desc: 'Mỗi từ chính trong Heading phải viết hoa chữ cái đầu.' }
+    { id: 'S3', max: 5, issue: 'Heading hierarchy sai cấp', fix: 'H3 chỉ được đặt ngay dưới H2. Xem lại cấu trúc heading — không để H3 xuất hiện độc lập hoặc nhảy cóc H1→H3.' },
+    { id: 'S4', max: 5, issue: 'Main Content thiếu chiều sâu (không có H3)', fix: 'Thêm H3 vào 9–10 heading đầu để đào sâu attribute chính. VD: H2 "Tiện Ích" → H3 "Hồ Bơi Vô Cực", H3 "Gym & Spa".' },
+    { id: 'S6', max: 3, issue: 'Phần phụ trợ (FAQ, nội dung phụ) quá nhiều', fix: 'Rút ngắn phần cuối bài (FAQ, liên kết liên quan). Supplement không quá 25% tổng số từ.' },
+    { id: 'P2', max: 5, issue: 'Dùng từ ngữ do dự trong phát biểu thực tế', fix: 'Xóa "có thể", "có lẽ", "tương đối", "dường như" khi nói về fact/tính năng. Khẳng định trực tiếp: "Blanca City có hồ bơi tầng 30." thay vì "có thể có hồ bơi".' },
+    { id: 'P3', max: 4, issue: 'Dùng cụm từ chung chung không có số liệu', fix: 'Thay "nhiều loại", "đa dạng", "phong phú" bằng con số hoặc liệt kê cụ thể. VD: "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".' },
+    { id: 'P4', max: 4, issue: 'Mật độ số liệu thấp (dưới 1 con số/300 từ)', fix: 'Thêm số cụ thể vào bài: giá (triệu/m²), diện tích (m²), số tầng, % tăng trưởng, khoảng cách (km/phút). Mục tiêu ≥1 số liệu mỗi 300 từ.' },
+    { id: 'P5', max: 2, issue: 'Heading chưa viết hoa đúng Title Case', fix: 'Viết hoa chữ đầu mỗi từ ≥3 ký tự trong heading. VD: "Tiện Ích Nổi Bật Tại Blanca City".' },
+    { id: 'P8', max: 1, issue: 'Có câu quá dài (trên 40 từ)', fix: 'Tách câu dài thành 2–3 câu ngắn 15–25 từ. Câu ngắn dễ đọc và tốt hơn cho GEO.' },
+    { id: 'P6', max: 2, issue: 'Internal link xuất hiện ở Main Content', fix: 'Chuyển toàn bộ internal link xuống phần Supplement (cuối bài). Main Content không nên có link để tránh phân tán người đọc.' },
+    { id: 'P7', max: 1, issue: 'Dùng đánh số nhiều cấp kiểu 1.1, 1.2.3', fix: 'Thay hệ thống số đếm nhiều cấp bằng bullet point: • Hồ bơi vô cực • Gym • Spa.' },
   ];
-  checks.forEach((c, i) => {
-    if (ruleScores[c.id] < 3) {
-      fixes.push({ priority: i+1, criterion_id: c.id, location: 'Toàn bài', issue: c.label, fix: c.desc });
-    }
-  });
-  return fixes.slice(0, 5);
+  const fails = checks
+    .filter(c => ruleScores[c.id] !== undefined && ruleScores[c.id] < c.max)
+    .sort((a, b) => (b.max - (ruleScores[b.id]||0)) - (a.max - (ruleScores[a.id]||0)));
+  return fails.slice(0, 5).map((c, i) => ({
+    priority: i + 1, criterion_id: c.id, location: 'Toàn bài', issue: c.issue, fix: c.fix
+  }));
 }
 
-function renderResult(wrap, sub, reasons) {
+function renderResult(wrap, sub, reasons, allScores) {
   const totalRnd = Math.round(sub.total * 10) / 10;
   const cls = sub.total >= 80 ? 'pass' : sub.total >= 60 ? 'mid' : 'fail';
+  const totalColor = cls === 'pass' ? 'var(--green)' : cls === 'mid' ? 'var(--gold)' : 'var(--red)';
   const statusText = sub.passed ? '✓ ĐẠT CHUẨN' : '✗ CHƯA ĐẠT';
-
   const tierColors = ['#5b8dd9', '#d4a649', '#e05c3a', '#4caf82'];
+  const tierLabels = ['T1', 'T2', 'T3', 'T4'];
 
-  wrap.innerHTML = `<div class="result-panel">
-    <div class="result-header">
-      <div class="score-big ${cls}">${totalRnd}</div>
-      <div class="score-meta">
-        <div class="score-status syne" style="color:var(--${cls === 'pass' ? 'green' : cls === 'mid' ? 'gold' : 'red'})">${statusText}</div>
-        <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)} ${sub.llmUsed ? '· AI chấm đầy đủ' : '· Rule-only (tiết kiệm token)'}</div>
+  function getSev(f) {
+    const max = CRITERION_MAX[f.criterion_id] || 5;
+    const score = allScores ? (allScores[f.criterion_id] ?? max) : max;
+    const deficit = max - score;
+    if (deficit >= 5) return { tag: '🔴', label: 'Critical' };
+    if (deficit >= 3) return { tag: '🟡', label: 'Major' };
+    return { tag: '🟢', label: 'Minor' };
+  }
+
+  function renderFixCard(f) {
+    const sev = getSev(f);
+    const cname = CRITERION_NAMES[f.criterion_id] || f.criterion_id;
+    const borderColor = sev.label === 'Critical' ? 'var(--red)' : sev.label === 'Major' ? 'var(--gold)' : 'var(--green)';
+    return `<div class="fix-card" style="border-left-color:${borderColor}">
+      <div class="fix-header">
+        <span class="fix-num mono">#${f.priority}</span>
+        <span class="fix-crit-id mono">${f.criterion_id}: ${cname}</span>
+        <span class="fix-sev-tag sev-${sev.label.toLowerCase()}">${sev.tag} ${sev.label}</span>
+        <span style="color:var(--ink3);font-size:12px;margin-left:auto;">${f.location}</span>
       </div>
-    </div>
-    <div class="result-body">
-      <div class="tier-results">
+      <div class="fix-issue">${f.issue}</div>
+      <div class="fix-suggestion">→ ${f.fix}</div>
+    </div>`;
+  }
+
+  const critical = sub.top5.filter(f => getSev(f).label === 'Critical');
+  const others   = sub.top5.filter(f => getSev(f).label !== 'Critical');
+
+  const fixesHtml = sub.top5.length === 0
+    ? `<div style="color:var(--green);font-size:14px;padding:8px 0;">✓ Bài viết đạt chuẩn tốt, không có vấn đề lớn cần sửa.</div>`
+    : `${critical.length > 0 ? `
+        <div class="fixes-group-title">🔴 Critical — Phải sửa trước khi publish (${critical.length})</div>
+        ${critical.map(renderFixCard).join('')}` : ''}
+      ${others.length > 0 ? `
+        <div class="fixes-group-title"${critical.length > 0 ? ' style="margin-top:20px;"' : ''}>🟡🟢 Major & Minor — Polish khi có thời gian (${others.length})</div>
+        ${others.map(renderFixCard).join('')}` : ''}`;
+
+  // Rule-only constants (Track B): T1=S1h+S3+S4+S6=20, T2=P2-P8=19, T3=R2h+R5h=8, T4=I3h+I4h=8
+  const RULE_MAX = 55, RULE_MAX_T1 = 20, RULE_MAX_T2 = 19, RULE_MAX_T3 = 8, RULE_MAX_T4 = 8;
+  const ruleT1 = sub.tierBreakdown[0].score;
+  const ruleT2 = sub.tierBreakdown[1].score;
+  const ruleT3 = sub.tierBreakdown[2].score;
+  const ruleT4 = sub.tierBreakdown[3].score;
+  const rulePct = Math.round(sub.total / RULE_MAX * 100);
+  const ruleClr = rulePct >= 75 ? 'var(--green)' : rulePct >= 50 ? 'var(--gold)' : 'var(--red)';
+
+  const scorecardHtml = sub.llmUsed
+    ? `<div class="scorecard-header syne">📊 Scorecard</div>
+      <div class="scorecard-total">
+        <div class="score-big ${cls}">${totalRnd}<span class="scorecard-max">/100</span></div>
+        <div class="scorecard-meta">
+          <div class="score-status syne" style="color:${totalColor}">${statusText}</div>
+          <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)} · AI chấm đầy đủ</div>
+        </div>
+      </div>
+      <div class="scorecard-tiers">
         ${sub.tierBreakdown.map((t, i) => `
-          <div class="tier-result">
-            <span class="tier-result-name syne">${t.name}</span>
+          <div class="scorecard-tier-row">
+            <span class="scorecard-tier-label mono">${tierLabels[i]}</span>
+            <span class="scorecard-tier-name">${t.name}</span>
             <div class="tier-progress">
               <div class="tier-bar-fill" style="width:${(t.score/t.max*100).toFixed(0)}%;background:${tierColors[i]}"></div>
             </div>
-            <span class="tier-score-num mono">${Math.round(t.score * 10)/10}/${t.max}</span>
-          </div>
-        `).join('')}
+            <span class="tier-score-num mono">${Math.round(t.score*10)/10}/${t.max}</span>
+          </div>`).join('')}
       </div>
-
-      ${sub.top5.length > 0 ? `
-      <div class="fixes-title syne">🛠 Top ${sub.top5.length} cần sửa ngay</div>
-      ${sub.top5.map(f => `
-        <div class="fix-card">
-          <div class="fix-header">
-            <span class="fix-num mono">#${f.priority}</span>
-            <span class="fix-crit-id mono">${f.criterion_id}</span>
-            <span style="color:var(--ink3);font-size:12px;">${f.location}</span>
-          </div>
-          <div class="fix-issue">${f.issue}</div>
-          <div class="fix-suggestion">→ ${f.fix}</div>
+      <div class="scorecard-preflight">✅ Preflight PASS (5/5)</div>`
+    : `<div class="scorecard-header syne">⚡ Kiểm Tra Nhanh (Không AI)</div>
+      <div class="scorecard-total">
+        <div class="score-big ${rulePct>=75?'pass':rulePct>=50?'mid':'fail'}">${Math.round(sub.total)}<span class="scorecard-max">/32</span></div>
+        <div class="scorecard-meta">
+          <div class="score-status syne" style="color:${ruleClr}">Điểm cốt lõi · ${rulePct}%</div>
+          <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)}</div>
         </div>
-      `).join('')}` : '<div style="color:var(--green);font-size:14px;">✓ Bài viết đạt chuẩn tốt, không có vấn đề lớn cần sửa.</div>'}
+      </div>
+      <div class="scorecard-tiers">
+        <div class="scorecard-tier-row">
+          <span class="scorecard-tier-label mono">T1</span>
+          <span class="scorecard-tier-name">Cấu trúc (rule)</span>
+          <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT1/RULE_MAX_T1*100)}%;background:${tierColors[0]}"></div></div>
+          <span class="tier-score-num mono">${Math.round(ruleT1*10)/10}/${RULE_MAX_T1}</span>
+        </div>
+        <div class="scorecard-tier-row">
+          <span class="scorecard-tier-label mono">T2</span>
+          <span class="scorecard-tier-name">Chất lượng (rule)</span>
+          <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT2/RULE_MAX_T2*100)}%;background:${tierColors[1]}"></div></div>
+          <span class="tier-score-num mono">${Math.round(ruleT2*10)/10}/${RULE_MAX_T2}</span>
+        </div>
+        <div class="scorecard-tier-row">
+          <span class="scorecard-tier-label mono">T3</span>
+          <span class="scorecard-tier-name">RPP &amp; Entity <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
+          <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT3/RULE_MAX_T3*100)}%;background:${tierColors[2]};opacity:0.7"></div></div>
+          <span class="tier-score-num mono">${Math.round(ruleT3*10)/10}/${RULE_MAX_T3} <span style="color:var(--ink3);font-size:10px">est.</span></span>
+        </div>
+        <div class="scorecard-tier-row">
+          <span class="scorecard-tier-label mono">T4</span>
+          <span class="scorecard-tier-name">Info Gain <span style="font-size:10px;color:var(--ink3)">(est.)</span></span>
+          <div class="tier-progress"><div class="tier-bar-fill" style="width:${Math.round(ruleT4/RULE_MAX_T4*100)}%;background:${tierColors[3]};opacity:0.7"></div></div>
+          <span class="tier-score-num mono">${Math.round(ruleT4*10)/10}/${RULE_MAX_T4} <span style="color:var(--ink3);font-size:10px">est.</span></span>
+        </div>
+      </div>
+      <div class="rule-only-hint">💡 R1/R3/R4/R6, I1/I2 chưa ước tính — dùng AI để chấm đủ 100 điểm</div>
+      <div class="scorecard-preflight">✅ Preflight PASS (5/5)</div>`;
+
+  const fixesTitle = sub.llmUsed ? '🛠 Issues cần xử lý' : '🛠 Sửa ngay — ưu tiên cao nhất';
+
+  wrap.innerHTML = `<div class="result-panel">
+    <div class="scorecard-block">
+      ${scorecardHtml}
+    </div>
+    <div class="result-body">
+      <div class="fixes-title syne">${fixesTitle}</div>
+      ${fixesHtml}
     </div>
   </div>`;
 }
@@ -1318,18 +1853,26 @@ function renderHistory() {
     el.innerHTML = '<div style="color:var(--ink3);font-style:italic;padding:20px 0;">Chưa có bài nào được nộp.</div>';
     return;
   }
-  el.innerHTML = `<table class="history-table">
+  const totalTok = subs.reduce((a, s) => a + (s.tokens?.total || 0), 0);
+  el.innerHTML = `
+    ${currentUser.role === 'admin' ? `<div style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Tổng token đã dùng: <strong style="color:var(--ink)">${totalTok.toLocaleString('vi-VN')}</strong> (${subs.length} bài)</div>` : ''}
+    <table class="history-table">
     <thead><tr>
-      <th>Ngày</th><th>Keyword</th><th>Từ</th><th>Điểm</th><th>Kết quả</th>${currentUser.role === 'admin' ? '<th>User</th>' : ''}
+      <th>Ngày</th><th>Keyword</th><th>Từ</th><th>Điểm</th><th>Kết quả</th><th>Token</th>${currentUser.role === 'admin' ? '<th>User</th>' : ''}
     </tr></thead>
     <tbody>${subs.map(s => {
       const cls = s.total >= 80 ? 'pass' : s.total >= 60 ? 'mid' : 'fail';
+      const tok = s.tokens?.total || 0;
+      const tokLabel = tok > 0
+        ? `<span class="mono" title="Input: ${(s.tokens?.in||0).toLocaleString()} · Output: ${(s.tokens?.out||0).toLocaleString()}" style="color:var(--ink2)">${tok.toLocaleString('vi-VN')}</span>`
+        : `<span style="color:var(--ink3)">—</span>`;
       return `<tr>
         <td class="mono" style="color:var(--ink3)">${s.date.slice(0,10)}</td>
         <td>${s.keyword}</td>
         <td class="mono">${s.wordCount}</td>
         <td class="mono"><strong>${Math.round(s.total)}</strong></td>
         <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
+        <td>${tokLabel}</td>
         ${currentUser.role === 'admin' ? `<td class="mono" style="color:var(--ink3)">${s.submitter}</td>` : ''}
       </tr>`;
     }).join('')}</tbody>
@@ -1366,12 +1909,25 @@ function saveConfig() {
 
 function renderAdmin() {
   const users = DB.get('users', {});
+  const subs  = DB.get('submissions', []);
+
+  // Token stats per user
+  const tokByUser = {};
+  const cntByUser = {};
+  subs.forEach(s => {
+    tokByUser[s.submitter] = (tokByUser[s.submitter] || 0) + (s.tokens?.total || 0);
+    cntByUser[s.submitter] = (cntByUser[s.submitter] || 0) + 1;
+  });
+
   const el = document.getElementById('user-list');
-  el.innerHTML = Object.entries(users).map(([username, u]) => `
+  el.innerHTML = Object.entries(users).map(([username, u]) => {
+    const tok = tokByUser[username] || 0;
+    const cnt = cntByUser[username] || 0;
+    return `
     <div class="user-row">
       <div class="user-info">
         <div class="user-name syne">${u.name} <span style="color:var(--ink3);font-size:11px;">(${username})</span></div>
-        <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày</div>
+        <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày · ${cnt} bài · ${tok.toLocaleString('vi-VN')} token</div>
       </div>
       <span class="user-status ${u.status === 'active' ? 'status-active' : 'status-pending'}">
         ${u.status === 'active' ? 'Active' : 'Chờ duyệt'}
@@ -1384,7 +1940,7 @@ function renderAdmin() {
         ` : ''}
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function approveUser(username) {
@@ -1424,16 +1980,196 @@ function selectIntent(el) {
   selectedIntent = el.dataset.val;
 }
 
+function switchContentMode(mode) {
+  document.getElementById('tab-paste').classList.toggle('active', mode === 'paste');
+  document.getElementById('tab-url').classList.toggle('active', mode === 'url');
+  document.getElementById('mode-paste').style.display = mode === 'paste' ? '' : 'none';
+  document.getElementById('mode-url').style.display = mode === 'url' ? '' : 'none';
+  if (mode === 'paste') updateWordCount();
+}
+
+function sanitizePaste(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+
+  // Bước 1: Xóa elements nguy hiểm / không cần thiết
+  div.querySelectorAll('script,style,meta,link,noscript,iframe,head').forEach(el => el.remove());
+
+  // Bước 2: Chuyển <span> có inline style → semantic tags
+  // Xử lý từ trong ra ngoài (reverse) để tránh conflict khi replaceWith
+  ;[...div.querySelectorAll('span')].reverse().forEach(el => {
+    const fw = el.style.fontWeight;
+    const fi = el.style.fontStyle;
+    const bold   = fw === 'bold' || (parseInt(fw) || 0) >= 600;
+    const italic = fi === 'italic';
+    if (bold && italic) {
+      const strong = document.createElement('strong');
+      const em     = document.createElement('em');
+      em.append(...el.childNodes);
+      strong.appendChild(em);
+      el.replaceWith(strong);
+    } else if (bold) {
+      const strong = document.createElement('strong');
+      strong.append(...el.childNodes);
+      el.replaceWith(strong);
+    } else if (italic) {
+      const em = document.createElement('em');
+      em.append(...el.childNodes);
+      el.replaceWith(em);
+    } else {
+      el.replaceWith(...el.childNodes); // plain span → unwrap
+    }
+  });
+
+  // Bước 3: Unwrap <b>/<strong> giả
+  // Fake nếu: font-weight:normal/400, hoặc bao bọc block element (H1,H2,P,DIV...)
+  const BLOCKS = new Set(['H1','H2','H3','H4','H5','H6','P','DIV','UL','OL','LI','BLOCKQUOTE','TABLE']);
+  ;[...div.querySelectorAll('b,strong')].reverse().forEach(el => {
+    const fw = el.style.fontWeight;
+    const fakeWeight = fw === 'normal' || fw === '400';
+    const hasBlock   = [...el.children].some(c => BLOCKS.has(c.tagName));
+    if (fakeWeight || hasBlock) el.replaceWith(...el.childNodes);
+    // else: <b> thật (không có style hoặc font-weight:bold) → giữ nguyên
+  });
+
+  // Bước 4: Strip tất cả attributes, giữ href trên <a>
+  div.querySelectorAll('*').forEach(el => {
+    if (el.tagName === 'A') {
+      const href = el.getAttribute('href');
+      [...el.attributes].forEach(a => el.removeAttribute(a.name));
+      if (href) el.setAttribute('href', href);
+    } else {
+      [...el.attributes].forEach(a => el.removeAttribute(a.name));
+    }
+  });
+
+  return div.innerHTML;
+}
+
+async function fetchArticleFromUrl() {
+  const rawUrl = document.getElementById('f-url').value.trim();
+  if (!rawUrl) return;
+  const status = document.getElementById('fetch-status');
+  const btn = document.getElementById('fetch-btn');
+  const preview = document.getElementById('fetch-preview');
+  const sourceEl = document.getElementById('fetch-source');
+
+  // Chặn mạng xã hội
+  if (/facebook\.com|instagram\.com|twitter\.com|x\.com|linkedin\.com/.test(rawUrl)) {
+    status.style.color = 'var(--red)';
+    status.innerHTML = '✗ Mạng xã hội chặn fetch (CORS).<br>→ Copy nội dung thủ công và dán vào tab "Dán bài".';
+    sourceEl.textContent = '';
+    return;
+  }
+
+  btn.disabled = true;
+  preview.style.display = 'none';
+  sourceEl.textContent = '';
+
+  // Xử lý Google Docs: chuyển sang /pub rồi fetch qua CORS proxy
+  const gdocsMatch = rawUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/);
+  let fetchUrl = rawUrl;
+  let isGoogleDoc = false;
+  if (gdocsMatch) {
+    isGoogleDoc = true;
+    const docId = gdocsMatch[1];
+    const pubUrl = 'https://docs.google.com/document/d/' + docId + '/pub';
+    fetchUrl = 'https://corsproxy.io/?' + encodeURIComponent(pubUrl);
+    status.style.color = 'var(--ink3)';
+    status.textContent = 'Đang tải Google Docs qua proxy...';
+  } else {
+    status.style.color = 'var(--ink3)';
+    status.textContent = 'Đang tải...';
+  }
+
+  try {
+    const res = await fetch(fetchUrl);
+    const body = await res.text();
+
+    if (!res.ok) {
+      if (isGoogleDoc && res.status === 401) {
+        throw new Error('Doc chưa được "Publish to web". Vào File → Share → Publish to web → Publish rồi thử lại.');
+      }
+      let errMsg = 'HTTP ' + res.status;
+      try { const j = JSON.parse(body); errMsg = j?.error?.message || j?.message || errMsg; } catch (_) {}
+      throw new Error(errMsg);
+    }
+
+    // Google Docs published HTML: nội dung nằm trong #contents
+    const doc = new DOMParser().parseFromString(body, 'text/html');
+    if (isGoogleDoc) {
+      // Kiểm tra doc có được publish chưa (trang lỗi sẽ không có #contents)
+      const hasContent = doc.querySelector('#contents, .doc-content');
+      if (!hasContent && doc.body.textContent.trim().length < 200) {
+        throw new Error('Doc chưa được "Publish to web". Vào File → Share → Publish to web → Publish rồi thử lại.');
+      }
+    }
+
+    const main = doc.querySelector('#contents, article, main, [class*="content"], [class*="post"], [class*="entry"]') || doc.body;
+    main.querySelectorAll('script, style, nav, footer, header, aside, iframe, noscript').forEach(el => el.remove());
+    const clean = sanitizePaste(main.innerHTML);
+    document.getElementById('f-content').value = main.textContent;
+    preview.innerHTML = clean;
+    preview.style.display = 'block';
+    const count = main.textContent.trim().split(/\s+/).filter(w => w).length;
+    document.getElementById('word-count').textContent = count.toLocaleString('vi-VN');
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Đã tải ' + count.toLocaleString('vi-VN') + ' từ' + (isGoogleDoc ? ' (Google Docs)' : '');
+    sourceEl.textContent = 'Nguồn: ' + rawUrl;
+  } catch (e) {
+    status.style.color = 'var(--red)';
+    const isCors = e instanceof TypeError;
+    const hint = isCors ? 'Không kết nối được tới proxy hoặc website chặn CORS.' : e.message;
+    status.innerHTML = '✗ ' + hint + (isGoogleDoc ? '' : '<br><small>→ Thử dán bài thủ công ở tab "Dán bài".</small>');
+    sourceEl.textContent = '';
+  }
+  btn.disabled = false;
+}
+
 function updateWordCount() {
-  const text = document.getElementById('f-content').value;
-  const count = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const editor = document.getElementById('f-content-editor');
+  const text = editor ? editor.innerText : '';
+  const count = text.trim() ? text.trim().split(/\s+/).filter(w => w).length : 0;
   document.getElementById('word-count').textContent = count.toLocaleString('vi-VN');
+  if (editor) document.getElementById('f-content').value = editor.innerHTML;
 }
 
 // ============================================================
 // BOOT
 // ============================================================
-document.addEventListener('DOMContentLoaded', checkSession);
+document.addEventListener('DOMContentLoaded', () => {
+  checkSession();
+  const editor = document.getElementById('f-content-editor');
+  if (editor) {
+    editor.addEventListener('paste', e => {
+      e.preventDefault();
+      const html = e.clipboardData.getData('text/html');
+      const text = e.clipboardData.getData('text/plain');
+
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+
+      const tmp = document.createElement('div');
+      if (html) {
+        tmp.innerHTML = sanitizePaste(html);
+      } else {
+        // Plain text: mỗi dòng thành <p>
+        tmp.innerHTML = text.split(/\n/).map(line => {
+          const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return safe.trim() ? '<p>' + safe + '</p>' : '<br>';
+        }).join('');
+      }
+
+      const frag = document.createDocumentFragment();
+      while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+      range.insertNode(frag);
+      sel.collapseToEnd();
+      updateWordCount();
+    });
+  }
+});
 document.addEventListener('keydown', e => {
   if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && document.getElementById('page-auth').style.display !== 'none') {

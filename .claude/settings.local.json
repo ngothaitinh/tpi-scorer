@@ -5,7 +5,14 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(node -e \"require\\('fs'\\).readFileSync\\('public/index.html','utf8'\\)\")",
-      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\tpi-scorer\\\\public\\\\index.html\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\tpi-scorer\\\\public\\\\index.html\" | Measure-Object -Line\\).Lines)",
+      "Bash(git config *)",
+      "Bash(node *)",
+      "Bash(Get-Content public/index.html)",
+      "Bash(Measure-Object -Line)",
+      "Bash(Select-Object -ExpandProperty Lines)",
+      "Bash(npx serve *)",
+      "Bash(timeout 4 type \"C:\\\\Users\\\\ASUS\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-ASUS-Desktop-tpi-scorer\\\\ee4700a3-add4-4b88-bcb2-7d6ea72f9d17\\\\tasks\\\\b73ih9zpl.output\")"
     ]
   }
 }
