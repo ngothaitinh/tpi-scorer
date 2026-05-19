@@ -8,11 +8,10 @@
 App chạy được trên localhost:3000. Tất cả edits đang ở main file trực tiếp.
 
 ## Đang làm dở
-- [ ] **Trước khi deploy**: xóa DEV MODE bypass trong `checkSession()` (hiện đang auto-login admin)
-- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024`
-- [ ] Commit code session 3+4+5+6
-- [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test browser lại
-- [ ] Test browser: tính năng auto-check Mức 1 + AI button hoạt động sau khi chấm bài
+- [x] ~~DEV MODE đã xóa~~ — `checkSession()` giờ đọc session từ localStorage bình thường
+- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin hoặc sửa initDB)
+- [x] ~~Commit session 3+4+5+6~~ — đã commit `9789fa5` (v1.4)
+- [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với API key thật
 
 ## Vừa xong (session 6 — 19/05/2026)
 - [x] **Mức 1**: Auto-check checklist từ rubric scores — `autoCheckFromRubric()` + `RUBRIC_CL_MAP` constant

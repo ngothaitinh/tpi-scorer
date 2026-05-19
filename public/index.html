@@ -1785,6 +1785,16 @@ const TERM_TOOLTIPS = {
   'H1': `H1 — Heading cấp 1\nTiêu đề chính của bài, thường là tên dự án hoặc từ khoá chính.\n\nMỗi bài chỉ nên có 1 H1. Bắt buộc chứa keyword hoặc entity.`,
   'H2': `H2 — Heading cấp 2\nCác mục chính của bài, chia bài thành sections.\n\nBài cần ít nhất 3 H2. H2 cần cụ thể, chứa từ khoá liên quan.`,
   'H3': `H3 — Heading cấp 3\nMục con dưới H2, đi sâu vào chi tiết.\n\nH3 phải nằm trong Main Content (70% đầu bài), không nhồi cuối bài.`,
+  'Supplement':
+    `Supplement Content — Nội dung phụ trợ\nPhần mở rộng bài, không thuộc chủ đề chính của entity.\n\nVí dụ: FAQ, "Xem thêm", liên kết liên quan, bài viết cùng chủ đề\nQuy tắc: Supplement ≤ 25% tổng số từ (bài 1.000 từ → tối đa 250 từ phụ)`,
+  'Main Content':
+    `Main Content — Nội dung chính\nPhần cốt lõi của bài, chiếm 70–75% đầu bài.\n\nChứa thông tin thiết yếu về entity: vị trí, tiện ích, pháp lý, giá, CĐT\nKhông đề cập sub-topic lan man hoặc FAQ trong vùng này`,
+  'Title Case':
+    `Title Case — Viết hoa tiêu đề\nQuy tắc: viết hoa chữ đầu mỗi từ có ≥ 3 ký tự trong heading.\n\nĐúng: "Tiện Ích Nổi Bật Tại Metropolis"\nSai: "tiện ích nổi bật tại metropolis"\nNgoại lệ: giới từ ngắn như "và", "của", "tại" (< 3 ký tự) có thể không viết hoa`,
+  'Entity':
+    `Entity — Thực thể\nĐối tượng chính mà bài nói đến: dự án, thương hiệu, địa danh...\n\nVí dụ: "The Metropolis", "Vinhomes Ocean Park", "Vũng Tàu"\nGoogle dùng entity để hiểu bài viết nói về cái gì, không phải chỉ đọc từ khoá`,
+  'Heading':
+    `Heading — Tiêu đề section\nCác tiêu đề phân cấp H1 → H2 → H3 trong bài.\n\nH1: tiêu đề chính (1 cái)\nH2: section lớn (≥ 3 cái)\nH3: mục con đào sâu H2\nQuy tắc: không nhảy cấp (H1 → H3 trực tiếp là sai)`,
 };
 
 // Helper: bọc term trong span tooltip
@@ -1792,6 +1802,42 @@ function tt(term, tipKey) {
   const tip = TERM_TOOLTIPS[tipKey || term] || CRITERION_TOOLTIPS[tipKey || term];
   if (!tip) return term;
   return `<span class="tt">${term}<span class="tt-box">${tip}</span></span>`;
+}
+
+// Helper: tự động thêm tooltip vào các thuật ngữ trong fix text (dùng placeholder để tránh re-process)
+function linkTerms(text) {
+  if (!text) return text;
+  const map = [
+    // Compound terms first (longest → shortest) to avoid partial match
+    ['Main Content',      'Main Content'],
+    ['Supplement Content','Supplement'],
+    ['Search Intent',     'Search Intent'],
+    ['Information Gain',  'Information Gain'],
+    ['Title Case',        'Title Case'],
+    ['Supplement',        'Supplement'],
+    ['Entity',            'Entity'],
+    ['Heading',           'Heading'],
+    ['GEO',               'GEO'],
+    ['RPP',               'RPP'],
+    ['EAV',               'EAV'],
+    ['H1',                'H1'],
+    ['H2',                'H2'],
+    ['H3',                'H3'],
+  ];
+  let s = text;
+  const store = [];  // stores final HTML snippets indexed by placeholder
+  map.forEach(([term, key]) => {
+    const tip = TERM_TOOLTIPS[key];
+    if (!tip) return;
+    const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    s = s.replace(new RegExp(`\\b${esc}\\b`, 'g'), () => {
+      const i = store.length;
+      store.push(`<span class="tt">${term}<span class="tt-box">${tip}</span></span>`);
+      return `\x00${i}\x00`;
+    });
+  });
+  // Restore all placeholders to HTML at once (no further term-replacement risk)
+  return s.replace(/\x00(\d+)\x00/g, (_, i) => store[+i]);
 }
 
 function safeParseJSON(raw) {
@@ -1970,7 +2016,7 @@ async function submitArticle() {
       top5 = complexScores.top5_fixes || [];
     } else {
       // Quick check — rule + heuristics only, không gọi LLM
-      top5 = generateRuleFixes(ruleScores);
+      top5 = generateRuleFixes(ruleScores, parsed);
     }
 
     // Aggregate scores — LLM overrides rule; nếu LLM không chạy thì giữ heuristic rule
@@ -2034,24 +2080,137 @@ async function submitArticle() {
   }
 }
 
-function generateRuleFixes(ruleScores) {
+function generateRuleFixes(ruleScores, parsed) {
+  const text      = parsed?.text || '';
+  const headings  = parsed?.headings || [];
+  const h2list    = parsed?.h2 || [];
+  const h3list    = parsed?.h3 || [];
+  const wordCount = parsed?.wordCount || 0;
+  const ltext     = text.toLowerCase();
+
+  // — helpers —
+  const trunc = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
+
+  // P2: từ do dự thực sự tìm thấy trong bài
+  const hesitantAll = ['có thể','có lẽ','tương đối','dường như','sẽ có thể','khả năng là','khoảng','dự kiến','ước tính'];
+  const hesitantFound = hesitantAll.filter(w => ltext.includes(w)).slice(0, 4);
+
+  // P3: cụm từ chung chung tìm thấy
+  const vagueAll = ['nhiều loại','đa dạng','rất nhiều','phong phú','khác nhau','rất tốt','không kém'];
+  const vagueFound = vagueAll.filter(w => ltext.includes(w)).slice(0, 4);
+
+  // P4: số liệu count
+  const numMatches = (text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|m²|m2|km|tầng|căn|block|tòa|%|phút|ha|phòng)\b/gi) || []);
+  const neededNums = Math.ceil(wordCount / 300);
+
+  // P5: headings viết hoa sai
+  const badCase = h2list.concat(h3list).filter(h => {
+    const ws = h.text.split(' ');
+    return ws.filter(w => w.length >= 3).filter(w => w[0] !== w[0].toUpperCase()).length > 1;
+  });
+
+  // S3: H3 không có H2 cha
+  let orphanH3 = null;
+  for (let i = 0; i < headings.length; i++) {
+    if (headings[i].level === 3) {
+      const parent = headings.slice(0, i).reverse().find(p => p.level < 3);
+      if (!parent || parent.level !== 2) { orphanH3 = headings[i].text; break; }
+    }
+  }
+
+  // S6: heading bắt đầu vùng supplement (sau 70% text)
+  const suppBoundary = (() => {
+    const boundary = Math.floor(text.length * 0.70);
+    return headings.find(h => text.indexOf(h.text) > boundary)?.text || null;
+  })();
+  const suppPct = (() => {
+    const lines = text.split('\n');
+    const suppLines = lines.slice(-Math.round(lines.length * 0.25)).join(' ');
+    return Math.round(suppLines.split(/\s+/).length / Math.max(1, wordCount) * 100);
+  })();
+
+  // P8: câu quá dài — tìm heading gần nhất phía trên
+  const longSentLocation = (() => {
+    const sents = text.split(/[.!?]+/);
+    const longIdx = sents.findIndex(s => s.split(/\s+/).length > 40);
+    if (longIdx < 0) return 'Các đoạn văn mô tả';
+    const charPos = sents.slice(0, longIdx).join(' ').length;
+    const nearHeading = headings.slice().reverse().find(h => text.indexOf(h.text) < charPos);
+    return nearHeading ? `Sau heading: "${trunc(nearHeading.text, 40)}"` : 'Đoạn mô tả đầu bài';
+  })();
+
   const checks = [
-    { id: 'S3', max: 5, issue: 'Heading hierarchy sai cấp', fix: 'H3 chỉ được đặt ngay dưới H2. Xem lại cấu trúc heading — không để H3 xuất hiện độc lập hoặc nhảy cóc H1→H3.' },
-    { id: 'S4', max: 5, issue: 'Main Content thiếu chiều sâu (không có H3)', fix: 'Thêm H3 vào 9–10 heading đầu để đào sâu attribute chính. VD: H2 "Tiện Ích" → H3 "Hồ Bơi Vô Cực", H3 "Gym & Spa".' },
-    { id: 'S6', max: 3, issue: 'Phần phụ trợ (FAQ, nội dung phụ) quá nhiều', fix: 'Rút ngắn phần cuối bài (FAQ, liên kết liên quan). Supplement không quá 25% tổng số từ.' },
-    { id: 'P2', max: 5, issue: 'Dùng từ ngữ do dự trong phát biểu thực tế', fix: 'Xóa "có thể", "có lẽ", "tương đối", "dường như" khi nói về fact/tính năng. Khẳng định trực tiếp: "Blanca City có hồ bơi tầng 30." thay vì "có thể có hồ bơi".' },
-    { id: 'P3', max: 4, issue: 'Dùng cụm từ chung chung không có số liệu', fix: 'Thay "nhiều loại", "đa dạng", "phong phú" bằng con số hoặc liệt kê cụ thể. VD: "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".' },
-    { id: 'P4', max: 4, issue: 'Mật độ số liệu thấp (dưới 1 con số/300 từ)', fix: 'Thêm số cụ thể vào bài: giá (triệu/m²), diện tích (m²), số tầng, % tăng trưởng, khoảng cách (km/phút). Mục tiêu ≥1 số liệu mỗi 300 từ.' },
-    { id: 'P5', max: 2, issue: 'Heading chưa viết hoa đúng Title Case', fix: 'Viết hoa chữ đầu mỗi từ ≥3 ký tự trong heading. VD: "Tiện Ích Nổi Bật Tại Blanca City".' },
-    { id: 'P8', max: 1, issue: 'Có câu quá dài (trên 40 từ)', fix: 'Tách câu dài thành 2–3 câu ngắn 15–25 từ. Câu ngắn dễ đọc và tốt hơn cho GEO.' },
-    { id: 'P6', max: 2, issue: 'Internal link xuất hiện ở Main Content', fix: 'Chuyển toàn bộ internal link xuống phần Supplement (cuối bài). Main Content không nên có link để tránh phân tán người đọc.' },
-    { id: 'P7', max: 1, issue: 'Dùng đánh số nhiều cấp kiểu 1.1, 1.2.3', fix: 'Thay hệ thống số đếm nhiều cấp bằng bullet point: • Hồ bơi vô cực • Gym • Spa.' },
+    {
+      id: 'S3', max: 5,
+      issue: `H3 xuất hiện không đúng cấp bậc`,
+      location: orphanH3 ? `H3: "${trunc(orphanH3, 45)}"` : 'Các heading H3 trong bài',
+      fix: 'H3 chỉ được đặt ngay dưới H2. Không để H3 xuất hiện trực tiếp sau H1 hoặc bỏ qua cấp H2.',
+    },
+    {
+      id: 'S4', max: 5,
+      issue: `Main Content thiếu chiều sâu — chỉ ${headings.slice(0,10).filter(h=>h.level===3).length} H3 trong 10 heading đầu`,
+      location: '9–10 heading đầu bài (Main Content)',
+      fix: 'Thêm H3 vào 9–10 heading đầu để đào sâu attribute chính. VD: H2 "Tiện Ích" → H3 "Hồ Bơi Vô Cực", H3 "Gym & Spa".',
+    },
+    {
+      id: 'S6', max: 3,
+      issue: `Phần Supplement chiếm ~${suppPct}% bài (giới hạn 25%)`,
+      location: suppBoundary ? `Từ heading: "${trunc(suppBoundary, 40)}" trở xuống` : 'Phần cuối bài (25% cuối)',
+      fix: 'Rút ngắn phần cuối bài (FAQ, liên kết liên quan). Supplement không quá 25% tổng số từ.',
+    },
+    {
+      id: 'P2', max: 5,
+      issue: `Từ do dự: ${hesitantFound.length ? hesitantFound.map(w=>`"${w}"`).join(', ') : 'tìm thấy trong bài'}`,
+      location: `Ctrl+F: ${hesitantFound.slice(0,3).map(w=>`"${w}"`).join(' · ') || '"có thể", "dường như"'}`,
+      fix: 'Xóa từ do dự khi nói về fact/tính năng. Khẳng định trực tiếp: "Metropolis có hồ bơi tầng 30." thay vì "có thể có hồ bơi".',
+    },
+    {
+      id: 'P3', max: 4,
+      issue: `Cụm từ chung chung: ${vagueFound.length ? vagueFound.map(w=>`"${w}"`).join(', ') : 'không có số liệu cụ thể'}`,
+      location: `Ctrl+F: ${vagueFound.slice(0,3).map(w=>`"${w}"`).join(' · ') || '"đa dạng", "rất nhiều"'}`,
+      fix: 'Thay "nhiều loại", "đa dạng", "phong phú" bằng con số hoặc liệt kê cụ thể. VD: "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".',
+    },
+    {
+      id: 'P4', max: 4,
+      issue: `Số liệu: ${numMatches.length} con số / ${wordCount} từ (cần ≥${neededNums})`,
+      location: `Thiếu ≥${Math.max(0, neededNums - numMatches.length)} số liệu nữa — thêm vào các section mô tả`,
+      fix: 'Thêm số cụ thể: giá (triệu/m²), diện tích (m²), số tầng, % tăng trưởng, khoảng cách (km). Mục tiêu ≥1 số liệu mỗi 300 từ.',
+    },
+    {
+      id: 'P5', max: 2,
+      issue: `${badCase.length} heading chưa viết hoa Title Case`,
+      location: badCase.length
+        ? `"${trunc(badCase[0].text, 45)}"${badCase.length > 1 ? ` (+${badCase.length - 1} heading khác)` : ''}`
+        : 'Các heading H2/H3',
+      fix: 'Viết hoa chữ đầu mỗi từ ≥3 ký tự trong heading. VD: "Tiện Ích Nổi Bật Tại Metropolis".',
+    },
+    {
+      id: 'P8', max: 1,
+      issue: 'Có câu quá dài (trên 40 từ)',
+      location: longSentLocation,
+      fix: 'Tách câu dài thành 2–3 câu ngắn 15–25 từ. Câu ngắn dễ đọc và tốt hơn cho GEO.',
+    },
+    {
+      id: 'P6', max: 2,
+      issue: 'Internal link xuất hiện ở phần Main Content',
+      location: 'Main Content (60% đầu bài) — tìm thẻ <a href="/"...>',
+      fix: 'Chuyển toàn bộ internal link xuống phần Supplement (cuối bài). Main Content không nên có link để tránh phân tán người đọc.',
+    },
+    {
+      id: 'P7', max: 1,
+      issue: 'Dùng đánh số nhiều cấp kiểu 1.1, 1.2.3',
+      location: 'Ctrl+F: "1.1" hoặc "1.2.3" trong heading/nội dung',
+      fix: 'Thay hệ thống số đếm nhiều cấp bằng bullet point: • Hồ bơi vô cực • Gym • Spa.',
+    },
   ];
+
   const fails = checks
     .filter(c => ruleScores[c.id] !== undefined && ruleScores[c.id] < c.max)
     .sort((a, b) => (b.max - (ruleScores[b.id]||0)) - (a.max - (ruleScores[a.id]||0)));
   return fails.slice(0, 5).map((c, i) => ({
-    priority: i + 1, criterion_id: c.id, location: 'Toàn bài', issue: c.issue, fix: c.fix
+    priority: i + 1, criterion_id: c.id,
+    location: c.location || 'Toàn bài',
+    issue: c.issue, fix: c.fix,
   }));
 }
 
@@ -2088,8 +2247,8 @@ function renderResult(wrap, sub, reasons, allScores) {
         <span class="fix-sev-tag sev-${sev.label.toLowerCase()}">${sev.tag} ${sev.label}</span>
       </div>
       <div class="fix-location">📍 ${f.location || 'Toàn bài'}</div>
-      <div class="fix-issue">${f.issue}</div>
-      <div class="fix-suggestion">💡 ${fixMain}${fixExample ? `<div class="fix-example">${fixExample}</div>` : ''}</div>
+      <div class="fix-issue">${linkTerms(f.issue)}</div>
+      <div class="fix-suggestion">💡 ${linkTerms(fixMain)}${fixExample ? `<div class="fix-example">${linkTerms(fixExample)}</div>` : ''}</div>
     </div>`;
   }
 
