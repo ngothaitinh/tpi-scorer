@@ -441,6 +441,99 @@ body {
   border-radius: 6px; border-left: 2px solid var(--gold);
 }
 
+/* === RESULT 2-COLUMN LAYOUT === */
+.result-2col {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  align-items: start;
+}
+.result-left { border-right: 1px solid var(--line); }
+.result-sticky { position: sticky; top: 20px; }
+.result-right { min-width: 0; }
+.result-tabs {
+  display: flex; border-bottom: 2px solid var(--line);
+  background: var(--bg2); padding: 0 20px; gap: 2px;
+}
+.result-tab-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--ink2);
+  padding: 11px 12px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.result-tab-btn:hover { color: var(--ink); }
+.result-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-badge {
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+  background: var(--bg3); color: var(--ink2);
+  padding: 1px 6px; border-radius: 8px;
+}
+.result-tab-btn.active .tab-badge { background: rgba(224,92,58,.15); color: var(--accent); }
+.result-tab-pane { display: none; padding: 24px 28px; }
+.result-tab-pane.active { display: block; }
+.result-actions {
+  display: flex; gap: 8px;
+  padding: 14px 20px; border-top: 1px solid var(--line);
+}
+.btn-action {
+  flex: 1; padding: 7px 8px;
+  border: 1px solid var(--line2); border-radius: 4px;
+  background: var(--bg1); color: var(--ink2);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all .15s; text-align: center;
+}
+.btn-action:hover { border-color: var(--accent); color: var(--accent); }
+/* Detail tab */
+.detail-tier { margin-bottom: 20px; }
+.detail-tier-header {
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 13px;
+  color: var(--ink2); padding: 0 0 8px;
+  border-bottom: 1px solid var(--line); margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.detail-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 52px 70px;
+  align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px dashed var(--line);
+  font-size: 12px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-id { font-size: 11px; color: var(--ink3); }
+.detail-name { color: var(--ink); font-size: 12px; }
+.detail-score { text-align: right; }
+.detail-bar-wrap { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.detail-bar { height: 100%; border-radius: 2px; transition: width 1s ease; }
+.detail-reason {
+  grid-column: 2 / -1;
+  font-size: 11px; color: var(--ink3); font-style: italic;
+  padding: 0 0 5px;
+}
+@media (max-width: 900px) {
+  .result-2col { grid-template-columns: 1fr; }
+  .result-left { border-right: none; border-bottom: 1px solid var(--line); }
+  .result-sticky { position: static; }
+}
+
+/* === COST DASHBOARD === */
+.cost-summary {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 16px 20px;
+}
+.cost-month { font-family: 'Be Vietnam Pro',sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+.cost-stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.cost-stat { text-align: center; }
+.cost-stat-num { font-family: 'DM Mono',monospace; font-size: 22px; font-weight: 700; }
+.cost-stat-lbl { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.cost-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cost-table th { text-align: left; padding: 6px 10px; color: var(--ink3); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.cost-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.cost-table tr:last-child td { border-bottom: none; }
+
 /* === HISTORY TABLE === */
 .history-table { width: 100%; border-collapse: collapse; }
 .history-table th {
@@ -891,9 +984,25 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
         <span class="config-desc">Điểm rule &lt; threshold → skip LLM tier 3+4 (tiết kiệm token)</span>
         <input class="config-val mono" id="cfg-skip" type="number" min="0" max="55" value="30">
       </div>
+      <div class="config-row">
+        <span class="config-key mono">monthly_limit</span>
+        <span class="config-desc">Giới hạn bài/tháng (LLM) cho user thường</span>
+        <input class="config-val mono" id="cfg-monthlim" type="number" min="1" max="200" value="30">
+      </div>
+      <div class="config-row">
+        <span class="config-key mono">usd_vnd</span>
+        <span class="config-desc">Tỷ giá USD/VND để quy đổi chi phí API</span>
+        <input class="config-val mono" id="cfg-usdvnd" type="number" min="20000" max="35000" value="25500">
+      </div>
       <div style="margin-top:16px">
         <button class="btn-save-config syne" onclick="saveConfig()">Lưu cấu hình</button>
       </div>
+    </div>
+
+    <!-- Cost Dashboard -->
+    <div class="config-section">
+      <h3 class="syne">💰 Chi phí & Thống kê tháng</h3>
+      <div id="cost-dashboard"></div>
     </div>
 
     <div class="config-section">
@@ -1489,119 +1598,159 @@ function parseArticle(raw) {
 }
 
 // ============================================================
-// RULE-BASED SCORING (free, no API)
+// RULE-BASED SCORING — dispatcher pattern
+// Each scorer: (parsed, meta?) → { score: Number, evidence: Object }
+// evidence feeds generateRuleFixes — eliminates double-scan
 // ============================================================
-function scoreRules(parsed, meta) {
-  const { text, wordCount, headings, h1, h2, h3 } = parsed;
-  const results = {};
 
-  // S3 — Heading Hierarchy
-  let s3 = 5;
+function _scoreS3(parsed) {
+  const { headings } = parsed;
+  let score = 5;
+  let firstOrphanH3 = null;
   headings.forEach((h, i) => {
     if (h.level === 3) {
       const parent = headings.slice(0, i).reverse().find(p => p.level < 3);
-      if (!parent || parent.level !== 2) s3 = Math.max(0, s3 - 1.5);
+      if (!parent || parent.level !== 2) {
+        score = Math.max(0, score - 1.5);
+        if (!firstOrphanH3) firstOrphanH3 = h.text;
+      }
     }
   });
-  results.S3 = Math.round(s3 * 10) / 10;
+  return { score: Math.round(score * 10) / 10, evidence: { firstOrphanH3 } };
+}
 
-  // S4 — Contextual Coverage
-  const mainHeadings = headings.slice(0, 10);
-  const suppHeadings = headings.slice(10);
-  const mainH3 = mainHeadings.filter(h => h.level === 3).length;
-  const suppH3 = suppHeadings.filter(h => h.level === 3).length;
+function _scoreS4(parsed) {
+  const { headings } = parsed;
+  const mainH3 = headings.slice(0, 10).filter(h => h.level === 3).length;
+  const suppH3 = headings.slice(10).filter(h => h.level === 3).length;
   const totalH3 = mainH3 + suppH3;
-  if (totalH3 === 0) {
-    results.S4 = 2; // Bài không có H3 — thiếu chiều sâu, nhưng không phải 0 hoàn toàn
-  } else {
-    const mainRatio = mainH3 / totalH3;
-    results.S4 = mainRatio >= 0.6 ? 5 : mainRatio >= 0.4 ? 2 : 0;
-  }
+  const ratio = totalH3 === 0 ? 0 : mainH3 / totalH3;
+  const score = totalH3 === 0 ? 2 : ratio >= 0.6 ? 5 : ratio >= 0.4 ? 2 : 0;
+  return { score, evidence: { mainH3Count: mainH3, totalH3Count: totalH3 } };
+}
 
-  // S6 — Supplement ratio (estimate: last 25% of text)
-  const suppWords = Math.round(wordCount * 0.25);
-  const suppLines = text.split('\n').slice(-Math.round(text.split('\n').length * 0.25)).join(' ');
-  const suppWordEst = suppLines.split(/\s+/).length;
-  const suppPct = suppWordEst / wordCount;
-  results.S6 = suppPct <= 0.25 ? 3 : suppPct <= 0.30 ? 1.5 : 0;
+function _scoreS6(parsed) {
+  const { text, wordCount, headings } = parsed;
+  // Tìm heading đầu tiên nằm sau 70% text (ranh giới Supplement)
+  const boundary70 = Math.floor(text.length * 0.70);
+  const suppHeading = headings.find(h => text.indexOf(h.text) > boundary70) || null;
+  const suppText = text.slice(boundary70);
+  const suppWords = suppText.split(/\s+/).filter(w => w.length > 0).length;
+  const suppPct = Math.round(suppWords / Math.max(1, wordCount) * 100);
+  const score = suppPct <= 25 ? 3 : suppPct <= 30 ? 1.5 : 0;
+  return { score, evidence: { suppPct, suppHeading: suppHeading?.text || null } };
+}
 
-  // P2 — Be Certain
-  // Nhóm 1: từ do dự thuần tuý (luôn phạt)
+function _scoreP2(parsed) {
+  const { text } = parsed;
+  const ltext = text.toLowerCase();
   const hesitantAlways = ['có thể', 'có lẽ', 'tương đối', 'sẽ có thể', 'khả năng là', 'có vẻ', 'dường như'];
-  // Nhóm 2: từ ước lượng (chỉ phạt khi KHÔNG đi kèm số liệu)
   const hesitantIfNoNum = ['khoảng', 'dự kiến', 'ước tính'];
-  let p2Violations = 0;
+  let violations = 0;
+  const foundWords = [];
   hesitantAlways.forEach(w => {
-    const regex = new RegExp(w, 'gi');
-    const matches = text.match(regex);
-    if (matches) p2Violations += matches.length;
+    const matches = ltext.match(new RegExp(w, 'gi'));
+    if (matches) { violations += matches.length; if (!foundWords.includes(w)) foundWords.push(w); }
   });
   hesitantIfNoNum.forEach(w => {
     const regex = new RegExp(w, 'gi');
     let m;
-    while ((m = regex.exec(text)) !== null) {
-      // Lấy context ±15 ký tự xung quanh từ — nếu không có số → tính vi phạm
+    while ((m = regex.exec(ltext)) !== null) {
       const ctx = text.slice(Math.max(0, m.index - 5), m.index + w.length + 15);
-      if (!/\d/.test(ctx)) p2Violations++;
+      if (!/\d/.test(ctx)) { violations++; if (!foundWords.includes(w)) foundWords.push(w); }
     }
   });
-  results.P2 = Math.max(0, 5 - p2Violations * 0.5);
+  return { score: Math.max(0, 5 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } };
+}
 
-  // P3 — Cụ thể vs Chung chung
+function _scoreP3(parsed) {
+  const { text } = parsed;
+  const ltext = text.toLowerCase();
   const vagueWords = ['nhiều loại', 'đa dạng', 'rất nhiều', 'phong phú', 'khác nhau', 'rất tốt'];
-  let p3Violations = 0;
-  const lowerText = text.toLowerCase();
+  let violations = 0;
+  const foundWords = [];
   vagueWords.forEach(w => {
     const regex = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-    for (const m of lowerText.matchAll(regex)) {
+    for (const m of ltext.matchAll(regex)) {
       const after = text.slice(m.index, m.index + 80);
-      if (!/\d/.test(after)) p3Violations++;
+      if (!/\d/.test(after)) { violations++; if (!foundWords.includes(w)) foundWords.push(w); }
     }
   });
-  results.P3 = Math.max(0, 4 - p3Violations * 0.5);
+  return { score: Math.max(0, 4 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } };
+}
 
-  // P4 — Số liệu cụ thể
-  const numbers = text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|tỷ đồng|m²|m2|m\/s|km|km²|tầng|căn|block|tòa|tháp|lô|nền|%|phút|giây|ngày|tháng|năm|VND|đồng|USD|ha|phòng|người)\b/gi);
-  const numDensity = (numbers ? numbers.length : 0) / (wordCount / 300);
-  results.P4 = numDensity >= 1 ? 4 : numDensity >= 0.5 ? 2 : 0;
+function _scoreP4(parsed) {
+  const { text, wordCount } = parsed;
+  const numbers = text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|tỷ đồng|m²|m2|m\/s|km|km²|tầng|căn|block|tòa|tháp|lô|nền|%|phút|giây|ngày|tháng|năm|VND|đồng|USD|ha|phòng|người)\b/gi) || [];
+  const needed = Math.ceil(wordCount / 300);
+  const density = numbers.length / Math.max(1, wordCount / 300);
+  const score = density >= 1 ? 4 : density >= 0.5 ? 2 : 0;
+  return { score, evidence: { numCount: numbers.length, neededCount: needed } };
+}
 
-  // P5 — Heading viết hoa
-  let p5Bad = 0;
+function _scoreP5(parsed) {
+  const { h2, h3 } = parsed;
+  const badHeadings = [];
   h2.concat(h3).forEach(h => {
-    const words = h.text.split(' ');
-    const shouldCap = words.filter(w => w.length >= 3);
-    const notCapped = shouldCap.filter(w => w[0] !== w[0].toUpperCase());
-    if (notCapped.length > 1) p5Bad++;
+    const ws = h.text.split(' ');
+    // Fix: toLocaleUpperCase('vi') handles Vietnamese diacritics correctly
+    const notCapped = ws.filter(w => w.length >= 3)
+                        .filter(w => w[0].toLocaleUpperCase('vi') !== w[0]);
+    if (notCapped.length > 1) badHeadings.push(h.text);
   });
-  results.P5 = Math.max(0, 2 - p5Bad * 0.3);
+  const score = Math.max(0, Math.round((2 - badHeadings.length * 0.3) * 10) / 10);
+  return { score, evidence: { badHeadings } };
+}
 
-  // P6 — Internal link (estimate from text)
-  const internalLinks = (text.match(/\[.*?\]\(\/[^)]+\)/g) || []).length +
-                        (text.match(/href=["']\/[^"']+["']/g) || []).length;
+function _scoreP6(parsed) {
+  const { text } = parsed;
   const mainText = text.slice(0, Math.floor(text.length * 0.6));
-  const mainLinks = (mainText.match(/\[.*?\]\(\/[^)]+\)/g) || []).length;
-  results.P6 = mainLinks === 0 ? 2 : mainLinks <= 2 ? 1 : 0;
+  const mainLinks = (mainText.match(/\[.*?\]\(\/[^)]+\)/g) || []).length
+                  + (mainText.match(/href=["']\/[^"']+["']/g) || []).length;
+  const score = mainLinks === 0 ? 2 : mainLinks <= 2 ? 1 : 0;
+  return { score, evidence: { mainLinkCount: mainLinks } };
+}
 
-  // P7 — No nested numbering
-  const nestedNum = /\d+\.\d+\.\d+/.test(text) || /\n\d+\.\d+\s/.test(text);
-  results.P7 = nestedNum ? 0 : 1;
+function _scoreP7(parsed) {
+  const { text } = parsed;
+  const hasNested = /\d+\.\d+\.\d+/.test(text) || /\n\d+\.\d+\s/.test(text);
+  return { score: hasNested ? 0 : 1, evidence: { hasNested } };
+}
 
-  // P8 — Sentence length
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  const longSents = sentences.filter(s => s.split(/\s+/).length > 40).length;
-  const longPct = longSents / Math.max(1, sentences.length);
-  results.P8 = longPct > 0.05 ? 0 : longPct > 0.02 ? 0.5 : 1;
+function _scoreP8(parsed) {
+  const { text, headings } = parsed;
+  // Fix: lookbehind prevents splitting on decimals ("3.5 tỷ") or ordered lists ("1. Mục")
+  const sentences = text.split(/(?<![0-9])[.!?]+(?=\s|$)/).filter(s => s.trim().length > 10);
+  const longSents = sentences.filter(s => s.split(/\s+/).length > 40);
+  const longPct = longSents.length / Math.max(1, sentences.length);
+  const score = longPct > 0.05 ? 0 : longPct > 0.02 ? 0.5 : 1;
+  let longSentLocation = 'Các đoạn văn mô tả';
+  if (longSents.length > 0) {
+    const charPos = text.indexOf(longSents[0].trim().slice(0, 30));
+    if (charPos > -1) {
+      const trunc = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
+      const near = (headings || []).slice().reverse().find(h => text.indexOf(h.text) < charPos);
+      longSentLocation = near ? `Sau heading: "${trunc(near.text, 40)}"` : 'Đoạn mô tả đầu bài';
+    }
+  }
+  return { score, evidence: { longSentCount: longSents.length, longSentLocation } };
+}
 
-  // ===== HEURISTIC SCORING (không cần LLM, dùng làm fallback) =====
-  const lText = text.toLowerCase();
-
-  // S1 — Macro Context (heuristic: % H2 chứa token từ keyword/entity)
+// S1 heuristic — keyword alignment (LLM sẽ override nếu forceLLM)
+function _scoreS1_heuristic(parsed, meta) {
+  const { h2 } = parsed;
   const kwTokens = [...meta.keyword.split(/\s+/), ...meta.entity.split(/\s+/)]
     .map(t => t.toLowerCase()).filter(t => t.length >= 3);
-  const h2matched = h2.filter(h => kwTokens.some(t => h.text.toLowerCase().includes(t))).length;
-  results.S1 = h2.length > 0 ? Math.round(7 * (h2matched / h2.length) * 10) / 10 : 0;
+  const matched = h2.filter(h => kwTokens.some(t => h.text.toLowerCase().includes(t))).length;
+  const score = h2.length > 0 ? Math.round(7 * (matched / h2.length) * 10) / 10 : 0;
+  return { score, evidence: { matchedH2: matched, totalH2: h2.length } };
+}
 
-  // R2 — Prominence (heuristic: bài có đủ 5 attributes thiết yếu BĐS không)
+// Heuristic fallbacks — chỉ dùng khi LLM bị skip (forceLLM=false)
+// Tách riêng để không nhầm với rule scorer chính thống
+function _fallbackHeuristic(parsed) {
+  const lText = parsed.text.toLowerCase();
+  // R2 — Prominence (5 attributes thiết yếu BĐS)
   const r2Attrs = [
     ['vị trí', 'tọa lạc', 'địa chỉ', 'nằm tại', 'mặt tiền'],
     ['tiện ích', 'amenities', 'hồ bơi', 'gym', 'spa', 'cảnh quan'],
@@ -1609,32 +1758,55 @@ function scoreRules(parsed, meta) {
     ['giá', 'triệu', 'tỷ đồng', 'thanh toán', 'chính sách'],
     ['chủ đầu tư', 'cđt', 'developer', 'tập đoàn', 'sonkim', 'novaland', 'vingroup']
   ];
-  const r2Found = r2Attrs.filter(patterns => patterns.some(p => lText.includes(p))).length;
-  results.R2 = Math.round(5 * r2Found / r2Attrs.length * 10) / 10;
-
-  // R5 — Central Entity / CTA (heuristic: 25% cuối bài có CTA/TPI không)
+  const r2Found = r2Attrs.filter(ps => ps.some(p => lText.includes(p))).length;
+  // R5 — CTA trong 25% cuối bài
   const tail25 = lText.slice(-Math.floor(lText.length * 0.25));
   const ctaHits = ['tpi', 'tư vấn', 'liên hệ', 'đăng ký', 'nhận tư vấn', 'đặt lịch', 'hotline', 'xem nhà'];
-  results.R5 = ctaHits.some(p => tail25.includes(p)) ? 3 : 0;
-
-  // I3 — Tránh văn phong AI (heuristic: đếm AI-flavor clichés)
-  const aiCliches = [
-    'không thể phủ nhận', 'trong bối cảnh', 'đóng vai trò quan trọng', 'nhìn chung',
-    'không kém phần', 'xứng đáng là', 'lựa chọn hoàn hảo', 'tiềm năng vượt trội',
-    'giải pháp toàn diện', 'đáp ứng mọi nhu cầu', 'không ngừng phát triển',
-    'có thể thấy rằng', 'rõ ràng là', 'điều này cho thấy'
-  ];
+  // I3 — AI clichés
+  const aiCliches = ['không thể phủ nhận','trong bối cảnh','đóng vai trò quan trọng','nhìn chung',
+    'không kém phần','xứng đáng là','lựa chọn hoàn hảo','tiềm năng vượt trội',
+    'giải pháp toàn diện','đáp ứng mọi nhu cầu','không ngừng phát triển',
+    'có thể thấy rằng','rõ ràng là','điều này cho thấy'];
   const aiCount = aiCliches.filter(c => lText.includes(c)).length;
-  results.I3 = aiCount === 0 ? 5 : aiCount <= 2 ? 4 : aiCount <= 4 ? 2 : 0;
-
-  // I4 — Trích dẫn nguồn (heuristic: đếm citation patterns)
-  const citePatterns = ['(nguồn:', '(theo ', 'theo cbre', 'theo báo cáo', 'theo dữ liệu',
-    'theo savills', 'theo jll', 'cafef.vn', 'vnexpress', 'tpi land q'];
+  // I4 — Citations
+  const citePatterns = ['(nguồn:','(theo ','theo cbre','theo báo cáo','theo dữ liệu',
+    'theo savills','theo jll','cafef.vn','vnexpress','tpi land q'];
   const citeCount = citePatterns.filter(c => lText.includes(c)).length;
-  results.I4 = citeCount >= 3 ? 3 : citeCount >= 1 ? 1.5 : 0;
+  return {
+    R2: Math.round(5 * r2Found / r2Attrs.length * 10) / 10,
+    R5: ctaHits.some(p => tail25.includes(p)) ? 3 : 0,
+    I3: aiCount === 0 ? 5 : aiCount <= 2 ? 4 : aiCount <= 4 ? 2 : 0,
+    I4: citeCount >= 3 ? 3 : citeCount >= 1 ? 1.5 : 0,
+  };
+}
 
-  const ruleTotal = Object.values(results).reduce((a, b) => a + b, 0);
-  return { scores: results, total: Math.round(ruleTotal * 10) / 10 };
+// Deterministic rule scorers — criterion_id → scorer fn
+const RULE_SCORERS = {
+  S3: _scoreS3, S4: _scoreS4, S6: _scoreS6,
+  P2: _scoreP2, P3: _scoreP3, P4: _scoreP4,
+  P5: _scoreP5, P6: _scoreP6, P7: _scoreP7, P8: _scoreP8,
+};
+
+function scoreRules(parsed, meta) {
+  const scores = {};
+  const evidence = {};
+  // Chạy từng scorer — thu evidence để dùng lại trong generateRuleFixes
+  for (const [id, fn] of Object.entries(RULE_SCORERS)) {
+    const r = fn(parsed, meta);
+    scores[id] = r.score;
+    evidence[id] = r.evidence;
+  }
+  // S1 heuristic (LLM sẽ override)
+  const s1r = _scoreS1_heuristic(parsed, meta);
+  scores.S1 = s1r.score;
+  evidence.S1 = s1r.evidence;
+  // Heuristic fallbacks cho LLM criteria
+  const fb = _fallbackHeuristic(parsed);
+  Object.assign(scores, { R2: fb.R2, R5: fb.R5, I3: fb.I3, I4: fb.I4 });
+  // Zero-init LLM-only criteria (tránh NaN khi tính total)
+  ['S2','S5','P1','R1','R3','R4','R6','I1','I2'].forEach(id => { scores[id] = scores[id] ?? 0; });
+  const total = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) * 10) / 10;
+  return { scores, total, evidence };
 }
 
 // ============================================================
@@ -1876,77 +2048,68 @@ const SYSTEM_SIMPLE = `Bạn là chuyên gia chấm bài viết SEO/GEO theo rub
 
 async function scoreLLMSimple(parsed, meta) {
   const headingList = parsed.headings.slice(0, 15).map(h => `${'#'.repeat(h.level)} ${h.text}`).join('\n');
-  const preview = parsed.text.slice(0, 3000);
+  // Head+tail strategy: đầu bài cho S1/S2/P1 + cuối bài cho R5 (CTA detection)
+  const headText = parsed.text.slice(0, 2200);
+  const tailText = parsed.text.length > 3000 ? '\n\n[...phần cuối bài:]\n' + parsed.text.slice(-600) : '';
+  const preview  = headText + tailText;
 
   const prompt = `${SYSTEM_SIMPLE}
 
-Thông tin bài viết:
-- Keyword: ${meta.keyword}
-- Main Entity: ${meta.entity}
-- Intent: ${meta.intent}
-- Business model: real_estate_agency (TPI Land - môi giới BĐS Vũng Tàu)
+Keyword: ${meta.keyword} | Entity: ${meta.entity} | Intent: ${meta.intent} | Business: môi giới BĐS TPI Land
 
-Heading (tối đa 15 đầu tiên):
+Heading (15 đầu):
 ${headingList}
 
-Đoạn đầu bài (3000 ký tự):
+Nội dung (đầu+cuối bài):
 ${preview}
 
-Chấm các tiêu chí sau (trả về JSON):
-{
-  "S1": <0-7, H2 có đúng chủ đề H1 không>,
-  "S2": <0-6, 9-10 heading đầu có liên quan keyword/entity không>,
-  "S5": <0-4, flow heading có logic định nghĩa→đặc điểm→lợi ích→hành động không>,
-  "P1": <0-6, câu đầu sau heading có trả lời thẳng không>,
-  "R1": <0-5, heading có liên quan mô hình agency BĐS không>,
-  "R3": <0-4, heading có khớp search intent của keyword không>,
-  "R5": <0-3, cuối bài có heading kết nối về dịch vụ TPI không>,
-  "R6": <0-2, heading đầu và cuối Main Content có kết nối ý nghĩa không>,
-  "reasons": {"S1":"lý do ngắn","S2":"lý do ngắn","S5":"lý do ngắn","P1":"lý do ngắn","R1":"lý do ngắn","R3":"lý do ngắn","R5":"lý do ngắn","R6":"lý do ngắn"}
-}`;
+Chấm JSON (số thực):
+{"S1":<0-7>,"S2":<0-6>,"S5":<0-4>,"P1":<0-6>,"R1":<0-5>,"R3":<0-4>,"R5":<0-3>,"R6":<0-2>,
+"reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","R6":"..."}}
+
+Hướng dẫn ngắn:
+S1: H2 có đúng chủ đề H1 không | S2: 9-10 heading đầu có cụ thể/liên quan không
+S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1: câu đầu sau heading trả lời thẳng không
+R1: heading liên quan agency BĐS TPI | R3: khớp search intent keyword
+R5: cuối bài có CTA/heading dẫn về TPI không | R6: heading đầu-cuối MC kết nối nghĩa`;
 
   const apicfg = getApiConfig();
   const model = apicfg.provider === 'custom' ? apicfg.custom_model_simple : apicfg.model_simple;
-  const raw = await callLLM(prompt, { ...apicfg, model }, 700);
+  const raw = await callLLM(prompt, { ...apicfg, model }, 600);
   return safeParseJSON(raw);
 }
 
 async function scoreLLMComplex(parsed, meta) {
-  const preview = parsed.text.slice(0, 4000);
+  // Head+tail: đầu bài cho R2/R4 + cuối bài cho I1 (data TPI thường ở cuối)
+  const headText = parsed.text.slice(0, 3000);
+  const tailText = parsed.text.length > 4000 ? '\n\n[...phần cuối bài:]\n' + parsed.text.slice(-1000) : '';
+  const preview  = headText + tailText;
+
+  // Lưu ý: I3 (văn phong AI) đã được chấm bằng rule heuristic — không cần LLM
   const prompt = `${SYSTEM_SIMPLE}
 
 Keyword: ${meta.keyword} | Entity: ${meta.entity} | Business: môi giới BĐS TPI Land
 
-Nội dung bài (4000 ký tự đầu):
+Nội dung bài (đầu+cuối):
 ${preview}
 
-Chấm các tiêu chí sau và tạo top 5 fixes (JSON thuần).
+Chấm 5 tiêu chí + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
 
-Quy tắc viết top5_fixes:
-- location: tên heading chứa lỗi (VD: "H2: Tiện Ích Nội Khu") hoặc "Đoạn mở đầu" / "Toàn bài". Phải cụ thể.
-- issue: 1 câu ngắn mô tả chính xác lỗi.
-- fix: đề xuất sửa rõ ràng. Nếu thiếu nội dung → viết 1-2 câu mẫu tiếng Việt làm ví dụ sau dấu xuống dòng "VD:".
+{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,
+"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"..."},
+"top5_fixes":[
+  {"priority":1,"criterion_id":"XX","location":"heading cụ thể","issue":"mô tả lỗi","fix":"giải pháp"},
+  {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+  {"priority":3,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+  {"priority":4,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
+  {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
+]}
 
-{
-  "R2": <0-5, bài có đủ 5 Attribute thiết yếu: vị trí/tiện ích/pháp lý/giá/chủ đầu tư không>,
-  "R4": <0-6, các Attribute-Value có số liệu/danh sách cụ thể hay mơ hồ chung chung>,
-  "I1": <0 hoặc 3 hoặc 7, có data/case study độc quyền của TPI không>,
-  "I2": <0-5, có góc nhìn phân tích riêng của TPI không>,
-  "I3": <0-5, tránh văn phong AI generic (0=rất nhiều cụm sáo, 5=hoàn toàn tự nhiên)>,
-  "I4": <0 hoặc 1.5 hoặc 3, số trích dẫn nguồn uy tín rõ ràng>,
-  "reasons": {"R2":"lý do ngắn","R4":"lý do ngắn","I1":"lý do ngắn","I2":"lý do ngắn","I3":"lý do ngắn","I4":"lý do ngắn"},
-  "top5_fixes": [
-    {"priority":1,"criterion_id":"XX","location":"tên heading hoặc vị trí cụ thể","issue":"mô tả lỗi ngắn gọn","fix":"cách sửa + câu mẫu nếu thiếu nội dung"},
-    {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
-    {"priority":3,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
-    {"priority":4,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
-    {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
-  ]
-}`;
+Hướng dẫn: R2=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4=EAV có số liệu cụ thể hay mơ hồ; I1=data độc quyền TPI; I2=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín`;
 
   const apicfg2 = getApiConfig();
   const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
-  const raw = await callLLM(prompt, { ...apicfg2, model: model2 }, 900);
+  const raw = await callLLM(prompt, { ...apicfg2, model: model2 }, 800);
   return safeParseJSON(raw);
 }
 
@@ -1965,6 +2128,10 @@ async function submitArticle() {
   if (!content) { alert('Vui lòng dán nội dung bài viết.'); return; }
   if (!apiCfg.api_key) { alert('Vui lòng cấu hình API Key trong trang Admin.'); return; }
   if (getDailyCount() >= currentUser.dailyLimit) { alert('Bạn đã dùng hết lượt chấm hôm nay.'); return; }
+  const monthlyCfg = DB.get('config', {}).monthly_limit || 30;
+  if (currentUser.role !== 'admin' && getMonthlyCount() >= monthlyCfg) {
+    alert(`Bạn đã đạt giới hạn ${monthlyCfg} bài AI/tháng. Liên hệ admin để tăng hạn mức.`); return;
+  }
 
   _tok = { in: 0, out: 0 }; // reset token counter
   const meta = { keyword, entity, intent: selectedIntent };
@@ -1996,27 +2163,38 @@ async function submitArticle() {
   const setLoaderTxt = t => { const el = document.getElementById('loader-txt'); if (el) el.textContent = t; };
 
   try {
-    // Step 1: Rule scoring (instant)
-    const { scores: ruleScores, total: ruleTotal } = scoreRules(parsed, meta);
+    // Step 1: Rule scoring (instant) — trả về evidence để generateRuleFixes dùng lại
+    const { scores: ruleScores, total: ruleTotal, evidence: ruleEvidence } = scoreRules(parsed, meta);
     setLoaderTxt(forceLLM ? 'Chấm rule xong. Đang gọi AI...' : 'Đang phân tích nhanh (không AI)...');
 
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
     let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {};
 
     if (forceLLM) {
-      // Step 2: LLM simple
-      setLoaderTxt('Phân tích cấu trúc với AI (' + apiCfg.provider + ')...');
-      simpleScores = await scoreLLMSimple(parsed, meta);
-      allReasons = { ...allReasons, ...simpleScores.reasons };
-
-      // Step 3: LLM complex
-      setLoaderTxt('Phân tích chuyên sâu với AI (' + apiCfg.provider + ')...');
-      complexScores = await scoreLLMComplex(parsed, meta);
-      allReasons = { ...allReasons, ...complexScores.reasons };
-      top5 = complexScores.top5_fixes || [];
+      // Chạy 2 LLM call song song — giảm latency ~50% so với tuần tự
+      setLoaderTxt('Đang phân tích AI song song (' + apiCfg.provider + ')...');
+      const [simpleResult, complexResult] = await Promise.allSettled([
+        scoreLLMSimple(parsed, meta),
+        scoreLLMComplex(parsed, meta),
+      ]);
+      if (simpleResult.status === 'fulfilled') {
+        simpleScores = simpleResult.value || {};
+        allReasons = { ...allReasons, ...(simpleScores.reasons || {}) };
+      } else {
+        console.warn('[TPI] LLM Simple failed:', simpleResult.reason?.message);
+      }
+      if (complexResult.status === 'fulfilled') {
+        complexScores = complexResult.value || {};
+        allReasons = { ...allReasons, ...(complexScores.reasons || {}) };
+        top5 = complexScores.top5_fixes || [];
+      } else {
+        console.warn('[TPI] LLM Complex failed:', complexResult.reason?.message);
+      }
+      // Nếu cả 2 fail hoặc top5 rỗng: fallback sang rule-based fixes
+      if (!top5.length) top5 = generateRuleFixes(ruleScores, parsed, ruleEvidence);
     } else {
       // Quick check — rule + heuristics only, không gọi LLM
-      top5 = generateRuleFixes(ruleScores, parsed);
+      top5 = generateRuleFixes(ruleScores, parsed, ruleEvidence);
     }
 
     // Aggregate scores — LLM overrides rule; nếu LLM không chạy thì giữ heuristic rule
@@ -2034,7 +2212,7 @@ async function submitArticle() {
       R6: simpleScores.R6  || 0,
       I1: complexScores.I1 || 0,
       I2: complexScores.I2 || 0,
-      I3: complexScores.I3 ?? ruleScores.I3  ?? 0,
+      I3: ruleScores.I3 ?? 0,  // Rule heuristic (AI clichés) — không dùng LLM cho I3
       I4: complexScores.I4 ?? ruleScores.I4  ?? 0
     };
 
@@ -2066,7 +2244,7 @@ async function submitArticle() {
     const subs = DB.get('submissions', []);
     subs.unshift(submission);
     DB.set('submissions', subs.slice(0, 200));
-    if (llmUsed) { incrementDaily(); renderLimitBar(); } // Kiểm tra nhanh không tính lượt
+    if (llmUsed) { incrementDaily(); incrementMonthly(); renderLimitBar(); }
 
     // Render result
     renderResult(resultWrap, submission, allReasons, allScores);
@@ -2080,64 +2258,52 @@ async function submitArticle() {
   }
 }
 
-function generateRuleFixes(ruleScores, parsed) {
+// evidence: object từ scoreRules — tránh scan lại text
+function generateRuleFixes(ruleScores, parsed, evidence) {
   const text      = parsed?.text || '';
   const headings  = parsed?.headings || [];
   const h2list    = parsed?.h2 || [];
   const h3list    = parsed?.h3 || [];
   const wordCount = parsed?.wordCount || 0;
-  const ltext     = text.toLowerCase();
 
-  // — helpers —
   const trunc = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
 
-  // P2: từ do dự thực sự tìm thấy trong bài
-  const hesitantAll = ['có thể','có lẽ','tương đối','dường như','sẽ có thể','khả năng là','khoảng','dự kiến','ước tính'];
-  const hesitantFound = hesitantAll.filter(w => ltext.includes(w)).slice(0, 4);
+  // Dùng evidence khi có — fallback re-scan nếu không
+  const hesitantFound = evidence?.P2?.foundWords
+    ?? ['có thể','có lẽ','tương đối','dường như','khoảng','dự kiến','ước tính']
+        .filter(w => text.toLowerCase().includes(w)).slice(0, 4);
 
-  // P3: cụm từ chung chung tìm thấy
-  const vagueAll = ['nhiều loại','đa dạng','rất nhiều','phong phú','khác nhau','rất tốt','không kém'];
-  const vagueFound = vagueAll.filter(w => ltext.includes(w)).slice(0, 4);
+  const vagueFound = evidence?.P3?.foundWords
+    ?? ['nhiều loại','đa dạng','rất nhiều','phong phú','khác nhau','rất tốt']
+        .filter(w => text.toLowerCase().includes(w)).slice(0, 4);
 
-  // P4: số liệu count
-  const numMatches = (text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|m²|m2|km|tầng|căn|block|tòa|%|phút|ha|phòng)\b/gi) || []);
-  const neededNums = Math.ceil(wordCount / 300);
+  const numCount   = evidence?.P4?.numCount
+    ?? (text.match(/\b\d+[\d.,]*\s*(triệu|tỷ|m²|m2|km|tầng|căn|block|tòa|%|phút|ha|phòng)\b/gi) || []).length;
+  const neededNums = evidence?.P4?.neededCount ?? Math.ceil(wordCount / 300);
 
-  // P5: headings viết hoa sai
-  const badCase = h2list.concat(h3list).filter(h => {
+  // P5: badHeadings từ evidence (array of strings) hoặc re-compute
+  const badCaseTexts = evidence?.P5?.badHeadings ?? h2list.concat(h3list).filter(h => {
     const ws = h.text.split(' ');
-    return ws.filter(w => w.length >= 3).filter(w => w[0] !== w[0].toUpperCase()).length > 1;
-  });
+    return ws.filter(w => w.length >= 3).filter(w => w[0].toLocaleUpperCase('vi') !== w[0]).length > 1;
+  }).map(h => h.text);
 
-  // S3: H3 không có H2 cha
-  let orphanH3 = null;
-  for (let i = 0; i < headings.length; i++) {
-    if (headings[i].level === 3) {
-      const parent = headings.slice(0, i).reverse().find(p => p.level < 3);
-      if (!parent || parent.level !== 2) { orphanH3 = headings[i].text; break; }
+  const orphanH3 = evidence?.S3?.firstOrphanH3 ?? (() => {
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].level === 3) {
+        const parent = headings.slice(0, i).reverse().find(p => p.level < 3);
+        if (!parent || parent.level !== 2) return headings[i].text;
+      }
     }
-  }
-
-  // S6: heading bắt đầu vùng supplement (sau 70% text)
-  const suppBoundary = (() => {
-    const boundary = Math.floor(text.length * 0.70);
-    return headings.find(h => text.indexOf(h.text) > boundary)?.text || null;
+    return null;
   })();
-  const suppPct = (() => {
+
+  const suppPct      = evidence?.S6?.suppPct ?? (() => {
     const lines = text.split('\n');
     const suppLines = lines.slice(-Math.round(lines.length * 0.25)).join(' ');
     return Math.round(suppLines.split(/\s+/).length / Math.max(1, wordCount) * 100);
   })();
-
-  // P8: câu quá dài — tìm heading gần nhất phía trên
-  const longSentLocation = (() => {
-    const sents = text.split(/[.!?]+/);
-    const longIdx = sents.findIndex(s => s.split(/\s+/).length > 40);
-    if (longIdx < 0) return 'Các đoạn văn mô tả';
-    const charPos = sents.slice(0, longIdx).join(' ').length;
-    const nearHeading = headings.slice().reverse().find(h => text.indexOf(h.text) < charPos);
-    return nearHeading ? `Sau heading: "${trunc(nearHeading.text, 40)}"` : 'Đoạn mô tả đầu bài';
-  })();
+  const suppBoundary = evidence?.S6?.suppHeading ?? null;
+  const longSentLocation = evidence?.P8?.longSentLocation ?? 'Các đoạn văn mô tả';
 
   const checks = [
     {
@@ -2172,15 +2338,15 @@ function generateRuleFixes(ruleScores, parsed) {
     },
     {
       id: 'P4', max: 4,
-      issue: `Số liệu: ${numMatches.length} con số / ${wordCount} từ (cần ≥${neededNums})`,
-      location: `Thiếu ≥${Math.max(0, neededNums - numMatches.length)} số liệu nữa — thêm vào các section mô tả`,
+      issue: `Số liệu: ${numCount} con số / ${wordCount} từ (cần ≥${neededNums})`,
+      location: `Thiếu ≥${Math.max(0, neededNums - numCount)} số liệu nữa — thêm vào các section mô tả`,
       fix: 'Thêm số cụ thể: giá (triệu/m²), diện tích (m²), số tầng, % tăng trưởng, khoảng cách (km). Mục tiêu ≥1 số liệu mỗi 300 từ.',
     },
     {
       id: 'P5', max: 2,
-      issue: `${badCase.length} heading chưa viết hoa Title Case`,
-      location: badCase.length
-        ? `"${trunc(badCase[0].text, 45)}"${badCase.length > 1 ? ` (+${badCase.length - 1} heading khác)` : ''}`
+      issue: `${badCaseTexts.length} heading chưa viết hoa Title Case`,
+      location: badCaseTexts.length
+        ? `"${trunc(badCaseTexts[0], 45)}"${badCaseTexts.length > 1 ? ` (+${badCaseTexts.length - 1} heading khác)` : ''}`
         : 'Các heading H2/H3',
       fix: 'Viết hoa chữ đầu mỗi từ ≥3 ký tự trong heading. VD: "Tiện Ích Nổi Bật Tại Metropolis".',
     },
@@ -2212,6 +2378,51 @@ function generateRuleFixes(ruleScores, parsed) {
     location: c.location || 'Toàn bài',
     issue: c.issue, fix: c.fix,
   }));
+}
+
+// Chuyển tab trong result panel (Fix / Checklist / Chi tiết)
+function switchResultTab(tabId, btn) {
+  document.querySelectorAll('.result-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.result-tab-btn').forEach(b => b.classList.remove('active'));
+  const pane = document.getElementById('result-tab-' + tabId);
+  if (pane) pane.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// Render tab Chi tiết — điểm từng tiêu chí theo tầng
+function renderDetailTab(allScores, reasons) {
+  const tiers = [
+    { label: 'T1 — Cấu trúc & Ngữ cảnh', ids: ['S1','S2','S3','S4','S5','S6'], max: 30 },
+    { label: 'T2 — Chất lượng đoạn',      ids: ['P1','P2','P3','P4','P5','P6','P7','P8'], max: 25 },
+    { label: 'T3 — RPP & Entity',          ids: ['R1','R2','R3','R4','R5','R6'], max: 25 },
+    { label: 'T4 — Information Gain',      ids: ['I1','I2','I3','I4'], max: 20 },
+  ];
+  return tiers.map(tier => {
+    const tierScore = tier.ids.reduce((s, id) => s + (allScores?.[id] ?? 0), 0);
+    const rows = tier.ids.map(id => {
+      const score = allScores?.[id] ?? 0;
+      const max   = CRITERION_MAX[id] || 1;
+      const pct   = Math.round(score / max * 100);
+      const clr   = pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--gold)' : 'var(--red)';
+      const reason = reasons?.[id]
+        ? `<div class="detail-reason">${reasons[id]}</div>` : '';
+      const tip = CRITERION_TOOLTIPS[id] || '';
+      return `<div class="detail-row">
+        <div class="detail-id"><span class="tt">${id}<span class="tt-box">${tip}</span></span></div>
+        <div class="detail-name">${CRITERION_NAMES[id] || id}</div>
+        <div class="detail-score mono" style="color:${clr}">${Math.round(score*10)/10}/${max}</div>
+        <div class="detail-bar-wrap"><div class="detail-bar" style="width:${pct}%;background:${clr}"></div></div>
+        ${reason}
+      </div>`;
+    }).join('');
+    return `<div class="detail-tier">
+      <div class="detail-tier-header">
+        <span>${tier.label}</span>
+        <span class="mono">${Math.round(tierScore*10)/10}/${tier.max}</span>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
 }
 
 function renderResult(wrap, sub, reasons, allScores) {
@@ -2338,19 +2549,53 @@ function renderResult(wrap, sub, reasons, allScores) {
       <div class="scorecard-preflight">✅ ${tt('Preflight')} PASS (5/5)</div>`;
 
   const fixesTitle = sub.llmUsed ? '🛠 Issues cần xử lý' : '🛠 Sửa ngay — ưu tiên cao nhất';
+  const fixCount   = sub.top5.length;
+  const detailHtml = renderDetailTab(allScores, reasons);
 
-  wrap.innerHTML = `<div class="result-panel">
-    <div class="scorecard-block">
-      ${scorecardHtml}
+  wrap.innerHTML = `<div class="result-2col result-panel">
+    <!-- LEFT: sticky scorecard -->
+    <div class="result-left">
+      <div class="scorecard-block result-sticky">
+        ${scorecardHtml}
+      </div>
+      <div class="result-actions">
+        <button class="btn-action" onclick="document.getElementById('form-wrap')?.scrollIntoView({behavior:'smooth'})">🔄 Chấm lại</button>
+        <button class="btn-action" id="btn-export-md" onclick="exportMarkdown && exportMarkdown()">📤 Export MD</button>
+      </div>
     </div>
-    <div class="result-body">
-      <div class="fixes-title syne">${fixesTitle}</div>
-      ${fixesHtml}
+    <!-- RIGHT: tabs -->
+    <div class="result-right">
+      <div class="result-tabs">
+        <button class="result-tab-btn active" onclick="switchResultTab('fixes',this)">
+          🛠 Fix Cards ${fixCount > 0 ? `<span class="tab-badge">${fixCount}</span>` : ''}
+        </button>
+        <button class="result-tab-btn" onclick="switchResultTab('checklist',this)">
+          📋 Checklist <span class="tab-badge" id="acl-tab-badge">—</span>
+        </button>
+        <button class="result-tab-btn" onclick="switchResultTab('detail',this)">
+          📊 Chi tiết
+        </button>
+      </div>
+      <div id="result-tab-fixes" class="result-tab-pane active">
+        <div class="fixes-title syne">${fixesTitle}</div>
+        ${fixesHtml}
+      </div>
+      <div id="result-tab-checklist" class="result-tab-pane">
+        <div id="acl-tab-container"></div>
+      </div>
+      <div id="result-tab-detail" class="result-tab-pane">
+        ${detailHtml}
+      </div>
     </div>
   </div>`;
 
-  // Render per-article checklist bên dưới kết quả (allScores triggers Mức 1 auto-check)
+  // Render checklist vào tab 2 (tìm #acl-tab-container trước, fallback result-wrap)
   renderACLInResult(sub.keyword, sub.entity, allScores);
+
+  // Cập nhật badge checklist tab sau khi render
+  const prog = getACLProgress(sub.keyword, sub.entity);
+  const aclBadge = document.getElementById('acl-tab-badge');
+  if (aclBadge && prog.total > 0) aclBadge.textContent = prog.pct + '%';
 }
 
 // ============================================================
@@ -2398,13 +2643,19 @@ function loadConfig() {
   document.getElementById('cfg-daily').value = cfg.daily_limit;
   document.getElementById('cfg-pass').value = cfg.pass_score;
   document.getElementById('cfg-skip').value = cfg.skip_llm_threshold;
+  if (document.getElementById('cfg-usdvnd'))   document.getElementById('cfg-usdvnd').value   = cfg.usd_vnd || 25500;
+  if (document.getElementById('cfg-monthlim')) document.getElementById('cfg-monthlim').value = cfg.monthly_limit || 30;
 }
 
 function saveConfig() {
+  const usdvndEl   = document.getElementById('cfg-usdvnd');
+  const monthlimEl = document.getElementById('cfg-monthlim');
   const cfg = {
-    daily_limit: parseInt(document.getElementById('cfg-daily').value),
-    pass_score: parseInt(document.getElementById('cfg-pass').value),
-    skip_llm_threshold: parseInt(document.getElementById('cfg-skip').value)
+    daily_limit:        parseInt(document.getElementById('cfg-daily').value),
+    pass_score:         parseInt(document.getElementById('cfg-pass').value),
+    skip_llm_threshold: parseInt(document.getElementById('cfg-skip').value),
+    usd_vnd:      usdvndEl   ? parseInt(usdvndEl.value)   : 25500,
+    monthly_limit: monthlimEl ? parseInt(monthlimEl.value) : 30,
   };
   DB.set('config', cfg);
   // Update all users' daily limit
@@ -2418,6 +2669,83 @@ function saveConfig() {
   alert('✓ Đã lưu cấu hình!');
 }
 
+// ── Cost estimation ──
+function calcCost(sub) {
+  if (!sub.llmUsed) return 0;
+  const tok = sub.tokens?.total || 0;
+  // Blended rate: ~60% Haiku 4.5 + 40% Sonnet 4.6 (balanced mode), 75% input / 25% output
+  // Haiku: $0.001/1k in, $0.005/1k out | Sonnet: $0.003/1k in, $0.015/1k out
+  const inK  = tok > 0 ? tok * 0.75 / 1000 : 5;
+  const outK = tok > 0 ? tok * 0.25 / 1000 : 1.5;
+  const usd  = inK * (0.001*0.6 + 0.003*0.4) + outK * (0.005*0.6 + 0.015*0.4);
+  const usdVnd = DB.get('config', {}).usd_vnd || 25500;
+  return Math.round(usd * usdVnd);
+}
+
+function formatVnd(d) {
+  return d >= 1000 ? Math.round(d / 100) * 100 + 'đ' : d + 'đ';
+}
+
+// ── Monthly quota tracking ──
+function _monthKey(user) {
+  const n = new Date();
+  return `tpi_monthly_${user}_${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+function getMonthlyCount(user) {
+  return parseInt(localStorage.getItem(_monthKey(user || currentUser?.username)) || '0');
+}
+function incrementMonthly(user) {
+  const k = _monthKey(user || currentUser?.username);
+  localStorage.setItem(k, (getMonthlyCount(user) + 1).toString());
+}
+
+function renderCostDashboard(subs) {
+  const el = document.getElementById('cost-dashboard');
+  if (!el) return;
+  const now = new Date();
+  const ym  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const thisMo = subs.filter(s => s.date?.slice(0,7) === ym);
+  const totalCost = thisMo.reduce((acc, s) => acc + calcCost(s), 0);
+  const totalTok  = thisMo.reduce((acc, s) => acc + (s.tokens?.total || 0), 0);
+  const llmCnt    = thisMo.filter(s => s.llmUsed).length;
+
+  // Per-user breakdown
+  const userStats = {};
+  thisMo.forEach(s => {
+    const u = s.submitter || '?';
+    if (!userStats[u]) userStats[u] = { cnt: 0, llm: 0, tok: 0, cost: 0 };
+    userStats[u].cnt++;
+    if (s.llmUsed) { userStats[u].llm++; userStats[u].tok += (s.tokens?.total || 0); }
+    userStats[u].cost += calcCost(s);
+  });
+
+  const rows = Object.entries(userStats)
+    .sort((a,b) => b[1].cost - a[1].cost)
+    .map(([u, st]) => `<tr>
+      <td class="mono" style="font-size:12px">${u}</td>
+      <td class="mono" style="text-align:right">${st.cnt}</td>
+      <td class="mono" style="text-align:right">${st.llm}</td>
+      <td class="mono" style="text-align:right">${(st.tok/1000).toFixed(1)}k</td>
+      <td class="mono" style="text-align:right;color:var(--gold)">${formatVnd(st.cost)}</td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="cost-summary">
+      <div class="cost-month">📅 Tháng ${now.getMonth()+1}/${now.getFullYear()}</div>
+      <div class="cost-stats-row">
+        <div class="cost-stat"><div class="cost-stat-num">${thisMo.length}</div><div class="cost-stat-lbl">Bài chấm</div></div>
+        <div class="cost-stat"><div class="cost-stat-num">${llmCnt}</div><div class="cost-stat-lbl">Dùng AI</div></div>
+        <div class="cost-stat"><div class="cost-stat-num">${(totalTok/1000).toFixed(1)}k</div><div class="cost-stat-lbl">Token</div></div>
+        <div class="cost-stat" style="color:var(--gold)"><div class="cost-stat-num">${formatVnd(totalCost)}</div><div class="cost-stat-lbl">Chi phí ước tính</div></div>
+      </div>
+      ${rows ? `<table class="cost-table">
+        <thead><tr><th>User</th><th>Bài</th><th>AI</th><th>Token</th><th>Chi phí</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>` : '<div style="color:var(--ink3);font-size:13px;padding:12px 0;">Chưa có dữ liệu tháng này.</div>'}
+      <div style="color:var(--ink3);font-size:11px;margin-top:8px;">* Chi phí ước tính, không tính thuế. Tỷ giá: 1 USD = <span id="display-usdvnd">${DB.get('config',{}).usd_vnd||25500}</span>đ.</div>
+    </div>`;
+}
+
 function renderAdmin() {
   const users = DB.get('users', {});
   const subs  = DB.get('submissions', []);
@@ -2429,6 +2757,8 @@ function renderAdmin() {
     tokByUser[s.submitter] = (tokByUser[s.submitter] || 0) + (s.tokens?.total || 0);
     cntByUser[s.submitter] = (cntByUser[s.submitter] || 0) + 1;
   });
+
+  renderCostDashboard(subs);
 
   const el = document.getElementById('user-list');
   el.innerHTML = Object.entries(users).map(([username, u]) => {
@@ -3042,7 +3372,9 @@ function renderACLInResult(keyword, entity, allScores) {
   if (old) old.remove();
   const div = document.createElement('div');
   div.id = 'acl-result-section';
-  wrap.appendChild(div);
+  // Ưu tiên render vào tab Checklist (#acl-tab-container), fallback result-wrap
+  const tabContainer = document.getElementById('acl-tab-container');
+  (tabContainer || wrap).appendChild(div);
   _aclKW = keyword; _aclEntity = entity;
   // Mức 1: Auto-check from rubric scores (free, instant)
   if (allScores) autoCheckFromRubric(allScores, keyword, entity);
