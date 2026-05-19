@@ -12,7 +12,11 @@
       "Bash(Measure-Object -Line)",
       "Bash(Select-Object -ExpandProperty Lines)",
       "Bash(npx serve *)",
-      "Bash(timeout 4 type \"C:\\\\Users\\\\ASUS\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-ASUS-Desktop-tpi-scorer\\\\ee4700a3-add4-4b88-bcb2-7d6ea72f9d17\\\\tasks\\\\b73ih9zpl.output\")"
+      "Bash(timeout 4 type \"C:\\\\Users\\\\ASUS\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-ASUS-Desktop-tpi-scorer\\\\ee4700a3-add4-4b88-bcb2-7d6ea72f9d17\\\\tasks\\\\b73ih9zpl.output\")",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_snapshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__click",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__evaluate_script"
     ]
   }
 }

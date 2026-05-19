@@ -591,7 +591,71 @@ body {
 .fix-card:nth-child(3) { animation-delay: .15s; }
 .fix-card:nth-child(4) { animation-delay: .2s; }
 .fix-card:nth-child(5) { animation-delay: .25s; }
+
+/* === AEO CHECKLIST === */
+.aeo-page { max-width: 1100px !important; }
+.aeo-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 768px) { .aeo-layout { grid-template-columns: 280px 1fr; align-items: start; } }
+.aeo-card { background: var(--bg1); border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+.aeo-sidebar { position: sticky; top: 72px; }
+.aeo-progress-bar-wrap { margin-bottom: 20px; }
+.aeo-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink3); margin-bottom: 6px; }
+.aeo-progress-label strong { color: var(--green); font-family: 'DM Mono', monospace; }
+.aeo-progress-track { background: var(--bg3); border-radius: 4px; height: 6px; }
+.aeo-progress-fill { background: var(--green); height: 6px; border-radius: 4px; transition: width .5s; }
+.aeo-nav-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.aeo-nav-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; display: flex; gap: 10px; transition: background .15s; }
+.aeo-nav-item:hover { background: var(--bg3); }
+.aeo-nav-item.active { background: var(--bg3); border-color: var(--line2); }
+.aeo-nav-item.active .aeo-nav-title { color: var(--accent); }
+.aeo-nav-title { font-size: 13px; font-weight: 600; color: var(--ink2); line-height: 1.4; }
+.aeo-nav-meta { font-size: 11px; color: var(--ink3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.aeo-badge { display: inline-block; padding: 3px 10px; background: var(--bg3); border-radius: 100px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ink3); margin-bottom: 8px; }
+.aeo-phase-title { font-size: 22px; font-weight: 700; color: var(--ink); }
+.aeo-phase-desc { color: var(--ink2); font-size: 13px; margin: 12px 0 16px; line-height: 1.6; }
+.aeo-task-box { background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 18px; }
+.aeo-task-box-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.aeo-task-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.aeo-task-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg1); transition: opacity .15s; }
+.aeo-task-item.done { opacity: .5; }
+.aeo-task-item input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; cursor: pointer; accent-color: var(--green); }
+.aeo-task-label { font-size: 13px; color: var(--ink2); line-height: 1.5; cursor: pointer; }
+.aeo-task-item.done .aeo-task-label { text-decoration: line-through; color: var(--ink3); }
+.aeo-hint { margin-top: 16px; padding: 12px 16px; background: rgba(76,175,130,.07); border: 1px solid rgba(76,175,130,.18); border-radius: 6px; font-size: 13px; color: var(--ink2); line-height: 1.5; }
+.aeo-hint strong { color: var(--green); }
+.aeo-chart-wrap { height: 250px; position: relative; }
+.aeo-alert { background: var(--bg1); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; margin-bottom: 20px; }
+.aeo-alert-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+@media (min-width: 640px) { .aeo-alert-grid { grid-template-columns: 1fr 1fr; } }
+.aeo-alert-box { padding: 14px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
+.aeo-alert-box.red { background: rgba(224,85,85,.07); border-left: 3px solid var(--red); }
+.aeo-alert-box.gold { background: rgba(212,166,73,.07); border-left: 3px solid var(--gold); }
+.aeo-alert-box-title { font-weight: 700; margin-bottom: 6px; font-size: 13px; }
+.aeo-alert-box.red .aeo-alert-box-title { color: var(--red); }
+.aeo-alert-box.gold .aeo-alert-box-title { color: var(--gold); }
+.aeo-alert-box p { color: var(--ink2); }
+.aeo-alert-box code { font-family: 'DM Mono', monospace; font-size: 12px; background: var(--bg3); padding: 1px 5px; border-radius: 3px; }
+
+/* === AEO WRITING CHECKLIST === */
+.cl-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.cl-tab { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink2); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s, border-color .15s; font-family: 'Be Vietnam Pro', sans-serif; }
+.cl-tab:hover { background: var(--bg3); }
+.cl-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cl-group-title { font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .07em; margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.cl-group-title:first-child { margin-top: 0; }
+.cl-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg1); margin-bottom: 6px; transition: opacity .15s; }
+.cl-item.done { opacity: .45; }
+.cl-item input[type="checkbox"] { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; cursor: pointer; accent-color: var(--green); }
+.cl-item-text { font-size: 13px; color: var(--ink2); line-height: 1.5; cursor: pointer; }
+.cl-item.done .cl-item-text { text-decoration: line-through; color: var(--ink3); }
+.cl-progress { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.cl-progress-bar { flex: 1; background: var(--bg3); border-radius: 4px; height: 5px; }
+.cl-progress-fill { background: var(--green); height: 5px; border-radius: 4px; transition: width .4s; }
+.cl-progress-label { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; white-space: nowrap; }
+.cl-reset-btn { font-size: 11px; color: var(--ink3); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; font-family: 'Be Vietnam Pro', sans-serif; }
+.cl-reset-btn:hover { color: var(--red); border-color: var(--red); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -861,6 +925,84 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
     </div>
   </div>
 
+  <!-- AEO CHECKLIST -->
+  <div id="view-aeo" class="page aeo-page">
+    <div class="page-head">
+      <h1 class="syne">AEO/GEO Action Plan</h1>
+      <p>Bản kế hoạch tác chiến — The Metropolis Ga Thủ Thiêm</p>
+    </div>
+
+    <div class="aeo-alert">
+      <h2 class="syne" style="font-size:15px;margin-bottom:10px">🚨 Căn chỉnh Chiến lược (Update 18/05/2026)</h2>
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:0">Bản kế hoạch đã được hiệu chỉnh để giải quyết 2 bài toán lớn nhất giúp dự án mới chiếm Top trên AI Overviews:</p>
+      <div class="aeo-alert-grid">
+        <div class="aeo-alert-box red">
+          <div class="aeo-alert-box-title">1. Xóa bỏ llms.txt &amp; Chuyển sang Indexing API</div>
+          <p>Đã loại bỏ task dùng file <code>llms.txt</code> vì Googlebot/GPTBot không ưu tiên đọc file này lúc inference. Phải dùng <strong>Google Indexing API</strong> để đưa dữ liệu mới vào chỉ mục ngay.</p>
+        </div>
+        <div class="aeo-alert-box gold">
+          <div class="aeo-alert-box-title">2. Chống nhầm lẫn Thực thể (Entity Ambiguity)</div>
+          <p>AI rất dễ nhầm <em>The Metropolis (mới)</em> với <em>The Metropole (cũ)</em>. Toàn bộ URL, Prompt và bài viết đổi trọng tâm sang <strong>Ga Thủ Thiêm, TOD 5.0, Lịch sử quỹ đất</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="aeo-layout">
+      <aside>
+        <div class="aeo-card aeo-sidebar">
+          <div class="syne" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">Lộ trình Triển khai</div>
+          <div class="aeo-progress-bar-wrap">
+            <div class="aeo-progress-label">
+              <span>Tiến độ dự án</span>
+              <strong id="aeo-progress-text">0%</strong>
+            </div>
+            <div class="aeo-progress-track">
+              <div id="aeo-progress-fill" class="aeo-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+          <ul class="aeo-nav-list" id="aeo-nav"></ul>
+        </div>
+      </aside>
+
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="aeo-card">
+          <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px">
+            <span class="aeo-badge" id="aeo-phase-badge">Tuần 1</span>
+            <div class="aeo-phase-title" id="aeo-phase-title">...</div>
+          </div>
+          <p class="aeo-phase-desc" id="aeo-phase-desc">...</p>
+          <div class="aeo-task-box">
+            <div class="aeo-task-box-title"><span>📋</span> Hạng mục công việc</div>
+            <ul class="aeo-task-list" id="aeo-task-list"></ul>
+          </div>
+          <div id="aeo-hint" class="aeo-hint" style="display:none"></div>
+        </div>
+
+        <div class="aeo-card">
+          <h3 class="syne" style="font-size:14px;margin-bottom:4px">Biểu đồ: Entity Trust Score</h3>
+          <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Mức độ AI tách bạch "The Metropolis" khỏi "The Metropole" và chọn làm Source of Truth.</p>
+          <div class="aeo-chart-wrap"><canvas id="aeo-chart"></canvas></div>
+        </div>
+
+        <div class="aeo-card">
+          <h3 class="syne" style="font-size:14px;margin-bottom:4px">📋 Checklist Viết Bài Chuẩn SEO/GEO</h3>
+          <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Checklist nội bộ TPI — áp dụng cho mỗi bài viết trước khi xuất bản.</p>
+          <div class="cl-tabs" id="cl-tabs">
+            <button class="cl-tab active" onclick="switchCLTab('main-supplement')">📐 Main / Supplement</button>
+            <button class="cl-tab" onclick="switchCLTab('methodology')">🔧 Methodology</button>
+            <button class="cl-tab" onclick="switchCLTab('writing')">✍️ 22 Tiêu Chí Viết</button>
+          </div>
+          <div id="cl-content"></div>
+          <div class="cl-progress" id="cl-progress">
+            <div class="cl-progress-bar"><div class="cl-progress-fill" id="cl-progress-fill" style="width:0%"></div></div>
+            <span class="cl-progress-label" id="cl-progress-label">0%</span>
+            <button class="cl-reset-btn" onclick="resetCLTab()">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1018,6 +1160,7 @@ function renderTopbar() {
   const views = [
     { id: 'submit', label: 'Nộp bài' },
     { id: 'history', label: 'Lịch sử' },
+    { id: 'aeo', label: 'AEO Plan' },
     ...(isAdmin ? [{ id: 'admin', label: '⚙ Admin' }] : [])
   ];
   nav.innerHTML = views.map(v =>
@@ -1040,6 +1183,7 @@ function showView(id) {
 
   if (id === 'history') renderHistory();
   if (id === 'admin') renderAdmin();
+  if (id === 'aeo') renderAEO();
 }
 
 // ============================================================
@@ -2323,6 +2467,408 @@ document.addEventListener('keydown', e => {
     if (document.getElementById('tab-login').style.display !== 'none') doLogin();
   }
 });
+
+// ============================================================
+// AEO CHECKLIST
+// ============================================================
+const AEO_KEY = 'tpi_aeo_tasks';
+
+const aeoData = [
+  {
+    id: 'phase1', title: 'Định Danh Thực Thể & Hạ Tầng Index', week: 'Tuần 1',
+    desc: 'Tạo ranh giới rõ ràng cho AI hiểu The Metropolis (Ga Thủ Thiêm) là dự án mới, đồng thời ép Google Index lập tức dữ liệu mới nhất (17/05).',
+    hint: 'Đã loại bỏ llms.txt. AI Overviews (SGE) lấy dữ liệu trực tiếp từ Google Index. Dùng Indexing API là cách nhanh nhất để "nhồi" dữ liệu dự án vừa ra mắt vào AI.',
+    tasks: [
+      { id: 't1_1', text: 'Tạo Pillar Page với URL tránh nhầm lẫn: /du-an/the-metropolis-ga-thu-thiem (Không dùng chung chữ metropole).' },
+      { id: 't1_2', text: 'Khai báo Nested Schema: RealEstateListing + Organization (SonKim Land). Trong mục description nhấn mạnh "TOD 5.0".' },
+      { id: 't1_3', text: 'Khai báo GeoCoordinates (Tọa độ) trúng đích vào Ga Thủ Thiêm, An Khánh, Quận 2.' },
+      { id: 't1_4', text: 'Cài đặt Google Indexing API / Gửi XML Sitemap ngay để ép Google lập chỉ mục trong 24h.' },
+      { id: 't1_5', text: 'Thêm FAQPage Schema với 5 câu hỏi cốt lõi phân biệt rõ với dự án Metropole cũ.' }
+    ]
+  },
+  {
+    id: 'phase2', title: 'Chiến Lược Prompt (Sự Khác Biệt)', week: 'Tuần 1-2',
+    desc: 'Thay vì dùng Prompt chung chung dễ bị AI nhầm với dự án cũ, hãy dùng các câu lệnh chứa các điểm độc bản (Non-Commodity).',
+    hint: 'AI thích các con số kỹ thuật chính xác. Thay vì hỏi "Quy mô", hãy tối ưu cho truy vấn "Thông số kỹ thuật tháp Giai đoạn 1".',
+    tasks: [
+      { id: 't2_1', text: 'Prompt Phân biệt: "Sự khác biệt giữa The Metropolis Ga Thủ Thiêm và The Metropole là gì?"' },
+      { id: 't2_2', text: 'Prompt Giao dịch: "Bảng giá căn hộ The Metropolis Ga Thủ Thiêm mới nhất (Ra mắt 17/05)?"' },
+      { id: 't2_3', text: 'Prompt Kỹ thuật: "Thông số tòa tháp Giai đoạn 1 dự án The Metropolis Sơn Kim Land." (Dạy AI số liệu: 1.000 căn, 10 căn/sàn).' },
+      { id: 't2_4', text: 'Prompt Trust/M&A: "Nguồn gốc quỹ đất 9.6ha của The Metropolis Sơn Kim Land từ đâu?"' }
+    ]
+  },
+  {
+    id: 'phase3', title: 'Topic Cluster (Bóc tách Non-Commodity)', week: 'Tuần 2-3',
+    desc: 'Xây dựng mạng lưới nội dung độc quyền mà các trang báo đại trà chưa có. Đây là yếu tố then chốt để Google AI chọn làm nguồn.',
+    hint: 'Bài viết về M&A quỹ đất (từ Sun City/Novaland sang GWC của Sơn Kim) là dữ liệu siêu "Trust", chứng tỏ bạn là chuyên gia lõi.',
+    tasks: [
+      { id: 't3_1', text: 'Bài Hub: Giá bán & Thông tin The Metropolis Ga Thủ Thiêm (Bắt buộc dùng HTML Table cho thông số).' },
+      { id: 't3_2', text: 'Spoke 1: Vị trí & Hạ tầng kết nối TOD 5.0 (Nhấn mạnh 3 tuyến đường sắt & Check-in sân bay tại ga).' },
+      { id: 't3_3', text: 'Spoke 2: Phân tích bảng giá (Dùng HTML Table, ghi rõ "Cập nhật ngày 17/05").' },
+      { id: 't3_4', text: 'Spoke 3: Cập nhật pháp lý & Lịch sử quỹ đất (Thương vụ M&A Sun City -> GWC).' },
+      { id: 't3_5', text: 'Spoke 4: So sánh chi tiết The Metropolis Ga Thủ Thiêm và The Metropole (Để AI phân biệt rõ).' }
+    ]
+  },
+  {
+    id: 'phase4', title: 'SOP Content (Answer-First & Fact Density)', week: 'Xuyên suốt',
+    desc: 'Quy chuẩn cách viết để máy đọc (Machine-Readable). Cấm viết sáo rỗng, tập trung vào mật độ sự kiện (Fact Density).',
+    hint: 'Đảm bảo tỷ lệ Original Information (Thông tin gốc) > 30%. Không copy lại các thông tin mô tả tiện ích chung chung.',
+    tasks: [
+      { id: 't4_1', text: 'Mở bài (Dưới H1) bằng Executive Answer (90-120 từ), trả lời thẳng vào tiêu đề bài viết.' },
+      { id: 't4_2', text: 'Cấu trúc H2/H3 phải là định dạng Câu hỏi (Question-based) như bộ Prompt ở Phase 2.' },
+      { id: 't4_3', text: 'Fact Density: Dùng số liệu (96.014 m², 10 căn/sàn, 9 thang máy) thay cho "diện tích lớn", "mật độ thấp".' },
+      { id: 't4_4', text: 'Tối ưu Scannability: 100% các dữ liệu giá bán, chính sách phải bọc trong thẻ Bảng (Table HTML).' }
+    ]
+  },
+  {
+    id: 'phase5', title: 'Digital PR & Video RAG (Co-occurrence)', week: 'Tuần 4',
+    desc: 'Gửi tín hiệu xác thực từ bên ngoài (Off-page) bằng cách đồng xuất hiện thực thể, không phải bằng cách spam backlink.',
+    hint: 'AI đa phương thức (Gemini, ChatGPT-4o) quét rất mạnh nội dung Video trên YouTube. Hãy tận dụng mô tả video.',
+    tasks: [
+      { id: 't5_1', text: 'Book bài PR phân tích chuyên sâu (VD: "Mô hình TOD 5.0 tại The Metropolis"), không PR rập khuôn.' },
+      { id: 't5_2', text: 'Bài PR nhắc đủ 3 cụm: [The Metropolis Ga Thủ Thiêm] + [Sơn Kim Land] + [Tên Thương Hiệu Bạn].' },
+      { id: 't5_3', text: 'Đăng Video Flycam công trường lên YouTube (Kèm metadata C2PA nếu có).' },
+      { id: 't5_4', text: 'Tối ưu hóa Mô tả Video (Video RAG): Viết 150 từ chứa từ khóa TOD, Ga Thủ Thiêm và chèn link về website.' }
+    ]
+  }
+];
+
+let aeoPhaseIndex = 0;
+let aeoChart = null;
+
+function loadAEOState() {
+  const saved = DB.get(AEO_KEY, {});
+  aeoData.forEach(phase => phase.tasks.forEach(t => { t.done = !!saved[t.id]; }));
+}
+
+function saveAEOState() {
+  const state = {};
+  aeoData.forEach(phase => phase.tasks.forEach(t => { if (t.done) state[t.id] = 1; }));
+  DB.set(AEO_KEY, state);
+}
+
+function renderAEO() {
+  loadAEOState();
+  renderAEONav();
+  renderAEOPhase(aeoPhaseIndex);
+  updateAEOProgress();
+  initAEOChart();
+  initCLChecklist();
+}
+
+function renderAEONav() {
+  const nav = document.getElementById('aeo-nav');
+  if (!nav) return;
+  nav.innerHTML = aeoData.map((phase, i) => {
+    const done = phase.tasks.filter(t => t.done).length;
+    const isActive = i === aeoPhaseIndex;
+    const icon = isActive ? '▶' : (done === phase.tasks.length ? '✓' : '◆');
+    return `<li class="aeo-nav-item${isActive ? ' active' : ''}" onclick="selectAEOPhase(${i})">
+      <span style="color:var(--${isActive ? 'accent' : (done === phase.tasks.length ? 'green' : 'ink3')});font-size:10px;margin-top:3px;flex-shrink:0">${icon}</span>
+      <div>
+        <div class="aeo-nav-title">${phase.title}</div>
+        <div class="aeo-nav-meta">${phase.week} · ${done}/${phase.tasks.length} task</div>
+      </div>
+    </li>`;
+  }).join('');
+}
+
+function selectAEOPhase(i) {
+  aeoPhaseIndex = i;
+  renderAEONav();
+  renderAEOPhase(i);
+}
+
+function renderAEOPhase(i) {
+  const phase = aeoData[i];
+  document.getElementById('aeo-phase-badge').textContent = phase.week;
+  document.getElementById('aeo-phase-title').textContent = phase.title;
+  document.getElementById('aeo-phase-desc').textContent = phase.desc;
+
+  const hintEl = document.getElementById('aeo-hint');
+  if (phase.hint) {
+    hintEl.innerHTML = '<strong>💡 Cập nhật AEO 2026:</strong> ' + phase.hint;
+    hintEl.style.display = '';
+  } else {
+    hintEl.style.display = 'none';
+  }
+
+  const list = document.getElementById('aeo-task-list');
+  list.innerHTML = phase.tasks.map((task, ti) => {
+    const cbId = 'aeo_cb_' + i + '_' + ti;
+    return `<li class="aeo-task-item${task.done ? ' done' : ''}">
+      <input type="checkbox" id="${cbId}" ${task.done ? 'checked' : ''} onchange="toggleAEOTask(${i},${ti},this.checked)">
+      <label class="aeo-task-label" for="${cbId}">${task.text}</label>
+    </li>`;
+  }).join('');
+}
+
+function toggleAEOTask(phaseIdx, taskIdx, checked) {
+  aeoData[phaseIdx].tasks[taskIdx].done = checked;
+  saveAEOState();
+  renderAEONav();
+  renderAEOPhase(phaseIdx);
+  updateAEOProgress();
+  updateAEOChart();
+}
+
+function updateAEOProgress() {
+  let total = 0, done = 0;
+  aeoData.forEach(p => { total += p.tasks.length; done += p.tasks.filter(t => t.done).length; });
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const fill = document.getElementById('aeo-progress-fill');
+  const text = document.getElementById('aeo-progress-text');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = pct + '%';
+}
+
+function calcAEOChartData() {
+  let score = 10;
+  const r = aeoData.map(p => p.tasks.filter(t => t.done).length / (p.tasks.length || 1));
+  const data = [score];
+  score += r[0] * 20; data.push(Math.round(score));
+  score += r[1] * 30; data.push(Math.round(score));
+  score += (r[2] + r[3]) / 2 * 25; data.push(Math.round(score));
+  score += r[4] * 15; data.push(Math.min(100, Math.round(score)));
+  return data;
+}
+
+function initAEOChart() {
+  const canvas = document.getElementById('aeo-chart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  if (aeoChart) { aeoChart.destroy(); aeoChart = null; }
+  aeoChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Khởi đầu', 'Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'],
+      datasets: [
+        {
+          label: 'Quỹ đạo tối ưu (AEO)',
+          data: [10, 30, 60, 85, 100],
+          borderColor: 'rgba(255,255,255,.12)',
+          backgroundColor: 'transparent',
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Mức độ AI tin tưởng thực tế',
+          data: calcAEOChartData(),
+          borderColor: '#4caf82',
+          backgroundColor: 'rgba(76,175,130,.1)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#4caf82',
+          pointBorderColor: '#13161e',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#9ba3b8', usePointStyle: true, boxWidth: 8, padding: 16 } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
+      },
+      scales: {
+        y: {
+          beginAtZero: true, max: 100,
+          grid: { color: 'rgba(255,255,255,.05)' },
+          ticks: { color: '#9ba3b8' },
+          title: { display: true, text: 'Entity Trust Score (%)', color: '#5c6478' }
+        },
+        x: { grid: { display: false }, ticks: { color: '#9ba3b8' } }
+      }
+    }
+  });
+}
+
+function updateAEOChart() {
+  if (aeoChart) {
+    aeoChart.data.datasets[1].data = calcAEOChartData();
+    aeoChart.update();
+  }
+}
+
+// ============================================================
+// AEO WRITING CHECKLIST
+// ============================================================
+const CL_KEY = 'tpi_aeo_cl';
+
+const clData = {
+  'main-supplement': {
+    label: '📐 Main / Supplement',
+    groups: [
+      {
+        name: 'Main Content — Cấu Trúc Heading',
+        items: [
+          { id: 'ms1', text: '9-10 Heading đầu phải là chất lượng nhất — phản ánh nội dung đã khai báo ở H1/Title' },
+          { id: 'ms2', text: 'H2 phản chiếu nội dung H1 và nhái lại tông giọng của H1 (tích cực → H2 cũng tích cực)' },
+          { id: 'ms3', text: 'H3 đào sâu / mở rộng nội dung H2, tương tự H4 (nếu có)' },
+          { id: 'ms4', text: 'Các heading cùng ý được nhóm lại gần nhau' },
+          { id: 'ms5', text: 'Dùng Tiêu Đề Gia Tăng (Incremental list) cho nội dung liệt kê: Top 10, 5 lợi ích...' },
+          { id: 'ms6', text: 'Heading cuối kết nối với heading đầu về ý (đồng nghĩa hoặc trái nghĩa)' },
+          { id: 'ms7', text: 'Mỗi heading có format content rõ ràng tương ứng: Bảng / List / Đoạn văn' },
+        ]
+      },
+      {
+        name: 'Contextual Flow & Coverage',
+        items: [
+          { id: 'ms8', text: 'Nội dung mượt mà, logic từ trên xuống dưới theo đường thẳng' },
+          { id: 'ms9', text: 'Heading đầu tiên là quan trọng nhất — độ quan trọng giảm dần về cuối bài' },
+          { id: 'ms10', text: 'Không đề cập sub-context / sub-topic quá nhiều trong vùng Main Content' },
+          { id: 'ms11', text: 'Macro Context (ngữ cảnh tổng thể) được viết chuyên sâu & chi tiết tại Main Content' },
+        ]
+      },
+      {
+        name: 'Supplement Content',
+        items: [
+          { id: 'ms12', text: 'Tìm heading chuyển tiếp / cầu nối (Contextual Bridge) giữa Main và Supplement' },
+          { id: 'ms13', text: 'Supplement củng cố nội dung chính trong Macro Context, không pha loãng' },
+          { id: 'ms14', text: 'Supplement có thể dựa trên Customer Search Journey (người đọc muốn biết gì tiếp theo?)' },
+          { id: 'ms15', text: 'Supplement ≤ 25% tổng số chữ (lý tưởng 20–25%) — không đi quá sâu' },
+        ]
+      }
+    ]
+  },
+  'methodology': {
+    label: '🔧 Methodology',
+    groups: [
+      {
+        name: 'Checklist Xác Định Phương Pháp Triển Khai',
+        items: [
+          { id: 'am1', text: 'Xác định cụ thể Format content cần triển khai: đoạn văn / liệt kê / bảng...' },
+          { id: 'am2', text: 'Đọc kỹ đối thủ (authority site & Top 1) — xác định lối hành văn, kí hiệu, đơn vị đo lường' },
+          { id: 'am3', text: 'Tường thuật nội dung bằng các câu hỏi cần giải đáp, xếp theo thứ tự phù hợp' },
+          { id: 'am4', text: 'Heading có Entity khác → nội dung bên dưới liên kết thông tin (địa chỉ, SĐT, mô tả) của entity đó' },
+          { id: 'am5', text: 'Câu đầu tiên sau mỗi heading phải trả lời sớm, trực tiếp và chính xác cho câu hỏi ở heading' },
+          { id: 'am6', text: 'Luôn tối ưu tốt hơn đối thủ ở Micro Context (text, hình ảnh, bảng trong từng section)' },
+        ]
+      }
+    ]
+  },
+  'writing': {
+    label: '✍️ 22 Tiêu Chí Viết',
+    groups: [
+      {
+        name: '22 Tiêu Chí Viết & Edit Content Chuẩn SEO',
+        items: [
+          { id: 'wc1',  text: 'Be Certain: Giọng văn trả lời chắc chắn, nhất là với định nghĩa, lợi ích và trong thị trường YMYL' },
+          { id: 'wc2',  text: 'Xóa những đoạn nội dung thừa thải, không đóng góp giá trị' },
+          { id: 'wc3',  text: 'Hiểu rõ ngữ cảnh của động từ dùng — VD: "xây dựng", "tăng trưởng" trong sức khỏe khác nhau' },
+          { id: 'wc4',  text: 'Luôn đưa ví dụ cụ thể và phổ biến khi dùng danh từ số nhiều — VD: "3 tiền điện tử: Bitcoin, Ethereum, Binance"' },
+          { id: 'wc5',  text: 'Viết Hoa Chữ Cái Đầu Tiên Của Mỗi Từ Trong Mọi Heading' },
+          { id: 'wc6',  text: 'Nội dung cấp dưới heading phải trực tiếp trả lời heading (không sai Macro Context)' },
+          { id: 'wc7',  text: 'Không bao giờ Delay câu trả lời — trả lời ngay, không dẫn dắt dài' },
+          { id: 'wc8',  text: 'Bài How To → không có heading "X là gì?" của entity chính trong bài' },
+          { id: 'wc9',  text: 'Heading không thừa thải, phù hợp với hành trình khách hàng (Customer Search Journey)' },
+          { id: 'wc10', text: 'In đậm câu trả lời — không in đậm từ khóa SEO, áp dụng trong FAQ / Featured Snippet' },
+          { id: 'wc11', text: 'Câu đầy đủ chủ ngữ - vị ngữ, không câu dang dở, không đạo văn' },
+          { id: 'wc12', text: 'Tuân thủ viết hoa/thường, dấu câu. In đậm có chọn lọc — không lạm dụng in nghiêng' },
+          { id: 'wc13', text: 'Dùng bullet (chấm tròn) cho danh sách. KHÔNG dùng hệ thống số đếm 1.1, 1.2, 1.1.2...' },
+          { id: 'wc14', text: 'Hai mục cuối trong list phân tách bằng "và" / "hoặc" có dấu phẩy đằng trước' },
+          { id: 'wc15', text: 'Bài viết có kết nối liên tục giữa các phần — phần đầu và phần cuối kết nối (hỗ trợ hoặc trái ngược)' },
+          { id: 'wc16', text: 'Viết ngắn gọn, câu ngắn, súc tích — đủ thông tin nhưng không dài dòng' },
+          { id: 'wc17', text: 'Không ý kiến cá nhân, không ngôn ngữ nói. Không có số liệu mâu thuẫn/xung đột trong bài' },
+          { id: 'wc18', text: 'Chọn từ ngữ tích cực. Chỉ dùng động từ tiêu cực khi cảnh báo hoặc nói về tác động xấu' },
+          { id: 'wc19', text: 'Dùng cách diễn đạt chắc chắn — không dùng "có thể", "khả năng", "sẽ..." với điều chắc chắn xảy ra' },
+          { id: 'wc20', text: 'Bỏ tất cả từ / cụm từ không liên quan, không cần thiết' },
+          { id: 'wc21', text: 'Luôn ưu tiên con số chi tiết — dùng số và % bất cứ khi nào có thể' },
+          { id: 'wc22', text: 'Kiểm tra kỹ lỗi chính tả, ngữ pháp và lỗi trình bày trước khi xuất bản' },
+        ]
+      }
+    ]
+  }
+};
+
+let clCurrentTab = 'main-supplement';
+let clState = {};
+
+function loadCLState() {
+  clState = DB.get(CL_KEY, {});
+}
+
+function saveCLState() {
+  DB.set(CL_KEY, clState);
+}
+
+function switchCLTab(tabId) {
+  clCurrentTab = tabId;
+  document.querySelectorAll('.cl-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.includes(clData[tabId].label.split(' ').slice(1).join(' ')));
+  });
+  // simpler: match by index
+  const tabs = document.querySelectorAll('.cl-tab');
+  const keys = Object.keys(clData);
+  tabs.forEach((btn, i) => btn.classList.toggle('active', keys[i] === tabId));
+  renderCLContent();
+}
+
+function renderCLContent() {
+  const tab = clData[clCurrentTab];
+  if (!tab) return;
+  const container = document.getElementById('cl-content');
+  if (!container) return;
+
+  let html = '';
+  tab.groups.forEach(group => {
+    html += `<div class="cl-group-title">${group.name}</div>`;
+    group.items.forEach((item, idx) => {
+      const cbId = 'cl_' + item.id;
+      const done = !!clState[item.id];
+      html += `<div class="cl-item${done ? ' done' : ''}">
+        <input type="checkbox" id="${cbId}" ${done ? 'checked' : ''} onchange="toggleCLItem('${item.id}', this.checked)">
+        <label class="cl-item-text" for="${cbId}">${item.text}</label>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+  updateCLProgress();
+}
+
+function toggleCLItem(id, checked) {
+  clState[id] = checked ? 1 : 0;
+  saveCLState();
+  // update item style directly without full re-render
+  const cb = document.getElementById('cl_' + id);
+  if (cb) {
+    const item = cb.closest('.cl-item');
+    if (item) item.classList.toggle('done', checked);
+  }
+  updateCLProgress();
+}
+
+function updateCLProgress() {
+  const tab = clData[clCurrentTab];
+  if (!tab) return;
+  let total = 0, done = 0;
+  tab.groups.forEach(g => {
+    total += g.items.length;
+    done += g.items.filter(item => !!clState[item.id]).length;
+  });
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const fill = document.getElementById('cl-progress-fill');
+  const label = document.getElementById('cl-progress-label');
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = done + '/' + total + ' (' + pct + '%)';
+}
+
+function resetCLTab() {
+  const tab = clData[clCurrentTab];
+  if (!tab) return;
+  tab.groups.forEach(g => g.items.forEach(item => { clState[item.id] = 0; }));
+  saveCLState();
+  renderCLContent();
+}
+
+function initCLChecklist() {
+  loadCLState();
+  renderCLContent();
+}
 </script>
 </body>
 </html>
