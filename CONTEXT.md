@@ -12,6 +12,19 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 - [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin hoặc sửa initDB)
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với API key thật
 - [ ] **Test v2 scoring** với bài thật — kiểm tra A1/A2/A3 hoạt động đúng trên browser
+- [ ] **Checklist UX upgrade** — anh Jimmy T7 đã xem đề xuất, chưa chốt phương án. 3 options:
+  - **A**: Tooltip 2 dòng (meaning + example ✓/✗) cho 52 items — rê chuột hiện
+  - **B**: Phân loại 3 mức `🤖 auto` / `🤝 AI-check` / `👁 manual` + filter button
+  - **C**: Smart AI button — chỉ gửi items `🤝 AI`, skip `👁 manual` (tiết kiệm ~60% token)
+  - Đang chờ chốt: làm cả A+B+C hay làm A trước? Hoặc em phân loại 52 items để anh review trước rồi mới code?
+
+## Phiên thảo luận cuối session 8 — Checklist UX (chưa code)
+Anh Jimmy T7 yêu cầu nâng cấp UX cho 52 checklist items:
+1. Mỗi item có tooltip giải thích ngắn + ví dụ khi rê chuột
+2. Items "khó/optional" không auto-chấm, gợi ý user tự xem & tick
+
+Em đã đề xuất 3 mức phân loại + smart AI button. Đang chờ anh chốt phương án.
+Files liên quan: `clData` (~line 3594), `RUBRIC_CL_MAP` (~line 1947), `autoCheckWithAI`.
 
 ## Vừa xong (session 8 — 19/05/2026)
 - [x] **Refactor #1**: Dispatcher pattern `RULE_SCORERS` + evidence pass-through
@@ -97,10 +110,11 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 
 ## Backlog ưu tiên (từ docs/ROADMAP.md)
 ### Làm tiếp theo (P1)
-1. **Test v2 scoring** với bài The Metropolis — xác nhận A1/A2/A3 hoạt động đúng
-2. Đổi mật khẩu admin trong UI (trước khi deploy)
-3. Export báo cáo ra Markdown
-4. **Test AI button** với API key thật — Mức 2 + safeParseJSON
+1. **Checklist UX** — chốt phương án A/B/C rồi triển khai (xem "Đang làm dở")
+2. **Test v2 scoring** với bài The Metropolis — xác nhận A1/A2/A3 hoạt động đúng
+3. Đổi mật khẩu admin trong UI (trước khi deploy)
+4. Export báo cáo ra Markdown
+5. **Test AI button** với API key thật — Mức 2 + safeParseJSON
 
 ### Sau đó (P2)
 - Webhook Telegram sau khi chấm xong
