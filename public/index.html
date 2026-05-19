@@ -1605,7 +1605,7 @@ function parseArticle(raw) {
 
 function _scoreS3(parsed) {
   const { headings } = parsed;
-  let score = 5;
+  let score = 4; // v2: 5→4đ
   let firstOrphanH3 = null;
   headings.forEach((h, i) => {
     if (h.level === 3) {
@@ -1625,7 +1625,7 @@ function _scoreS4(parsed) {
   const suppH3 = headings.slice(10).filter(h => h.level === 3).length;
   const totalH3 = mainH3 + suppH3;
   const ratio = totalH3 === 0 ? 0 : mainH3 / totalH3;
-  const score = totalH3 === 0 ? 2 : ratio >= 0.6 ? 5 : ratio >= 0.4 ? 2 : 0;
+  const score = totalH3 === 0 ? 2 : ratio >= 0.6 ? 4 : ratio >= 0.4 ? 2 : 0; // v2: max 4đ
   return { score, evidence: { mainH3Count: mainH3, totalH3Count: totalH3 } };
 }
 
@@ -1637,7 +1637,7 @@ function _scoreS6(parsed) {
   const suppText = text.slice(boundary70);
   const suppWords = suppText.split(/\s+/).filter(w => w.length > 0).length;
   const suppPct = Math.round(suppWords / Math.max(1, wordCount) * 100);
-  const score = suppPct <= 25 ? 3 : suppPct <= 30 ? 1.5 : 0;
+  const score = suppPct <= 25 ? 2 : suppPct <= 30 ? 1 : 0; // v2: max 2đ
   return { score, evidence: { suppPct, suppHeading: suppHeading?.text || null } };
 }
 
@@ -1660,7 +1660,7 @@ function _scoreP2(parsed) {
       if (!/\d/.test(ctx)) { violations++; if (!foundWords.includes(w)) foundWords.push(w); }
     }
   });
-  return { score: Math.max(0, 5 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } };
+  return { score: Math.max(0, 4 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } }; // v2: max 4đ
 }
 
 function _scoreP3(parsed) {
@@ -1676,7 +1676,7 @@ function _scoreP3(parsed) {
       if (!/\d/.test(after)) { violations++; if (!foundWords.includes(w)) foundWords.push(w); }
     }
   });
-  return { score: Math.max(0, 4 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } };
+  return { score: Math.max(0, 3 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } }; // v2: max 3đ
 }
 
 function _scoreP4(parsed) {
@@ -1736,6 +1736,71 @@ function _scoreP8(parsed) {
   return { score, evidence: { longSentCount: longSents.length, longSentLocation } };
 }
 
+// ---- AEO/GEO Rule Scorers (v2 new criteria) ----
+
+// A1: Answer-First Paragraph (4đ) — đoạn đầu sau H1 phải 40-70 từ
+function _scoreA1(parsed) {
+  const { text, h1, headings } = parsed;
+  if (!h1.length) return { score: 0, evidence: { firstParaWords: 0 } };
+  const h1Text = h1[0].text;
+  const h1Pos = text.indexOf(h1Text);
+  if (h1Pos === -1) return { score: 0, evidence: { firstParaWords: 0 } };
+
+  const afterH1 = text.slice(h1Pos + h1Text.length).trimStart();
+  // Find next heading to delimit the first paragraph
+  let nextHPos = afterH1.length;
+  for (const h of headings) {
+    if (h === h1[0]) continue;
+    const pos = afterH1.indexOf(h.text);
+    if (pos > 0 && pos < nextHPos) nextHPos = pos;
+  }
+  const firstParaText = afterH1.slice(0, nextHPos).trim();
+  const firstParaWords = firstParaText.split(/\s+/).filter(w => w.length > 0).length;
+  const score = firstParaWords >= 40 && firstParaWords <= 70 ? 4
+              : firstParaWords > 70 && firstParaWords <= 100 ? 2
+              : 0;
+  return { score, evidence: { firstParaWords } };
+}
+
+// A2: FAQ Schema-Ready (2đ) — H3 FAQ pairs ≤100 từ
+function _scoreA2(parsed) {
+  const { text, h3, headings } = parsed;
+  const faqH3 = h3.filter(h => h.text.trim().endsWith('?'));
+  if (faqH3.length === 0) return { score: 0, evidence: { faqCount: 0, passedPairs: 0 } };
+
+  let passedPairs = 0;
+  faqH3.forEach(faq => {
+    const hPos = text.indexOf(faq.text);
+    if (hPos === -1) return;
+    const afterH = text.slice(hPos + faq.text.length).trimStart();
+    // Find next heading after this FAQ H3
+    let nextHPos = afterH.length;
+    for (const h of headings) {
+      const pos = afterH.indexOf(h.text);
+      if (pos > 0 && pos < nextHPos) nextHPos = pos;
+    }
+    const answerText = afterH.slice(0, nextHPos).trim();
+    const wordCount = answerText.split(/\s+/).filter(w => w.length > 0).length;
+    if (wordCount <= 100 && wordCount > 0) passedPairs++;
+  });
+
+  const pct = passedPairs / faqH3.length;
+  const score = pct >= 0.7 ? 2 : pct >= 0.3 ? 1 : 0;
+  return { score, evidence: { faqCount: faqH3.length, passedPairs } };
+}
+
+// A3: Definition Sentence (2đ) — "{entity} là ..." trong 1500 ký tự đầu
+function _scoreA3(parsed, meta) {
+  const { text } = parsed;
+  const first1500 = text.slice(0, 1500);
+  const entityName = (meta?.entity || '').trim();
+  if (!entityName) return { score: 0, evidence: { hasDefinition: false } };
+  const entityEsc = entityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const defRegex = new RegExp(entityEsc + '\\s+(là|–|—|:)\\s+.{20,150}', 'i');
+  const found = defRegex.test(first1500);
+  return { score: found ? 2 : 0, evidence: { hasDefinition: found } };
+}
+
 // S1 heuristic — keyword alignment (LLM sẽ override nếu forceLLM)
 function _scoreS1_heuristic(parsed, meta) {
   const { h2 } = parsed;
@@ -1775,7 +1840,7 @@ function _fallbackHeuristic(parsed) {
   return {
     R2: Math.round(5 * r2Found / r2Attrs.length * 10) / 10,
     R5: ctaHits.some(p => tail25.includes(p)) ? 3 : 0,
-    I3: aiCount === 0 ? 5 : aiCount <= 2 ? 4 : aiCount <= 4 ? 2 : 0,
+    I3: aiCount === 0 ? 3 : aiCount <= 2 ? 2 : aiCount <= 4 ? 1 : 0, // v2: max 3đ
     I4: citeCount >= 3 ? 3 : citeCount >= 1 ? 1.5 : 0,
   };
 }
@@ -1785,6 +1850,7 @@ const RULE_SCORERS = {
   S3: _scoreS3, S4: _scoreS4, S6: _scoreS6,
   P2: _scoreP2, P3: _scoreP3, P4: _scoreP4,
   P5: _scoreP5, P6: _scoreP6, P7: _scoreP7, P8: _scoreP8,
+  A1: _scoreA1, A2: _scoreA2, A3: _scoreA3, // v2 AEO/GEO rule criteria
 };
 
 function scoreRules(parsed, meta) {
@@ -1804,7 +1870,7 @@ function scoreRules(parsed, meta) {
   const fb = _fallbackHeuristic(parsed);
   Object.assign(scores, { R2: fb.R2, R5: fb.R5, I3: fb.I3, I4: fb.I4 });
   // Zero-init LLM-only criteria (tránh NaN khi tính total)
-  ['S2','S5','P1','R1','R3','R4','R6','I1','I2'].forEach(id => { scores[id] = scores[id] ?? 0; });
+  ['S2','S5','P1','R1','R3','R4','R6','I1','I2','G1'].forEach(id => { scores[id] = scores[id] ?? 0; });
   const total = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) * 10) / 10;
   return { scores, total, evidence };
 }
@@ -1854,22 +1920,26 @@ async function callClaude(prompt, apiKey, model, maxTokens = 1000) {
   return data.content[0].text;
 }
 
-// Tên và max weight của từng tiêu chí — mirror từ rubric.tpi-v1.json (v1 frozen, không sửa)
+// Tên và max weight của từng tiêu chí — rubric.tpi-v2 (AEO/GEO Edition)
 const CRITERION_NAMES = {
   S1:'Macro Context H1↔H2', S2:'9-10 Heading đầu chất lượng', S3:'Heading Hierarchy',
   S4:'Contextual Coverage', S5:'Contextual Flow logic', S6:'Tỷ lệ Supplement Content',
+  A3:'Definition Sentence ⚡AEO',
   P1:'Early Query Answer', P2:'Be Certain', P3:'Cụ thể vs Chung chung',
   P4:'Số liệu cụ thể', P5:'Heading viết hoa', P6:'Internal link đúng vị trí',
   P7:'Không hệ thống số đếm', P8:'Câu đầy đủ chủ vị',
+  A1:'Answer-First Paragraph ⚡AEO/GEO', A2:'FAQ Schema-Ready ⚡AEO',
   R1:'RPP — Relevance', R2:'RPP — Prominence', R3:'RPP — Popularity',
   R4:'EAV Coverage', R5:'Central Entity Alignment', R6:'Heading đầu-cuối kết nối',
-  I1:'Dữ liệu độc quyền TPI', I2:'Góc nhìn mới', I3:'Tránh văn phong AI', I4:'Trích dẫn nguồn'
+  I1:'Dữ liệu độc quyền TPI', I2:'Góc nhìn mới', I3:'Tránh văn phong AI',
+  I4:'Trích dẫn nguồn', G1:'GEO Citable Chunk ⚡GEO'
 };
+// v2: T1(28) + T2(28) + T3(24) + T4(20) = 100đ
 const CRITERION_MAX = {
-  S1:7, S2:6, S3:5, S4:5, S5:4, S6:3,
-  P1:6, P2:5, P3:4, P4:4, P5:2, P6:2, P7:1, P8:1,
-  R1:5, R2:5, R3:4, R4:6, R5:3, R6:2,
-  I1:7, I2:5, I3:5, I4:3
+  S1:7, S2:5, S3:4, S4:4, S5:4, S6:2, A3:2,
+  P1:5, P2:4, P3:3, P4:4, P5:2, P6:2, P7:1, P8:1, A1:4, A2:2,
+  R1:4, R2:5, R3:4, R4:6, R5:3, R6:2,
+  I1:7, I2:5, I3:3, I4:3, G1:2
 };
 
 // Rubric → Checklist mapping (Mức 1 — free, based on rubric scores)
@@ -2063,14 +2133,14 @@ ${headingList}
 Nội dung (đầu+cuối bài):
 ${preview}
 
-Chấm JSON (số thực):
-{"S1":<0-7>,"S2":<0-6>,"S5":<0-4>,"P1":<0-6>,"R1":<0-5>,"R3":<0-4>,"R5":<0-3>,"R6":<0-2>,
+Chấm JSON (số thực, v2 weights):
+{"S1":<0-7>,"S2":<0-5>,"S5":<0-4>,"P1":<0-5>,"R1":<0-4>,"R3":<0-4>,"R5":<0-3>,"R6":<0-2>,
 "reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","R6":"..."}}
 
 Hướng dẫn ngắn:
-S1: H2 có đúng chủ đề H1 không | S2: 9-10 heading đầu có cụ thể/liên quan không
-S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1: câu đầu sau heading trả lời thẳng không
-R1: heading liên quan agency BĐS TPI | R3: khớp search intent keyword
+S1: H2 có đúng chủ đề H1 không | S2(max5): 9-10 heading đầu có cụ thể/liên quan không
+S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1(max5): câu đầu sau heading trả lời thẳng không
+R1(max4): heading liên quan agency BĐS TPI | R3: khớp search intent keyword
 R5: cuối bài có CTA/heading dẫn về TPI không | R6: heading đầu-cuối MC kết nối nghĩa`;
 
   const apicfg = getApiConfig();
@@ -2093,10 +2163,10 @@ Keyword: ${meta.keyword} | Entity: ${meta.entity} | Business: môi giới BĐS T
 Nội dung bài (đầu+cuối):
 ${preview}
 
-Chấm 5 tiêu chí + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
+Chấm 6 tiêu chí (v2) + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
 
-{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,
-"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"..."},
+{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,"G1":<0|2>,
+"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","G1":"..."},
 "top5_fixes":[
   {"priority":1,"criterion_id":"XX","location":"heading cụ thể","issue":"mô tả lỗi","fix":"giải pháp"},
   {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
@@ -2105,7 +2175,8 @@ Chấm 5 tiêu chí + tạo top5_fixes. Quy tắc fixes: location=tên heading c
   {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
 ]}
 
-Hướng dẫn: R2=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4=EAV có số liệu cụ thể hay mơ hồ; I1=data độc quyền TPI; I2=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín`;
+Hướng dẫn: R2=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4=EAV có số liệu cụ thể hay mơ hồ; I1=data độc quyền TPI; I2=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín
+G1(GEO, 2đ): có ít nhất 1 đoạn ≤200 từ tự đứng được với đủ Entity+Attribute+Value để AI Search trích nguyên đoạn? 2=có, 0=không`;
 
   const apicfg2 = getApiConfig();
   const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
@@ -2213,14 +2284,16 @@ async function submitArticle() {
       I1: complexScores.I1 || 0,
       I2: complexScores.I2 || 0,
       I3: ruleScores.I3 ?? 0,  // Rule heuristic (AI clichés) — không dùng LLM cho I3
-      I4: complexScores.I4 ?? ruleScores.I4  ?? 0
+      I4: complexScores.I4 ?? ruleScores.I4  ?? 0,
+      G1: complexScores.G1 || 0, // v2 GEO: LLM only
     };
 
+    // v2 tier breakdown — T1(28) + T2(28) + T3(24) + T4(20) = 100đ
     const tierBreakdown = [
-      { name: 'Cấu trúc & Ngữ cảnh', max: 30, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6 },
-      { name: 'Chất lượng đoạn', max: 25, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+allScores.P7+allScores.P8 },
-      { name: 'RPP & Entity', max: 25, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6 },
-      { name: 'Information Gain', max: 20, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4 }
+      { name: 'Cấu trúc & Ngữ cảnh', max: 28, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6+(allScores.A3||0) },
+      { name: 'Chất lượng đoạn & AEO', max: 28, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+allScores.P7+allScores.P8+(allScores.A1||0)+(allScores.A2||0) },
+      { name: 'RPP & Entity', max: 24, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6 },
+      { name: 'Information Gain & GEO', max: 20, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4+(allScores.G1||0) }
     ];
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
@@ -2391,11 +2464,12 @@ function switchResultTab(tabId, btn) {
 
 // Render tab Chi tiết — điểm từng tiêu chí theo tầng
 function renderDetailTab(allScores, reasons) {
+  // v2: T1(28) + T2(28) + T3(24) + T4(20) = 100đ
   const tiers = [
-    { label: 'T1 — Cấu trúc & Ngữ cảnh', ids: ['S1','S2','S3','S4','S5','S6'], max: 30 },
-    { label: 'T2 — Chất lượng đoạn',      ids: ['P1','P2','P3','P4','P5','P6','P7','P8'], max: 25 },
-    { label: 'T3 — RPP & Entity',          ids: ['R1','R2','R3','R4','R5','R6'], max: 25 },
-    { label: 'T4 — Information Gain',      ids: ['I1','I2','I3','I4'], max: 20 },
+    { label: 'T1 — Cấu trúc & Ngữ cảnh', ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 28 },
+    { label: 'T2 — Chất lượng đoạn & AEO', ids: ['P1','P2','P3','P4','P5','P6','P7','P8','A1','A2'], max: 28 },
+    { label: 'T3 — RPP & Entity',           ids: ['R1','R2','R3','R4','R5','R6'], max: 24 },
+    { label: 'T4 — Information Gain & GEO', ids: ['I1','I2','I3','I4','G1'], max: 20 },
   ];
   return tiers.map(tier => {
     const tierScore = tier.ids.reduce((s, id) => s + (allScores?.[id] ?? 0), 0);

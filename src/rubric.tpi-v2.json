@@ -1,0 +1,322 @@
+{
+  "metadata": {
+    "rubric_id": "tpi-v2",
+    "version": "2.0.0",
+    "name": "TPI Content Scoring Rubric — AEO/GEO Edition",
+    "author": "Jimmy T7",
+    "organization": "TPI Land",
+    "industry_default": "real_estate_vietnam",
+    "language": "vi-VN",
+    "created_at": "2026-05-19",
+    "based_on": "tpi-v1",
+    "description": "Mở rộng tpi-v1 với 4 tiêu chí mới tối ưu cho AEO (Answer Engine Optimization) và GEO (Generative Engine Optimization). Tổng vẫn 100đ, pass 70đ — một số tiêu chí v1 được điều chỉnh nhẹ để nhường điểm cho tiêu chí mới.",
+    "max_score": 100,
+    "passing_score": 70,
+    "changes_from_v1": [
+      "P1: 6đ → 5đ (A1 thay thế phần rule check)",
+      "P2: 5đ → 4đ (A1 coverage tốt hơn)",
+      "P3: 4đ → 3đ",
+      "S6: 3đ → 2đ (cải thiện detection đã đủ)",
+      "R1: 5đ → 4đ",
+      "I3: 5đ → 3đ (chuyển sang rule-only, tiết kiệm LLM)",
+      "THÊM A1 (4đ), A2 (2đ), A3 (2đ), G1 (2đ) = +10đ; giảm v1 -10đ = net 0"
+    ]
+  },
+
+  "preflight_checks": {
+    "description": "Giống v1 — 5 kiểm tra bắt buộc trước khi chấm.",
+    "checks": [
+      { "id": "has_h1", "rule": "Bài phải có ít nhất 1 H1", "fail_message": "Bài viết không có H1." },
+      { "id": "has_h2", "rule": "Bài phải có ít nhất 3 H2", "fail_message": "Bài chỉ có ít hơn 3 H2." },
+      { "id": "min_word_count", "rule": "word_count >= 800", "fail_message": "Bài dưới 800 từ." },
+      { "id": "max_word_count", "rule": "word_count <= 10000", "fail_message": "Bài trên 10.000 từ." },
+      { "id": "main_entity_in_h1", "rule": "main_entity hoặc target_keyword phải có trong H1", "fail_message": "H1 không chứa keyword hoặc entity." }
+    ]
+  },
+
+  "tiers": [
+    {
+      "tier_id": "tier_1_structure",
+      "name": "Cấu trúc & Ngữ cảnh",
+      "max_score": 28,
+      "description": "Cấu trúc heading, Macro Context, definition sentence (mới). Phần lớn rule + 2 tiêu chí LLM.",
+      "criteria": [
+        {
+          "id": "S1",
+          "name": "Macro Context Alignment H1↔H2",
+          "weight": 7,
+          "scoring_method": "llm",
+          "description": "H2 phải đi đúng chủ đề H1. Giữ nguyên v1.",
+          "good_example": "H1 'Căn hộ Metropolis' → H2 'Vị trí Metropolis', 'Giá Metropolis'",
+          "bad_example": "H2 'Xu hướng BĐS 2026' — lệch hoàn toàn"
+        },
+        {
+          "id": "S2",
+          "name": "9-10 Heading đầu chất lượng",
+          "weight": 5,
+          "scoring_method": "llm",
+          "description": "9-10 heading đầu phải cụ thể, có từ khoá, liên quan entity. Giảm từ 6đ → 5đ.",
+          "good_example": "10 heading đầu đều về Metropolis: định nghĩa, vị trí, tiện ích, giá, pháp lý",
+          "bad_example": "Heading 'Top 10 món ăn Thủ Thiêm' trong 10 heading đầu"
+        },
+        {
+          "id": "S3",
+          "name": "Heading Hierarchy hợp lý",
+          "weight": 4,
+          "scoring_method": "rule",
+          "description": "H1→H2→H3 đúng cấp. Giảm từ 5đ → 4đ.",
+          "how_to_score": "-1.5đ mỗi H3 không có H2 cha. Tối thiểu 0đ."
+        },
+        {
+          "id": "S4",
+          "name": "Contextual Coverage tại Main Content",
+          "weight": 4,
+          "scoring_method": "rule",
+          "description": "H3 chủ yếu trong Main Content (70% đầu bài). Giảm từ 5đ → 4đ.",
+          "how_to_score": ">=60% H3 ở Main Content = 4đ. 40-60% = 2đ. <40% = 0đ."
+        },
+        {
+          "id": "S5",
+          "name": "Contextual Flow logic",
+          "weight": 4,
+          "scoring_method": "llm",
+          "description": "Flow heading: định nghĩa→đặc điểm→lợi ích→hành động. Giữ nguyên 4đ.",
+          "good_example": "H2: 'Metropolis là gì' → 'Vị trí' → 'Tiện ích' → 'Giá' → 'Cách mua'"
+        },
+        {
+          "id": "S6",
+          "name": "Tỷ lệ Supplement Content ≤25%",
+          "weight": 2,
+          "scoring_method": "rule",
+          "description": "Supplement ≤25% tổng số từ. Giảm từ 3đ → 2đ.",
+          "how_to_score": "<=25% = 2đ. 25-30% = 1đ. >30% = 0đ."
+        },
+        {
+          "id": "A3",
+          "name": "Definition Sentence — câu định nghĩa entity",
+          "weight": 2,
+          "scoring_method": "rule",
+          "is_new": true,
+          "aeo_geo_signal": "AEO",
+          "description": "Bài phải có câu định nghĩa 'Entity là X' trong 200 từ đầu. AI Search trích câu định nghĩa làm Featured Snippet và Knowledge Panel.",
+          "how_to_score": "Regex: `{entity}\\s+(là|–|—|:)\\s+.{20,150}` trong 1500 ký tự đầu. Tìm thấy = 2đ. Không = 0đ.",
+          "good_example": "'The Metropolis SonKim Land là tổ hợp căn hộ hạng sang tọa lạc tại mặt tiền đường Mai Chí Thọ, Thủ Thiêm.'",
+          "bad_example": "Bài mở đầu bằng context 'Trong bối cảnh...' mà không định nghĩa entity trực tiếp."
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_2_paragraph_quality",
+      "name": "Chất lượng đoạn & AEO Format",
+      "max_score": 28,
+      "description": "Chất lượng câu mở đầu, văn phong, ngôn từ. Thêm 2 tiêu chí AEO: A1 (answer-first) và A2 (FAQ schema).",
+      "criteria": [
+        {
+          "id": "P1",
+          "name": "Early Query Answer / No Delay",
+          "weight": 5,
+          "scoring_method": "llm",
+          "description": "Câu trả lời chính phải xuất hiện trong 150 từ đầu. Giảm từ 6đ → 5đ (A1 rule bổ trợ).",
+          "good_example": "Query 'giá Metropolis' → đoạn mở đầu đã có 'Giá từ X tỷ/căn'"
+        },
+        {
+          "id": "P2",
+          "name": "Be Certain — cấm từ do dự",
+          "weight": 4,
+          "scoring_method": "rule",
+          "description": "Không dùng 'có thể', 'có lẽ', 'tương đối', v.v. Giảm từ 5đ → 4đ.",
+          "how_to_score": "-0.5đ mỗi từ do dự. Minimum 0đ."
+        },
+        {
+          "id": "P3",
+          "name": "Cụ thể vs Chung chung",
+          "weight": 3,
+          "scoring_method": "rule",
+          "description": "Tránh 'nhiều loại', 'đa dạng', 'rất tốt' không có số liệu. Giảm từ 4đ → 3đ.",
+          "how_to_score": "-0.5đ mỗi cụm chung chung không kèm số liệu."
+        },
+        {
+          "id": "P4",
+          "name": "Số liệu cụ thể",
+          "weight": 4,
+          "scoring_method": "rule",
+          "description": "≥1 số liệu/300 từ. Giữ nguyên 4đ.",
+          "how_to_score": "Density >=1 = 4đ. 0.5-1 = 2đ. <0.5 = 0đ."
+        },
+        {
+          "id": "P5",
+          "name": "Heading viết hoa Title Case",
+          "weight": 2,
+          "scoring_method": "rule",
+          "description": "Chữ đầu mỗi từ ≥3 ký tự trong heading phải viết hoa. Giữ nguyên.",
+          "how_to_score": "-0.3đ mỗi heading sai."
+        },
+        {
+          "id": "P6",
+          "name": "Internal link đúng vị trí",
+          "weight": 2,
+          "scoring_method": "rule",
+          "description": "Không có internal link trong Main Content. Giữ nguyên.",
+          "how_to_score": "0 link MC = 2đ. 1-2 = 1đ. >2 = 0đ."
+        },
+        {
+          "id": "P7",
+          "name": "Không hệ thống số đếm nhiều cấp",
+          "weight": 1,
+          "scoring_method": "rule",
+          "description": "Không dùng 1.1, 1.2.3. Giữ nguyên.",
+          "how_to_score": "Có nested = 0đ. Không = 1đ."
+        },
+        {
+          "id": "P8",
+          "name": "Câu đầy đủ chủ vị",
+          "weight": 1,
+          "scoring_method": "rule",
+          "description": "Câu ≤40 từ, không câu cụt. Giữ nguyên.",
+          "how_to_score": ">5% câu dài = 0đ. 2-5% = 0.5đ. <2% = 1đ."
+        },
+        {
+          "id": "A1",
+          "name": "Answer-First Paragraph — GEO snippet format",
+          "weight": 4,
+          "scoring_method": "rule",
+          "is_new": true,
+          "aeo_geo_signal": "AEO + GEO",
+          "description": "Đoạn đầu tiên sau H1 phải trả lời câu hỏi về entity trong 40–70 từ — không dài hơn. Đây là format lý tưởng để AI Search trích dẫn bài làm answer. Khác P1 (P1 check 150 từ đầu, A1 check đoạn đầu sau H1 phải compact).",
+          "how_to_score": "Tìm đoạn văn đầu tiên sau H1. Đếm từ. 40-70 từ = 4đ. 71-100 từ = 2đ. <40 hoặc >100 từ = 0đ.",
+          "good_example": "'The Metropolis SonKim Land là tổ hợp căn hộ hạng sang tọa lạc tại mặt tiền đường Mai Chí Thọ, Thủ Thiêm. Dự án rộng 9,6ha, 12 block 25–35 tầng, cung cấp khoảng 3.200 căn hộ cao cấp.' (46 từ)",
+          "bad_example": "Đoạn mở bài 200 từ mô tả 'bối cảnh thị trường BĐS khu Đông' trước khi giới thiệu entity"
+        },
+        {
+          "id": "A2",
+          "name": "FAQ Schema-Ready — câu hỏi + trả lời ngắn",
+          "weight": 2,
+          "scoring_method": "rule",
+          "is_new": true,
+          "aeo_geo_signal": "AEO",
+          "description": "Nếu bài có section FAQ, các câu hỏi (H3) phải kết thúc bằng '?' và câu trả lời ngay sau phải ≤100 từ, đủ standalone. Format này Google dùng cho FAQ schema markup và AI Search dùng để trích dẫn.",
+          "how_to_score": "Tìm H3 kết thúc '?' (dấu hiệu FAQ). Với mỗi H3 FAQ: paragraph ngay sau ≤100 từ = đạt. >=70% FAQ pair đạt = 2đ. 30-70% = 1đ. <30% hoặc không có FAQ = 0đ.",
+          "good_example": "### Metropolis ở đâu?\nDự án tọa lạc tại mặt tiền Mai Chí Thọ, phường Bình Khánh, Thủ Thiêm, TP. Thủ Đức — cạnh Ga Metro Thủ Thiêm. (28 từ)",
+          "bad_example": "### Metropolis có gì đặc biệt?\n[300 từ mô tả]"
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_3_rpp_entity",
+      "name": "RPP Scoring & Entity",
+      "max_score": 24,
+      "description": "RPP + EAV. R1 giảm từ 5→4đ để nhường chỗ cho A3 ở Tier 1.",
+      "criteria": [
+        {
+          "id": "R1",
+          "name": "RPP — Relevance (business model agency)",
+          "weight": 4,
+          "scoring_method": "llm",
+          "description": "Heading có liên quan business môi giới BĐS không. Giảm từ 5đ → 4đ."
+        },
+        {
+          "id": "R2",
+          "name": "RPP — Prominence (5 attributes thiết yếu)",
+          "weight": 5,
+          "scoring_method": "llm",
+          "description": "Đủ 5 attributes: vị trí/tiện ích/pháp lý/giá/CĐT. Giữ nguyên."
+        },
+        {
+          "id": "R3",
+          "name": "RPP — Popularity (Search Intent match)",
+          "weight": 4,
+          "scoring_method": "llm",
+          "description": "Heading khớp search intent. Giữ nguyên."
+        },
+        {
+          "id": "R4",
+          "name": "EAV Coverage (Entity-Attribute-Value)",
+          "weight": 6,
+          "scoring_method": "llm",
+          "description": "Mỗi attribute có value cụ thể. Giữ nguyên — tiêu chí quan trọng nhất T3."
+        },
+        {
+          "id": "R5",
+          "name": "Central Entity Alignment — CTA về TPI",
+          "weight": 3,
+          "scoring_method": "llm",
+          "description": "Cuối bài có CTA về TPI Land. Giữ nguyên."
+        },
+        {
+          "id": "R6",
+          "name": "Heading đầu-cuối Main Content kết nối",
+          "weight": 2,
+          "scoring_method": "llm",
+          "description": "Heading đầu-cuối MC có kết nối nghĩa. Giữ nguyên."
+        }
+      ]
+    },
+
+    {
+      "tier_id": "tier_4_information_gain",
+      "name": "Information Gain & GEO Signals",
+      "max_score": 20,
+      "description": "Giá trị độc quyền + tín hiệu GEO (generative engine). Thêm G1, I3 giảm xuống 3đ.",
+      "criteria": [
+        {
+          "id": "I1",
+          "name": "Dữ liệu/Case study độc quyền TPI",
+          "weight": 7,
+          "scoring_method": "llm",
+          "description": "Data/case study riêng của TPI. Giữ nguyên — tiêu chí giá trị nhất."
+        },
+        {
+          "id": "I2",
+          "name": "Góc nhìn mới / quan điểm riêng TPI",
+          "weight": 5,
+          "scoring_method": "llm",
+          "description": "Phân tích/quan điểm riêng của TPI, không copy. Giữ nguyên."
+        },
+        {
+          "id": "I3",
+          "name": "Tránh văn phong AI generic",
+          "weight": 3,
+          "scoring_method": "rule",
+          "description": "Không có cụm AI-flavor. Chuyển từ LLM sang rule-only (tiết kiệm token). Giảm từ 5đ → 3đ.",
+          "how_to_score": "Đếm AI clichés. 0 = 3đ. 1-2 = 2đ. 3-5 = 1đ. >5 = 0đ."
+        },
+        {
+          "id": "I4",
+          "name": "Trích dẫn nguồn uy tín",
+          "weight": 3,
+          "scoring_method": "llm",
+          "description": "Có nguồn CBRE, Savills, JLL, báo cáo thị trường. Giữ nguyên."
+        },
+        {
+          "id": "G1",
+          "name": "GEO Citable Chunk — đoạn AI có thể trích dẫn",
+          "weight": 2,
+          "scoring_method": "llm",
+          "is_new": true,
+          "aeo_geo_signal": "GEO",
+          "description": "Bài phải có ít nhất 1 đoạn ≤200 từ, tự đứng được — chứa đủ Subject + Attribute + Value để AI Search trích nguyên đoạn mà không cần context xung quanh. Đây là tín hiệu GEO quan trọng nhất.",
+          "how_to_score": "LLM tìm đoạn ≤200 từ có đủ Entity+Attribute+Value tự đứng. Có ≥1 = 2đ. Không = 0đ.",
+          "good_example": "'The Metropolis SonKim Land tọa lạc tại mặt tiền Mai Chí Thọ, Thủ Thiêm, TP. Thủ Đức. Dự án quy mô 9,6ha gồm 12 block 25–35 tầng, cung cấp khoảng 3.200 căn hộ. Diện tích 48–90m². Liền kề Ga Metro số 2 Thủ Thiêm.'",
+          "bad_example": "Thông tin dự án rải rác khắp bài, không có đoạn nào đủ standalone để AI trích dẫn."
+        }
+      ]
+    }
+  ],
+
+  "scoring_notes": {
+    "language": "Toàn bộ feedback bằng tiếng Việt.",
+    "llm_temperature": 0.2,
+    "llm_model_recommendation": "Haiku 4.5 cho Tier 1-2 (S1/S2/S5/P1/R1/R3/R5/R6), Sonnet 4.6 cho Tier 3-4 (R2/R4/I1/I2/I4/G1)",
+    "i3_note": "I3 chuyển sang rule-only từ v2 — không cần LLM cho AI cliché detection. Tiết kiệm ~20% token.",
+    "new_criteria_impl_notes": {
+      "A1": "Sau parseArticle: tìm text node đầu tiên ngay sau H1. Đếm từ. 40-70 = 4đ.",
+      "A2": "Sau parseArticle: filter headings kết thúc '?'. Với mỗi heading đó: lấy paragraph tiếp theo, đếm từ. >=70% FAQ pairs ≤100 từ = 2đ.",
+      "A3": "Regex trên 1500 ký tự đầu: tìm `{entity} (là|–|—|:) .{20,150}` (case-insensitive). Tìm thấy = 2đ.",
+      "G1": "LLM trong scoreLLMComplex: thêm G1 vào JSON output."
+    },
+    "rubric_versioning": "Không sửa tpi-v2.json sau khi production. Tạo tpi-v3.json nếu cần thay đổi.",
+    "total_check": "T1(28) + T2(28) + T3(24) + T4(20) = 100đ ✓"
+  }
+}
