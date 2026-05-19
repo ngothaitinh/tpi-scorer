@@ -1,80 +1,97 @@
-# CONTEXT — cập nhật: 14/05/2026 (session 3)
+# CONTEXT — cập nhật: 19/05/2026 (session 6)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v1.1 — PRODUCTION READY
+## Trạng thái hiện tại: v1.4-dev — CHƯA DEPLOY
 
-App đã hoàn chỉnh, chạy được, chưa deploy.
+App chạy được trên localhost:3000. Tất cả edits đang ở main file trực tiếp.
 
 ## Đang làm dở
-- [ ] Commit đầu tiên chờ anh cấu hình git identity:
-  ```
-  git config --global user.email "ngothaitinh852@gmail.com"
-  git config --global user.name "Jimmy T7"
-  git commit -m "v1.1 — multi-provider LLM + Google Docs fetch"
-  ```
+- [ ] **Trước khi deploy**: xóa DEV MODE bypass trong `checkSession()` (hiện đang auto-login admin)
+- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024`
+- [ ] Commit code session 3+4+5+6
+- [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test browser lại
+- [ ] Test browser: tính năng auto-check Mức 1 + AI button hoạt động sau khi chấm bài
 
-## Vừa xong (session 4 — 15/05/2026)
-- [x] Fix Google Docs fetch: chuyển sang Google Docs API v1 (`docs.googleapis.com/v1/documents/{id}?key=...`)
-  - Tránh CORS + Drive Export block
-  - Admin cần enable "Google Docs API" (không phải Drive API) tại GCP
-  - localStorage key: `tpi_docs_api_key`
+## Vừa xong (session 6 — 19/05/2026)
+- [x] **Mức 1**: Auto-check checklist từ rubric scores — `autoCheckFromRubric()` + `RUBRIC_CL_MAP` constant
+  - 15 mappings: S1→ms2, S2→ms1, S3→ms3+ms4, S4→ms11, S5→ms8+ms9, S6→ms15, P1→wc7+am5, P2→wc1+wc19, P4→wc21, P5→wc5, P7→wc13, P8→wc11, R1→am2, R6→ms6+wc15, I3→wc17
+  - Khi `score/max >= threshold`: tự động tick checklist item, lưu vào `_auto` key riêng
+  - Không ghi đè item đã manually checked
+- [x] **Mức 2**: AI button trong checklist result — `autoCheckWithAI()`
+  - Gọi Haiku với nội dung bài + danh sách unchecked items
+  - Parse JSON array `[{id, pass}]`, tick items đạt
+  - Cost: ~$0.002/lần, dùng khi cần xác nhận thêm
+- [x] Badge `🤖 auto` hiển thị cạnh item được tự động tick
+- [x] `_lastArticleText` global — lưu nội dung bài khi submit để AI button dùng
+- [x] `getACLAutoKey`, `loadACLAuto`, `saveACLAuto` — separate storage cho auto-checked state
+- [x] `resetACL` cũng xóa autoSet khi reset
+- [x] CSS: `.acl-auto-tag`, `.cl-item.auto-checked`, `.acl-ai-row`, `.acl-ai-btn`, `.acl-ai-note`
 
-## Vừa xong (session 3 — 14/05/2026)
-- [x] Fix giao diện admin limit bar (không còn render 999 chấm)
-- [x] Shared API key: chỉ admin cấu hình, user không thấy
-- [x] Multi-provider LLM: Anthropic / Google Gemini / OpenAI / Custom (OpenAI-compatible)
-- [x] Font tiếng Việt: đổi sang `Be Vietnam Pro` (full diacritic support)
-- [x] Tạo demo account: `demo1` / `tinh1`
-- [x] Custom provider support cho `https://llm.chiasegpu.vn/v1`
-- [x] Google Docs fetch: admin nhập Drive API key, user paste URL → nội dung tự điền vào textarea
+## Vừa xong (session 5 — 17/05/2026)
+- [x] P0: Fix P2 hesitantWords — thêm `dự kiến`, `khoảng`, `ước tính`
+- [x] P0: Fix P3 matchAll — đổi từ `indexOf` sang `matchAll` với regex escape
+- [x] P1: Scorecard block ở đầu result — 4 tầng điểm + preflight status
+- [x] P2: Severity tags (🔴 Critical / 🟡 Major / 🟢 Minor) cho fix card
+- [x] P3: Chia fix cards: Critical Issues / Polish
+- [x] P4: Hiển thị tên đầy đủ tiêu chí trong fix card
+- [x] `CRITERION_NAMES` + `CRITERION_MAX` consts
+- [x] `safeParseJSON()` helper — 4-stage fallback pipeline
+- [x] Tạo test fixture: `tests/fixtures/the_metropolis.md`
+- [x] **Per-article checklist** với tracking per-user × keyword × entity
+- [x] Celebration effect (confetti) khi đạt 100% checklist
+- [x] `acl_{user}|{kw}|{entity}` localStorage key
 
-## Vừa xong (session 2 — 14/05/2026)
-- [x] Fix bug tiếng Việt IME: thêm `e.isComposing || e.keyCode === 229` vào global keydown handler
-- [x] `git init` repo thành công — commit chờ anh set user identity
+## Vừa xong (session 4 — 16/05/2026)
+- [x] Fix fetch Google Docs: detect URL → convert sang `/pub` → fetch qua `corsproxy.io`
+- [x] Fix paste không có định dạng: thay `execCommand('insertHTML')` bằng Range/Selection API
+- [x] Admin limit bar: hiện số bài đã chấm (số to)
+- [x] Thêm section "API Key & Model" trong trang Admin
+- [x] `scoreLLMSimple` + `scoreLLMComplex` đọc `llm_mode` từ config để chọn model
+- [x] Fix error message fetch URL
 
-## Vừa xong (session 1 — 14/05/2026)
-- [x] Build full app: auth + rate limit + scoring + admin panel
-- [x] Tạo project structure cho Claude Code
-- [x] Thêm Function Index vào index.html
-- [x] Tạo CONTEXT.md, cập nhật CLAUDE.md
+## Vừa xong (session 3 — 15/05/2026)
+- [x] Đổi font sang Be Vietnam Pro
+- [x] DEV MODE: bypass login, auto-login admin
+- [x] Thêm 2-mode input: Paste (contenteditable) + URL Fetch
 
 ## Quyết định đã chốt — KHÔNG thay đổi nếu chưa hỏi Jimmy T7
 - **Single-file HTML** — không tách JS/CSS, không dùng React/Vue
 - **localStorage only** — không có backend, không có DB
 - **Admin key mặc định**: `admin` / `admin2024` (đổi sau khi deploy)
 - **skip_llm_threshold = 30** — rule < 30đ thì skip LLM tier 3+4
-- **Shared API key** — admin set 1 key, user không cần nhập (đổi so với v1.0)
-- **Multi-provider**: Anthropic (default), Google, OpenAI, Custom — admin chọn
-- **Google Docs fetch** dùng Drive API v3 export (cần doc share "Anyone with link")
+- **llm_mode**: `balanced` (Haiku+Sonnet) / `economy` (Haiku all) / `accurate` (Sonnet all)
+- **Font**: Be Vietnam Pro
+- **Content input**: 2 tab — Paste (contenteditable) + URL Fetch
+- **DEV MODE hiện bật** — nhớ TẮT trước deploy
+- **Severity**: dựa trên deficit tuyệt đối — Critical ≥5, Major 3–4.99, Minor <3
+- **Auto-check Mức 1**: rubric mapping (free) — threshold riêng cho từng criterion
+- **Auto-check Mức 2**: AI button (Haiku, ~$0.002) — user click thủ công, không tự động
 
 ## Số liệu hiện tại
-- `public/index.html`: 1637 dòng, ~70KB
+- `public/index.html`: **3199 dòng** (main file — edits trực tiếp)
 - `src/rubric.tpi-v1.json`: 24 tiêu chí, 100 điểm, pass = 70
-- Ước tính chi phí: ~530đ/bài trung bình (Anthropic), thấp hơn nếu dùng Gemini/Custom
+- Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
-## localStorage keys mới (session 3)
-- `tpi_provider_admin` — provider đang dùng ('anthropic'|'google'|'openai'|'custom')
-- `tpi_apikey_admin` — shared LLM API key (thay `tpi_apikey_{user}`)
-- `tpi_custom_url` — base URL custom provider
-- `tpi_custom_model` — model name custom provider
-- `tpi_google_drive_key` — Drive API key để fetch Google Docs
+## Lưu ý quan trọng
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (3199 dòng)
+- KHÔNG sửa file worktree
+- Server localhost:3000 đang serve đúng main file
+- `RUBRIC_CL_MAP` (~line 1703): 15 mappings criterion → checklist items
+- `autoCheckFromRubric` (~line 2783): Mức 1 logic
+- `autoCheckWithAI` (~line 2806): Mức 2 AI button handler
+- `_lastArticleText` global (~line 2875): lưu nội dung bài cho AI button
 
 ## Backlog ưu tiên (từ docs/ROADMAP.md)
 ### Làm tiếp theo (P1)
-1. Đổi mật khẩu admin trong UI
-2. Export báo cáo ra Markdown
-3. Hiển thị điểm chi tiết từng tiêu chí (accordion)
-4. Thêm trường "Ghi chú" khi nộp bài
+1. **Test browser** bài The Metropolis — xác nhận auto-check Mức 1 hoạt động + badge 🤖 hiển thị
+2. **Test AI button** — Mức 2 gọi Haiku đúng, parse JSON array đúng
+3. **Xóa DEV MODE** trước khi deploy
+4. Đổi mật khẩu admin trong UI
+5. Export báo cáo ra Markdown
+6. Hiển thị điểm chi tiết từng tiêu chí (accordion)
 
 ### Sau đó (P2)
 - Webhook Telegram sau khi chấm xong
 - Thống kê điểm trung bình theo tuần (chart)
-
-## Biết trước khi sửa code
-- Toàn bộ app trong `public/index.html` — chỉ sửa file này
-- Rubric trong `src/rubric.tpi-v1.json` — không sửa trực tiếp, tạo v2 nếu cần
-- Dùng Function Index (đầu `<script>`) để tìm hàm nhanh
-- Test sau khi sửa: `node -e "require('fs').readFileSync('public/index.html','utf8')" && echo OK`
-- Google Docs fetch yêu cầu doc được share "Anyone with the link can view"

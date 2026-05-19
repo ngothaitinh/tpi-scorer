@@ -654,6 +654,40 @@ body {
 .cl-progress-label { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; white-space: nowrap; }
 .cl-reset-btn { font-size: 11px; color: var(--ink3); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; font-family: 'Be Vietnam Pro', sans-serif; }
 .cl-reset-btn:hover { color: var(--red); border-color: var(--red); }
+
+/* === ARTICLE CHECKLIST (per user × keyword × entity) === */
+.acl-wrap { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 22px; }
+.acl-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.acl-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.acl-badge { font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 10px; border-radius: 100px; background: var(--bg3); color: var(--ink2); border: 1px solid var(--line); transition: all .3s; }
+.acl-badge.done { background: rgba(76,175,130,.15); color: var(--green); border-color: rgba(76,175,130,.35); }
+.acl-new-btn { margin-left: auto; font-size: 11px; color: var(--ink3); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; font-family: 'Be Vietnam Pro', sans-serif; transition: color .15s, border-color .15s; }
+.acl-new-btn:hover { color: var(--red); border-color: var(--red); }
+.acl-progress-bar { background: var(--bg3); border-radius: 4px; height: 6px; margin-bottom: 16px; }
+.acl-progress-fill { background: var(--green); height: 6px; border-radius: 4px; transition: width .45s cubic-bezier(.4,0,.2,1); }
+.acl-complete-msg { text-align: center; padding: 14px 20px; background: rgba(76,175,130,.07); border: 1px solid rgba(76,175,130,.25); border-radius: 8px; font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 16px; animation: acl-pop .4s cubic-bezier(.175,.885,.32,1.275) both; }
+@keyframes acl-pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.acl-kw-tag { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; margin-top: 12px; }
+.acl-auto-tag { font-size: 10px; color: var(--blue); background: rgba(91,141,217,.15); border-radius: 3px; padding: 1px 5px; margin-left: 5px; vertical-align: middle; white-space: nowrap; pointer-events: none; }
+.cl-item.auto-checked > label { color: var(--ink2); }
+.acl-ai-row { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.acl-ai-btn { background: rgba(91,141,217,.1); border: 1px solid rgba(91,141,217,.3); color: var(--blue); border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; transition: background .15s; font-family: 'Be Vietnam Pro', sans-serif; }
+.acl-ai-btn:hover:not(:disabled) { background: rgba(91,141,217,.22); }
+.acl-ai-btn:disabled { opacity: .45; cursor: default; }
+.acl-ai-note { font-size: 11px; color: var(--ink3); }
+
+/* Submit form hint */
+.kw-cl-hint { font-size: 11px; font-family: 'DM Mono', monospace; margin-top: 6px; min-height: 16px; transition: color .2s; }
+.kw-cl-hint.has-progress { color: var(--gold); }
+.kw-cl-hint.complete { color: var(--green); }
+
+/* Celebration overlay */
+.celebrate-overlay { position: fixed; inset: 0; z-index: 99999; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .35s; }
+.celebrate-overlay.visible { opacity: 1; }
+.celebrate-banner { position: absolute; top: 44%; left: 50%; transform: translate(-50%,-50%); background: #13161e; border: 2px solid var(--green); color: var(--green); font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 17px; padding: 18px 36px; border-radius: 12px; white-space: nowrap; box-shadow: 0 0 60px rgba(76,175,130,.35); animation: celebrate-pop .45s cubic-bezier(.175,.885,.32,1.275) both; }
+@keyframes celebrate-pop { from { transform: translate(-50%,-50%) scale(.7); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+.confetti-piece { position: absolute; top: -16px; animation: confetti-fall linear forwards; }
+@keyframes confetti-fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -738,7 +772,7 @@ body {
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Từ khóa chính *</label>
-          <input class="form-input mono" id="f-keyword" placeholder="căn hộ vũng tàu view biển">
+          <input class="form-input mono" id="f-keyword" placeholder="căn hộ vũng tàu view biển" oninput="updateACLHint()">
         </div>
         <div class="form-group">
           <label class="form-label"><span class="tt">Main Entity<span class="tt-box">Entity (Thực thể chính)
@@ -746,9 +780,10 @@ Nhân vật trung tâm của bài: tên dự án, thương hiệu, địa danh..
 
 Ví dụ: "Căn hộ Metropolis", "Vinhomes Ocean Park"
 Khác keyword: keyword là cụm tìm kiếm, entity là thứ bài nói về</span></span> *</label>
-          <input class="form-input" id="f-entity" placeholder="Căn hộ Blanca City">
+          <input class="form-input" id="f-entity" placeholder="Căn hộ Blanca City" oninput="updateACLHint()">
         </div>
       </div>
+      <div id="acl-form-hint" class="kw-cl-hint"></div>
       <div class="form-group">
         <label class="form-label">Ý định tìm kiếm (<span class="tt">Search Intent<span class="tt-box">Search Intent (Ý định tìm kiếm)
 Mục đích người dùng khi gõ keyword vào Google.
@@ -1133,11 +1168,13 @@ function logout() {
 
 function checkSession() {
   initDB();
-  // DEV MODE: bỏ qua đăng nhập, tự động login admin
-  const users = DB.get('users', {});
-  DB.set('session', 'admin');
-  currentUser = { username: 'admin', ...users['admin'] };
-  enterApp();
+  const session = DB.get('session', null);
+  const users   = DB.get('users', {});
+  if (session && users[session] && users[session].status === 'active') {
+    currentUser = { username: session, ...users[session] };
+    enterApp();
+  }
+  // else: trang login hiển thị mặc định (page-auth visible)
 }
 
 function enterApp() {
@@ -1663,6 +1700,26 @@ const CRITERION_MAX = {
   I1:7, I2:5, I3:5, I4:3
 };
 
+// Rubric → Checklist mapping (Mức 1 — free, based on rubric scores)
+// Key: criterion_id, threshold: score/max ratio to auto-check, items: checklist item IDs
+const RUBRIC_CL_MAP = {
+  'S1': { threshold: 0.70, items: ['ms2'] },          // H1↔H2 alignment → H2 phản chiếu H1
+  'S2': { threshold: 0.65, items: ['ms1'] },           // Heading quality → 9-10 heading chất lượng
+  'S3': { threshold: 0.70, items: ['ms3', 'ms4'] },   // Hierarchy → H3 đào sâu H2, heading gần nhau
+  'S4': { threshold: 0.70, items: ['ms11'] },          // Contextual coverage → Macro Context chuyên sâu
+  'S5': { threshold: 0.65, items: ['ms8', 'ms9'] },   // Contextual flow → mượt mà, quan trọng giảm dần
+  'S6': { threshold: 0.65, items: ['ms15'] },          // Supplement ≤25% → không đi quá sâu
+  'P1': { threshold: 0.65, items: ['wc7', 'am5'] },   // Early answer → không delay, câu đầu trả lời
+  'P2': { threshold: 0.70, items: ['wc1', 'wc19'] },  // Be certain → giọng chắc, không "có thể"
+  'P4': { threshold: 0.70, items: ['wc21'] },          // Specific numbers → ưu tiên con số chi tiết
+  'P5': { threshold: 0.75, items: ['wc5'] },           // Heading capitalize → viết hoa đầu từ
+  'P7': { threshold: 0.75, items: ['wc13'] },          // No numbering → dùng bullet, không 1.1.2
+  'P8': { threshold: 0.75, items: ['wc11'] },          // Complete sentences → câu đủ chủ-vị
+  'R1': { threshold: 0.65, items: ['am2'] },           // Relevance → đọc kỹ đối thủ, context
+  'R6': { threshold: 0.65, items: ['ms6', 'wc15'] },  // Head-tail → heading đầu-cuối kết nối
+  'I3': { threshold: 0.65, items: ['wc17'] },          // No AI generic → không số liệu mâu thuẫn
+};
+
 // Tooltip giải thích thuật ngữ — hiển thị khi hover vào criterion ID
 const CRITERION_TOOLTIPS = {
   S1: `Macro Context Alignment (7đ)\nH1 và tất cả H2 phải cùng "câu chuyện" về một entity.\n\nTốt: H1 "Căn hộ Metropolis" → H2 có "Vị trí Metropolis", "Giá Metropolis"\nXấu: H2 toàn chủ đề chung như "Xu hướng BĐS 2024"`,
@@ -1854,6 +1911,7 @@ async function submitArticle() {
   const keyword = document.getElementById('f-keyword').value.trim();
   const entity = document.getElementById('f-entity').value.trim();
   const content = document.getElementById('f-content').value.trim();
+  _lastArticleText = content; // Store for AI auto-check (Mức 2)
   const apiCfg  = getApiConfig();
   const forceLLM = document.getElementById('force-llm')?.checked || false;
 
@@ -2131,6 +2189,9 @@ function renderResult(wrap, sub, reasons, allScores) {
       ${fixesHtml}
     </div>
   </div>`;
+
+  // Render per-article checklist bên dưới kết quả (allScores triggers Mức 1 auto-check)
+  renderACLInResult(sub.keyword, sub.entity, allScores);
 }
 
 // ============================================================
@@ -2692,6 +2753,272 @@ function updateAEOChart() {
     aeoChart.data.datasets[1].data = calcAEOChartData();
     aeoChart.update();
   }
+}
+
+// ============================================================
+// ARTICLE CHECKLIST — per user × keyword × entity
+// ============================================================
+function getACLKey(keyword, entity) {
+  const u = currentUser ? currentUser.username : 'guest';
+  const norm = s => (s || '').trim().toLowerCase().slice(0, 60);
+  return `acl_${u}|${norm(keyword)}|${norm(entity)}`;
+}
+function loadACL(keyword, entity) { return DB.get(getACLKey(keyword, entity), {}); }
+function saveACL(keyword, entity, state) { DB.set(getACLKey(keyword, entity), state); }
+function getACLAutoKey(keyword, entity) { return getACLKey(keyword, entity) + '_auto'; }
+function loadACLAuto(keyword, entity) { return DB.get(getACLAutoKey(keyword, entity), {}); }
+function saveACLAuto(keyword, entity, autoSet) { DB.set(getACLAutoKey(keyword, entity), autoSet); }
+
+function getACLProgress(keyword, entity) {
+  const state = loadACL(keyword, entity);
+  let total = 0, done = 0;
+  Object.values(clData).forEach(tab =>
+    tab.groups.forEach(g => {
+      total += g.items.length;
+      done += g.items.filter(item => !!state[item.id]).length;
+    })
+  );
+  return { total, done, pct: total ? Math.round(done / total * 100) : 0 };
+}
+
+// Mức 1: Auto-check checklist items from rubric scores (free, no API call)
+function autoCheckFromRubric(allScores, keyword, entity) {
+  const state   = loadACL(keyword, entity);
+  const autoSet = loadACLAuto(keyword, entity);
+  let count = 0;
+  Object.entries(RUBRIC_CL_MAP).forEach(([crit, cfg]) => {
+    const max   = CRITERION_MAX[crit] || 5;
+    const score = allScores[crit] ?? 0;
+    if (score / max >= cfg.threshold) {
+      cfg.items.forEach(itemId => {
+        if (!state[itemId]) {          // skip if already manually checked
+          state[itemId]   = 1;
+          autoSet[itemId] = 1;
+          count++;
+        }
+      });
+    }
+  });
+  saveACL(keyword, entity, state);
+  saveACLAuto(keyword, entity, autoSet);
+  return count;
+}
+
+// Mức 2: Auto-check remaining unchecked items via Haiku (requires API key)
+async function autoCheckWithAI(keyword, entity) {
+  const apiCfg = getApiConfig();
+  if (!apiCfg.api_key) { alert('Cần cấu hình API Key trong trang Admin để dùng tính năng này.'); return; }
+
+  const state   = loadACL(keyword, entity);
+  const autoSet = loadACLAuto(keyword, entity);
+
+  // Collect unchecked items across all tabs
+  const unchecked = [];
+  Object.values(clData).forEach(tab =>
+    tab.groups.forEach(g =>
+      g.items.forEach(item => { if (!state[item.id]) unchecked.push(item); })
+    )
+  );
+  if (unchecked.length === 0) { alert('Tất cả tiêu chí đã được đánh dấu!'); return; }
+
+  const btn = document.getElementById('acl-ai-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ AI đang kiểm tra...'; }
+
+  try {
+    const preview = (_lastArticleText || '').slice(0, 3000);
+    const prompt = `Bạn là chuyên gia kiểm tra nội dung SEO/GEO cho BĐS Việt Nam.
+Đọc bài viết rồi kiểm tra xem bài có đáp ứng từng tiêu chí không.
+Trả về JSON array, mỗi phần tử: {"id":"...","pass":true/false}
+Chỉ trả về JSON array thuần, không markdown, không giải thích.
+
+Bài viết (keyword: "${keyword}", entity: "${entity}"):
+${preview}
+
+Kiểm tra các tiêu chí (true = bài ĐÃ đáp ứng tiêu chí này):
+${unchecked.map(u => `{"id":"${u.id}","text":"${u.text}"}`).join('\n')}`;
+
+    const model = apiCfg.provider === 'custom' ? apiCfg.custom_model_simple : apiCfg.model_simple;
+    const raw   = await callLLM(prompt, { ...apiCfg, model }, 700);
+
+    // Parse — expect array
+    let s = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+    const si = s.indexOf('['), ei = s.lastIndexOf(']');
+    if (si !== -1 && ei !== -1) s = s.slice(si, ei + 1);
+    const results = JSON.parse(s);
+
+    let newCount = 0;
+    results.forEach(r => {
+      if (r.pass && !state[r.id]) {
+        state[r.id]   = 1;
+        autoSet[r.id] = 1;
+        newCount++;
+      }
+    });
+    saveACL(keyword, entity, state);
+    saveACLAuto(keyword, entity, autoSet);
+    _drawACL();
+    updateACLHint();
+
+    if (btn) {
+      btn.disabled    = false;
+      btn.textContent = newCount > 0
+        ? `✓ AI đã kiểm tra (+${newCount} tiêu chí mới)`
+        : `✓ AI đã kiểm tra (không có thêm tiêu chí nào đạt)`;
+    }
+    const prog = getACLProgress(keyword, entity);
+    if (prog.done === prog.total) triggerCelebration();
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 Phân tích AI (thử lại)'; }
+    alert('Lỗi AI: ' + e.message);
+  }
+}
+
+let _aclKW = '', _aclEntity = '', _aclTab = 'main-supplement';
+let _lastArticleText = '';
+
+function renderACLInResult(keyword, entity, allScores) {
+  const wrap = document.getElementById('result-wrap');
+  if (!wrap) return;
+  const old = document.getElementById('acl-result-section');
+  if (old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'acl-result-section';
+  wrap.appendChild(div);
+  _aclKW = keyword; _aclEntity = entity;
+  // Mức 1: Auto-check from rubric scores (free, instant)
+  if (allScores) autoCheckFromRubric(allScores, keyword, entity);
+  _drawACL();
+}
+
+function _drawACL() {
+  const container = document.getElementById('acl-result-section');
+  if (!container) return;
+  const state   = loadACL(_aclKW, _aclEntity);
+  const autoSet = loadACLAuto(_aclKW, _aclEntity);
+  const prog    = getACLProgress(_aclKW, _aclEntity);
+  const isDone  = prog.done === prog.total && prog.total > 0;
+
+  const tabBtns = Object.keys(clData).map(k =>
+    `<button class="cl-tab${k === _aclTab ? ' active' : ''}" onclick="_switchACLTab('${k}')">${clData[k].label}</button>`
+  ).join('');
+
+  const tab = clData[_aclTab];
+  let itemsHtml = '';
+  tab.groups.forEach(g => {
+    itemsHtml += `<div class="cl-group-title">${g.name}</div>`;
+    g.items.forEach(item => {
+      const done   = !!state[item.id];
+      const isAuto = !!autoSet[item.id];
+      const autoTag = isAuto ? ' <span class="acl-auto-tag" title="Tự động từ kết quả chấm bài">🤖 auto</span>' : '';
+      itemsHtml += `<div class="cl-item${done ? ' done' : ''}${isAuto && done ? ' auto-checked' : ''}">
+        <input type="checkbox" id="acl_cb_${item.id}" ${done ? 'checked' : ''} onchange="toggleACLItem('${item.id}',this.checked)">
+        <label class="cl-item-text" for="acl_cb_${item.id}">${item.text}${autoTag}</label>
+      </div>`;
+    });
+  });
+
+  const uncheckedCount = prog.total - prog.done;
+  const kwEsc  = _aclKW.replace(/'/g, "\\'");
+  const entEsc = _aclEntity.replace(/'/g, "\\'");
+  const aiLabel = uncheckedCount > 0
+    ? `🤖 Phân tích AI (${uncheckedCount} tiêu chí còn lại)`
+    : `✓ Tất cả đã được đánh dấu`;
+
+  container.innerHTML = `
+    <div class="acl-wrap">
+      <div class="acl-header">
+        <span class="acl-title">📋 Checklist Viết Bài</span>
+        <span class="acl-badge${isDone ? ' done' : ''}" id="acl-badge">${prog.done}/${prog.total} (${prog.pct}%)</span>
+        <button class="acl-new-btn" onclick="resetACL()">↺ Bài mới</button>
+      </div>
+      <div class="acl-progress-bar"><div class="acl-progress-fill" id="acl-fill" style="width:${prog.pct}%"></div></div>
+      ${isDone ? '<div class="acl-complete-msg" id="acl-done-msg">🎉 Tất cả tiêu chí đã hoàn thành — Bài viết sẵn sàng publish!</div>' : '<div id="acl-done-msg" style="display:none"></div>'}
+      <div class="cl-tabs">${tabBtns}</div>
+      <div id="acl-items">${itemsHtml}</div>
+      <div class="acl-ai-row">
+        <button class="acl-ai-btn" id="acl-ai-btn" ${uncheckedCount === 0 ? 'disabled' : ''} onclick="autoCheckWithAI('${kwEsc}','${entEsc}')">${aiLabel}</button>
+        ${uncheckedCount > 0 ? '<span class="acl-ai-note">Haiku kiểm tra nội dung bài · ~$0.002/lần</span>' : ''}
+      </div>
+      <div class="acl-kw-tag">📌 ${_aclKW} × ${_aclEntity}</div>
+    </div>`;
+}
+
+function _switchACLTab(tabId) {
+  _aclTab = tabId;
+  _drawACL();
+}
+
+function toggleACLItem(itemId, checked) {
+  const state = loadACL(_aclKW, _aclEntity);
+  state[itemId] = checked ? 1 : 0;
+  saveACL(_aclKW, _aclEntity, state);
+
+  // Update item in-place
+  const cb = document.getElementById('acl_cb_' + itemId);
+  if (cb) cb.closest('.cl-item')?.classList.toggle('done', checked);
+
+  // Update progress
+  const prog = getACLProgress(_aclKW, _aclEntity);
+  const fill = document.getElementById('acl-fill');
+  const badge = document.getElementById('acl-badge');
+  if (fill)  fill.style.width = prog.pct + '%';
+  if (badge) { badge.textContent = `${prog.done}/${prog.total} (${prog.pct}%)`; badge.classList.toggle('done', prog.done === prog.total); }
+
+  // Completion
+  if (prog.done === prog.total) {
+    const doneEl = document.getElementById('acl-done-msg');
+    if (doneEl) { doneEl.className = 'acl-complete-msg'; doneEl.style.display = ''; doneEl.textContent = '🎉 Tất cả tiêu chí đã hoàn thành — Bài viết sẵn sàng publish!'; }
+    if (checked) triggerCelebration();
+  } else {
+    const doneEl = document.getElementById('acl-done-msg');
+    if (doneEl) doneEl.style.display = 'none';
+  }
+
+  updateACLHint();
+}
+
+function resetACL() {
+  if (!confirm('Reset checklist? Tiến độ bài này sẽ bị xóa.')) return;
+  saveACL(_aclKW, _aclEntity, {});
+  saveACLAuto(_aclKW, _aclEntity, {});
+  _drawACL();
+  updateACLHint();
+}
+
+function updateACLHint() {
+  const hint = document.getElementById('acl-form-hint');
+  if (!hint) return;
+  const kw  = document.getElementById('f-keyword')?.value.trim() || '';
+  const ent = document.getElementById('f-entity')?.value.trim()  || '';
+  if (!kw || !ent) { hint.textContent = ''; hint.className = 'kw-cl-hint'; return; }
+  const prog = getACLProgress(kw, ent);
+  if (prog.done === 0) { hint.textContent = ''; hint.className = 'kw-cl-hint'; return; }
+  if (prog.done === prog.total) {
+    hint.textContent = `✅ Checklist hoàn thành (${prog.total}/${prog.total})`;
+    hint.className = 'kw-cl-hint complete';
+  } else {
+    hint.textContent = `📋 Tiếp tục checklist: ${prog.done}/${prog.total} (${prog.pct}%)`;
+    hint.className = 'kw-cl-hint has-progress';
+  }
+}
+
+function triggerCelebration() {
+  const COLORS = ['#4caf82','#d4a649','#5b8dd9','#e05c3a','#a78bfa','#ffffff'];
+  const total = Object.values(clData).reduce((s,t) => s + t.groups.reduce((a,g) => a + g.items.length, 0), 0);
+  const overlay = document.createElement('div');
+  overlay.className = 'celebrate-overlay';
+  const pieces = Array.from({ length: 32 }, (_, i) => {
+    const size = 6 + Math.random() * 9;
+    const dur  = (1.8 + Math.random() * 1.4).toFixed(2);
+    const del  = (Math.random() * 0.7).toFixed(2);
+    return `<div class="confetti-piece" style="left:${(Math.random()*100).toFixed(1)}%;width:${size.toFixed(0)}px;height:${size.toFixed(0)}px;background:${COLORS[i%COLORS.length]};border-radius:${Math.random()>.5?'50%':'3px'};animation-duration:${dur}s;animation-delay:${del}s;opacity:1"></div>`;
+  }).join('');
+  overlay.innerHTML = `
+    <div class="celebrate-banner">🎉 Xuất sắc! Đã hoàn thành tất cả ${total} tiêu chí viết bài.</div>
+    ${pieces}`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  setTimeout(() => { overlay.classList.remove('visible'); setTimeout(() => overlay.remove(), 400); }, 3500);
 }
 
 // ============================================================
