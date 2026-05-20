@@ -31,7 +31,15 @@
 ### P3 — Nghiên cứu thêm
 - [ ] Import bài từ Google Docs URL (cần OAuth hoặc service account)
 - [ ] Multi-rubric: chọn rubric khi nộp (tpi-v1, tpi-v2...)
-- [ ] Shared API key: admin set 1 key, user không cần nhập
+
+## V3 — WordPress Plugin Edition (track riêng — ĐANG CHỜ)
+
+Kế hoạch chi tiết: `docs/V3-WORDPRESS-PLUGIN.md`
+
+- Trạng thái: **đã lập kế hoạch, chưa code** — chờ hoàn thiện v2.0 Netlify
+- Mục tiêu: đóng gói thành plugin WordPress dùng nội bộ công ty
+- Lưu ý: phá vỡ quy tắc "single-file HTML" → cần Jimmy duyệt Phase 0 trước
+- Nhắc Jimmy mở track này khi v2.0 deploy + test xong
 
 ## Không làm (đã quyết định)
 - ❌ Backend/database — giữ static, không thêm server

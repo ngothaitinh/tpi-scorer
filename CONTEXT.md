@@ -3,19 +3,32 @@
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v2.0.0-dev — CHƯA DEPLOY
+## Trạng thái hiện tại: v2.0.0 — ĐANG DEPLOY (Netlify + GitHub)
 
-App chạy được trên localhost:3000. Tất cả edits đang ở main file trực tiếp.
+Repo: `github.com/ngothaitinh/tpi-scorer` → Netlify auto-deploy mỗi lần push.
+Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 Đã nâng cấp lên **Rubric v2 AEO/GEO Edition** — 100đ rebalanced, 4 tiêu chí mới.
 
+## ĐỊNH NGHĨA HOÀN THÀNH v2.0 (xong hết → NHẮC JIMMY mở track V3)
+- [ ] Netlify build pass (đã fix submodule worktree — chờ xác nhận)
+- [ ] Set 3 env var Netlify: `LLM_ENDPOINT`, `LLM_API_KEY`, `DAILY_CALL_LIMIT`
+- [ ] Test proxy `/.netlify/functions/claude` trả JSON đúng
+- [ ] Test chấm 1 bài thật — xác nhận v2 scoring + checklist chạy OK
+- [ ] Đổi mật khẩu admin khỏi `admin2024` (user tự làm qua UI)
+- [ ] (tùy chọn) gắn tên miền riêng
+
+> ⏳ **V3 WordPress Plugin** đã lập kế hoạch (`docs/V3-WORDPRESS-PLUGIN.md`)
+> nhưng ĐANG CHỜ. Khi 6 mục trên xong hết → NHẮC JIMMY bắt đầu track V3.
+
 ## Đang làm dở
-- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin) — user tự làm
-- [ ] **Netlify env var**: set `ANTHROPIC_API_KEY` trên Netlify dashboard trước khi deploy
-- [ ] **Anthropic Console spend limit**: đặt hard limit tháng (ví dụ $10) — user tự làm
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với bài thật
 - [ ] **Test v2 scoring + Checklist UX** với bài thật sau deploy — xác nhận A1/A2/A3, tooltip, mode badges
 
 ## Vừa xong (session 10 — 20/05/2026)
+- [x] **V3 WordPress Plugin** — lập kế hoạch `docs/V3-WORDPRESS-PLUGIN.md` (track riêng, CHƯA code)
+- [x] Push repo lên GitHub `ngothaitinh/tpi-scorer` + kết nối Netlify auto-deploy
+- [x] Fix submodule worktree bị commit nhầm (`git rm --cached` + ignore `.claude/worktrees/`)
+- [x] **Universal proxy** — `claude.js` hỗ trợ cả Anthropic native + OpenAI-compatible (chiasegpu.vn)
 - [x] **Deploy infrastructure** — Netlify static + Function proxy
   - `netlify/functions/claude.js`: proxy Claude API, đọc `ANTHROPIC_API_KEY` từ env, soft daily counter
   - `netlify.toml`: publish=public, functions=netlify/functions, security headers
