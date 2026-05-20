@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TPI Content Scorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg0: #0d0f14;
@@ -32,13 +32,13 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg0);
   color: var(--ink);
-  font-family: 'Lora', Georgia, serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
 }
 
-.syne { font-family: 'Syne', sans-serif; }
+.syne { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; }
 .mono { font-family: 'DM Mono', monospace; }
 
 /* === TOPBAR === */
@@ -53,7 +53,7 @@ body {
   position: sticky; top: 0; z-index: 100;
 }
 .logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
   font-size: 17px;
   letter-spacing: .04em;
@@ -65,7 +65,7 @@ body {
   background: none;
   border: none;
   color: var(--ink3);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .08em;
@@ -111,7 +111,7 @@ body {
   padding: 40px;
 }
 .auth-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 28px;
   margin-bottom: 8px;
 }
@@ -120,7 +120,7 @@ body {
 .tab-row { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
 .tab {
   background: none; border: none;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 13px; font-weight: 600;
   color: var(--ink3); padding: 10px 20px;
   cursor: pointer; border-bottom: 2px solid transparent;
@@ -154,7 +154,7 @@ body {
   background: var(--accent);
   border: none; border-radius: 4px;
   padding: 13px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 14px; font-weight: 700;
   letter-spacing: .04em;
   color: #fff; cursor: pointer;
@@ -170,7 +170,7 @@ body {
 /* === DASHBOARD === */
 .page-head { margin-bottom: 40px; }
 .page-head h1 {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 32px;
   letter-spacing: -.01em; margin-bottom: 6px;
 }
@@ -189,7 +189,7 @@ body {
   color: var(--ink3); margin-bottom: 8px;
 }
 .stat-val {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 28px; font-weight: 800;
   color: var(--ink); line-height: 1;
 }
@@ -205,7 +205,7 @@ body {
   margin-bottom: 24px;
 }
 .submit-card h2 {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 700; font-size: 18px;
   margin-bottom: 20px; letter-spacing: -.01em;
 }
@@ -226,7 +226,7 @@ body {
   width: 100%; min-height: 280px;
   background: var(--bg2); border: 1px solid var(--line2);
   border-radius: 4px; padding: 14px;
-  font-family: 'Lora', serif; font-size: 14px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px;
   color: var(--ink); resize: vertical; outline: none;
   transition: border-color .15s; line-height: 1.65;
 }
@@ -234,6 +234,44 @@ body {
 .textarea::placeholder { color: var(--ink3); }
 
 .word-counter { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 6px; }
+
+/* === CONTENT INPUT MODES === */
+.content-mode-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.mode-tab { background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); cursor: pointer; transition: all .15s; }
+.mode-tab:hover { color: var(--ink); border-color: var(--line); }
+.mode-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.content-editor { width: 100%; min-height: 280px; max-height: 520px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 14px 16px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; color: var(--ink); outline: none; line-height: 1.75; transition: border-color .15s; }
+.content-editor:focus { border-color: var(--accent); }
+.content-editor:empty:before { content: attr(data-placeholder); color: var(--ink3); pointer-events: none; display: block; }
+.content-editor h1 { font-size: 1.45em; font-weight: 700; margin: .8em 0 .4em; }
+.content-editor h2 { font-size: 1.2em; font-weight: 600; margin: .75em 0 .35em; }
+.content-editor h3 { font-size: 1.05em; font-weight: 600; margin: .6em 0 .3em; color: var(--ink2); }
+.content-editor h4 { font-size: .95em; font-weight: 500; margin: .5em 0 .25em; color: var(--ink3); }
+.content-editor p { margin: 0 0 .7em; }
+.content-editor strong, .content-editor b { font-weight: 700; }
+.content-editor ul, .content-editor ol { padding-left: 1.4em; margin: 0 0 .7em; }
+.content-editor li { margin-bottom: .2em; }
+.content-editor a { color: var(--accent); }
+
+.fetch-url-row { display: flex; gap: 8px; }
+.fetch-url-row .form-input { flex: 1; }
+.btn-fetch { background: var(--bg3); border: 1px solid var(--line2); border-radius: 4px; padding: 10px 18px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); cursor: pointer; white-space: nowrap; transition: all .15s; }
+.btn-fetch:hover { border-color: var(--accent); color: var(--accent); }
+.btn-fetch:disabled { opacity: .5; cursor: not-allowed; }
+.fetch-status { font-family: 'DM Mono', monospace; font-size: 12px; min-height: 20px; margin-top: 8px; }
+.fetch-source { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); margin-top: 6px; word-break: break-all; }
+
+.content-preview { width: 100%; min-height: 180px; max-height: 520px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 20px 24px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; color: var(--ink); line-height: 1.75; }
+.content-preview h1 { font-size: 1.45em; font-weight: 700; margin: .8em 0 .4em; }
+.content-preview h2 { font-size: 1.2em; font-weight: 600; margin: .75em 0 .35em; }
+.content-preview h3 { font-size: 1.05em; font-weight: 600; margin: .6em 0 .3em; color: var(--ink2); }
+.content-preview h4 { font-size: .95em; color: var(--ink3); margin: .5em 0 .25em; }
+.content-preview p { margin: 0 0 .75em; }
+.content-preview strong, .content-preview b { font-weight: 700; }
+.content-preview a { color: var(--accent); text-decoration: none; }
+.content-preview ul, .content-preview ol { padding-left: 1.4em; margin: 0 0 .75em; }
+.content-preview li { margin-bottom: .25em; }
 
 .limit-bar {
   background: var(--bg2); border: 1px solid var(--line);
@@ -262,7 +300,7 @@ body {
   display: flex; align-items: center; gap: 16px;
 }
 .score-big {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800; font-size: 48px; line-height: 1;
 }
 .score-big.pass { color: var(--green); }
@@ -270,7 +308,7 @@ body {
 .score-big.mid { color: var(--gold); }
 .score-meta { flex: 1; }
 .score-status {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 700; font-size: 16px;
   margin-bottom: 4px;
 }
@@ -285,13 +323,13 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .tier-result:last-child { border-bottom: none; }
-.tier-result-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
+.tier-result-name { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
 .tier-progress { flex: 2; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
 .tier-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
 .tier-score-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink2); width: 60px; text-align: right; }
 
 .fixes-title {
-  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700;
   font-size: 16px; margin-bottom: 16px;
   display: flex; align-items: center; gap: 8px;
 }
@@ -354,7 +392,7 @@ body {
   display: flex; align-items: center; gap: 16px;
 }
 .user-info { flex: 1; }
-.user-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; }
+.user-name { font-family: 'Be Vietnam Pro', sans-serif; font-weight: 600; font-size: 14px; }
 .user-email { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); }
 .user-status {
   font-family: 'DM Mono', monospace; font-size: 11px;
@@ -365,7 +403,7 @@ body {
 .user-actions { display: flex; gap: 8px; }
 
 .btn-sm {
-  font-family: 'Syne', sans-serif; font-size: 11px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 11px;
   font-weight: 700; letter-spacing: .06em;
   padding: 6px 14px; border-radius: 4px;
   cursor: pointer; border: 1px solid; transition: all .15s;
@@ -379,7 +417,7 @@ body {
 
 .config-section { margin-top: 36px; }
 .config-section h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 16px;
   margin-bottom: 16px; padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
@@ -400,7 +438,7 @@ body {
 .config-val:focus { border-color: var(--accent); }
 .btn-save-config {
   background: var(--accent); border: none; border-radius: 4px;
-  padding: 8px 20px; font-family: 'Syne', sans-serif;
+  padding: 8px 20px; font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 12px; font-weight: 700; color: #fff;
   cursor: pointer; transition: background .15s;
 }
@@ -412,7 +450,7 @@ body {
   border-radius: 6px; padding: 20px; margin-bottom: 20px;
 }
 .api-section h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700; font-size: 15px;
   margin-bottom: 14px;
 }
 .api-row { display: flex; gap: 10px; }
@@ -420,7 +458,7 @@ body {
 .btn-outline {
   background: none; border: 1px solid var(--line2);
   border-radius: 4px; padding: 10px 18px;
-  font-family: 'Syne', sans-serif; font-size: 12px;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px;
   font-weight: 700; color: var(--ink2); cursor: pointer;
   transition: all .15s; white-space: nowrap;
 }
@@ -445,7 +483,7 @@ body {
   border-radius: 6px; padding: 20px; margin-top: 20px;
 }
 .preflight-fail h3 {
-  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-family: 'Be Vietnam Pro', sans-serif; font-weight: 700;
   color: var(--red); margin-bottom: 10px; font-size: 15px;
 }
 .preflight-fail ul { padding-left: 16px; color: var(--ink2); font-size: 13px; }
@@ -579,8 +617,32 @@ body {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Nội dung bài viết * <span style="color:var(--ink3);font-size:11px;">(paste HTML từ Google Docs hoặc text thuần)</span></label>
-        <textarea class="textarea" id="f-content" placeholder="Dán nội dung bài viết vào đây... Hệ thống tự nhận diện heading (## cho H2, ### cho H3) hoặc HTML tags." oninput="updateWordCount()"></textarea>
+        <label class="form-label">Nội dung bài viết *</label>
+        <div class="content-mode-tabs">
+          <button class="mode-tab active" id="tab-paste" onclick="switchContentMode('paste')">📋 Dán bài</button>
+          <button class="mode-tab" id="tab-url" onclick="switchContentMode('url')">🔗 Fetch URL</button>
+        </div>
+
+        <!-- Paste mode -->
+        <div id="mode-paste">
+          <div class="content-editor" id="f-content-editor" contenteditable="true"
+               data-placeholder="Dán bài viết từ Google Docs, Word... Định dạng H1, H2, bold sẽ được giữ nguyên."
+               oninput="updateWordCount()"></div>
+        </div>
+
+        <!-- URL mode -->
+        <div id="mode-url" style="display:none">
+          <div class="fetch-url-row">
+            <input class="form-input" id="f-url" placeholder="https://tpiland.vn/bai-viet/...">
+            <button class="btn-fetch" id="fetch-btn" onclick="fetchArticleFromUrl()">Fetch →</button>
+          </div>
+          <div class="fetch-status" id="fetch-status"></div>
+          <div class="content-preview" id="fetch-preview" style="display:none"></div>
+          <div class="fetch-source" id="fetch-source"></div>
+        </div>
+
+        <!-- Hidden store for submitArticle -->
+        <textarea id="f-content" style="display:none"></textarea>
         <div class="word-counter"><span id="word-count">0</span> từ</div>
       </div>
       <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
@@ -769,16 +831,11 @@ function logout() {
 
 function checkSession() {
   initDB();
-  const saved = DB.get('session', null);
-  if (saved) {
-    const users = DB.get('users', {});
-    if (users[saved] && users[saved].status === 'active') {
-      currentUser = { username: saved, ...users[saved] };
-      enterApp();
-      return;
-    }
-  }
-  document.getElementById('page-auth').style.display = '';
+  // DEV MODE: bỏ qua đăng nhập, tự động login admin
+  const users = DB.get('users', {});
+  DB.set('session', 'admin');
+  currentUser = { username: 'admin', ...users['admin'] };
+  enterApp();
 }
 
 function enterApp() {
@@ -902,8 +959,11 @@ async function testApiKey() {
 // ============================================================
 function parseArticle(raw) {
   const text = raw.trim();
-  const words = text.split(/\s+/).filter(w => w.length > 0);
-  const wordCount = words.length;
+  // Strip HTML tags for accurate word count
+  const tmp = document.createElement('div');
+  tmp.innerHTML = text;
+  const plainText = tmp.textContent || tmp.innerText || text;
+  const wordCount = plainText.trim() ? plainText.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
 
   // Parse headings — support Markdown ## or HTML <h2>
   const headings = [];
@@ -1424,16 +1484,155 @@ function selectIntent(el) {
   selectedIntent = el.dataset.val;
 }
 
+function switchContentMode(mode) {
+  document.getElementById('tab-paste').classList.toggle('active', mode === 'paste');
+  document.getElementById('tab-url').classList.toggle('active', mode === 'url');
+  document.getElementById('mode-paste').style.display = mode === 'paste' ? '' : 'none';
+  document.getElementById('mode-url').style.display = mode === 'url' ? '' : 'none';
+  if (mode === 'paste') updateWordCount();
+}
+
+function sanitizePaste(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll('script, style, meta, link').forEach(el => el.remove());
+  // Google Docs wraps ALL text in <b> with font-weight:normal — unwrap before stripping attrs
+  div.querySelectorAll('b, strong').forEach(el => {
+    const fw = el.style.fontWeight;
+    if (fw === 'normal' || fw === '400') el.replaceWith(...el.childNodes);
+  });
+  div.querySelectorAll('*').forEach(el => {
+    const keep = el.tagName === 'A' ? ['href'] : [];
+    Array.from(el.attributes).forEach(a => { if (!keep.includes(a.name)) el.removeAttribute(a.name); });
+  });
+  div.querySelectorAll('span').forEach(el => el.replaceWith(...el.childNodes));
+  return div.innerHTML;
+}
+
+async function fetchArticleFromUrl() {
+  const rawUrl = document.getElementById('f-url').value.trim();
+  if (!rawUrl) return;
+  const status = document.getElementById('fetch-status');
+  const btn = document.getElementById('fetch-btn');
+  const preview = document.getElementById('fetch-preview');
+  const sourceEl = document.getElementById('fetch-source');
+
+  // Chặn mạng xã hội
+  if (/facebook\.com|instagram\.com|twitter\.com|x\.com|linkedin\.com/.test(rawUrl)) {
+    status.style.color = 'var(--red)';
+    status.innerHTML = '✗ Mạng xã hội chặn fetch (CORS).<br>→ Copy nội dung thủ công và dán vào tab "Dán bài".';
+    sourceEl.textContent = '';
+    return;
+  }
+
+  btn.disabled = true;
+  preview.style.display = 'none';
+  sourceEl.textContent = '';
+
+  // Xử lý Google Docs: chuyển sang /pub rồi fetch qua CORS proxy
+  const gdocsMatch = rawUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/);
+  let fetchUrl = rawUrl;
+  let isGoogleDoc = false;
+  if (gdocsMatch) {
+    isGoogleDoc = true;
+    const docId = gdocsMatch[1];
+    const pubUrl = 'https://docs.google.com/document/d/' + docId + '/pub';
+    fetchUrl = 'https://corsproxy.io/?' + encodeURIComponent(pubUrl);
+    status.style.color = 'var(--ink3)';
+    status.textContent = 'Đang tải Google Docs qua proxy...';
+  } else {
+    status.style.color = 'var(--ink3)';
+    status.textContent = 'Đang tải...';
+  }
+
+  try {
+    const res = await fetch(fetchUrl);
+    const body = await res.text();
+
+    if (!res.ok) {
+      if (isGoogleDoc && res.status === 401) {
+        throw new Error('Doc chưa được "Publish to web". Vào File → Share → Publish to web → Publish rồi thử lại.');
+      }
+      let errMsg = 'HTTP ' + res.status;
+      try { const j = JSON.parse(body); errMsg = j?.error?.message || j?.message || errMsg; } catch (_) {}
+      throw new Error(errMsg);
+    }
+
+    // Google Docs published HTML: nội dung nằm trong #contents
+    const doc = new DOMParser().parseFromString(body, 'text/html');
+    if (isGoogleDoc) {
+      // Kiểm tra doc có được publish chưa (trang lỗi sẽ không có #contents)
+      const hasContent = doc.querySelector('#contents, .doc-content');
+      if (!hasContent && doc.body.textContent.trim().length < 200) {
+        throw new Error('Doc chưa được "Publish to web". Vào File → Share → Publish to web → Publish rồi thử lại.');
+      }
+    }
+
+    const main = doc.querySelector('#contents, article, main, [class*="content"], [class*="post"], [class*="entry"]') || doc.body;
+    main.querySelectorAll('script, style, nav, footer, header, aside, iframe, noscript').forEach(el => el.remove());
+    const clean = sanitizePaste(main.innerHTML);
+    document.getElementById('f-content').value = main.textContent;
+    preview.innerHTML = clean;
+    preview.style.display = 'block';
+    const count = main.textContent.trim().split(/\s+/).filter(w => w).length;
+    document.getElementById('word-count').textContent = count.toLocaleString('vi-VN');
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Đã tải ' + count.toLocaleString('vi-VN') + ' từ' + (isGoogleDoc ? ' (Google Docs)' : '');
+    sourceEl.textContent = 'Nguồn: ' + rawUrl;
+  } catch (e) {
+    status.style.color = 'var(--red)';
+    const isCors = e instanceof TypeError;
+    const hint = isCors ? 'Không kết nối được tới proxy hoặc website chặn CORS.' : e.message;
+    status.innerHTML = '✗ ' + hint + (isGoogleDoc ? '' : '<br><small>→ Thử dán bài thủ công ở tab "Dán bài".</small>');
+    sourceEl.textContent = '';
+  }
+  btn.disabled = false;
+}
+
 function updateWordCount() {
-  const text = document.getElementById('f-content').value;
-  const count = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const editor = document.getElementById('f-content-editor');
+  const text = editor ? editor.innerText : '';
+  const count = text.trim() ? text.trim().split(/\s+/).filter(w => w).length : 0;
   document.getElementById('word-count').textContent = count.toLocaleString('vi-VN');
+  if (editor) document.getElementById('f-content').value = editor.innerHTML;
 }
 
 // ============================================================
 // BOOT
 // ============================================================
-document.addEventListener('DOMContentLoaded', checkSession);
+document.addEventListener('DOMContentLoaded', () => {
+  checkSession();
+  const editor = document.getElementById('f-content-editor');
+  if (editor) {
+    editor.addEventListener('paste', e => {
+      e.preventDefault();
+      const html = e.clipboardData.getData('text/html');
+      const text = e.clipboardData.getData('text/plain');
+
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+
+      const tmp = document.createElement('div');
+      if (html) {
+        tmp.innerHTML = sanitizePaste(html);
+      } else {
+        // Plain text: mỗi dòng thành <p>
+        tmp.innerHTML = text.split(/\n/).map(line => {
+          const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return safe.trim() ? '<p>' + safe + '</p>' : '<br>';
+        }).join('');
+      }
+
+      const frag = document.createDocumentFragment();
+      while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+      range.insertNode(frag);
+      sel.collapseToEnd();
+      updateWordCount();
+    });
+  }
+});
 document.addEventListener('keydown', e => {
   if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && document.getElementById('page-auth').style.display !== 'none') {
