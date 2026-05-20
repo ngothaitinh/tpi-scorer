@@ -1929,12 +1929,42 @@ function _fallbackHeuristic(parsed) {
   };
 }
 
+// SI2: Search Intent Opening Signal (2đ) — rule-based, kiểm tra 250 từ đầu
+function _scoreSI2(parsed, meta) {
+  const words = parsed.plainText.split(/\s+/).slice(0, 250).join(' ');
+  const intent = (meta?.intent || 'Know').toLowerCase();
+
+  // Know signals: "là", "được hiểu là", "có nghĩa là", "định nghĩa", "giải thích"
+  const hasKnow = /\blà\b|được hiểu là|định nghĩa|là gì|có nghĩa là|khái niệm|giải thích/i.test(words);
+  // Do signals: giá tiền, hotline, CTA mua/đặt lịch
+  const hasDo  = /\d[\d.,]*\s*(tỷ|triệu|tr\/|m²|usd|\$|đồng)|liên hệ|hotline|đặt lịch|mua ngay|giá từ|giá chỉ|bảng giá/i.test(words);
+  // Go signals: số điện thoại 10 số, địa chỉ, showroom
+  const hasGo  = /\d{9,11}|\+84|địa chỉ:|hotline:|showroom|văn phòng:|trụ sở/i.test(words);
+
+  let score = 0;
+  if (intent === 'know') {
+    score = hasKnow ? 2 : 0;
+  } else if (intent === 'do') {
+    score = hasDo ? 2 : (hasKnow ? 1 : 0); // partial nếu chỉ có phần giáo dục
+  } else if (intent === 'hybrid') {
+    score = (hasKnow && hasDo) ? 2 : (hasKnow || hasDo) ? 1 : 0;
+  } else if (intent === 'go') {
+    score = hasGo ? 2 : (hasDo ? 1 : 0);
+  } else {
+    score = hasKnow ? 1 : 0;
+  }
+
+  const evidence = `SI2 intent=${intent}: Know=${hasKnow}, Do=${hasDo}, Go=${hasGo} → ${score}/2đ`;
+  return { score, evidence };
+}
+
 // Deterministic rule scorers — criterion_id → scorer fn
 const RULE_SCORERS = {
   S3: _scoreS3, S4: _scoreS4, S6: _scoreS6,
   P2: _scoreP2, P3: _scoreP3, P4: _scoreP4,
-  P5: _scoreP5, P6: _scoreP6, P7: _scoreP7, P8: _scoreP8,
+  P5: _scoreP5, P6: _scoreP6,
   A1: _scoreA1, A2: _scoreA2, A3: _scoreA3, // v2 AEO/GEO rule criteria
+  SI2: _scoreSI2,                             // v2.1 Search Intent Opening Signal
 };
 
 function scoreRules(parsed, meta) {
@@ -1954,7 +1984,7 @@ function scoreRules(parsed, meta) {
   const fb = _fallbackHeuristic(parsed);
   Object.assign(scores, { R2: fb.R2, R5: fb.R5, I3: fb.I3, I4: fb.I4 });
   // Zero-init LLM-only criteria (tránh NaN khi tính total)
-  ['S2','S5','P1','R1','R3','R4','R6','I1','I2','G1'].forEach(id => { scores[id] = scores[id] ?? 0; });
+  ['S2','S5','P1','R1','R3','R4','R6','I1','I2','G1','SI1'].forEach(id => { scores[id] = scores[id] ?? 0; });
   const total = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) * 10) / 10;
   return { scores, total, evidence };
 }
@@ -1993,18 +2023,19 @@ const CRITERION_NAMES = {
   A3:'Definition Sentence ⚡AEO',
   P1:'Early Query Answer', P2:'Be Certain', P3:'Cụ thể vs Chung chung',
   P4:'Số liệu cụ thể', P5:'Heading viết hoa', P6:'Internal link đúng vị trí',
-  P7:'Không hệ thống số đếm', P8:'Câu đầy đủ chủ vị',
   A1:'Answer-First Paragraph ⚡AEO/GEO', A2:'FAQ Schema-Ready ⚡AEO',
+  SI2:'Search Intent Opening Signal ⚡SI',
   R1:'RPP — Relevance', R2:'RPP — Prominence', R3:'RPP — Popularity',
   R4:'EAV Coverage', R5:'Central Entity Alignment', R6:'Heading đầu-cuối kết nối',
+  SI1:'Search Intent Format Match ⚡SI',
   I1:'Dữ liệu độc quyền TPI', I2:'Góc nhìn mới', I3:'Tránh văn phong AI',
   I4:'Trích dẫn nguồn', G1:'GEO Citable Chunk ⚡GEO'
 };
-// v2: T1(28) + T2(28) + T3(24) + T4(20) = 100đ
+// v2.1: T1(27) + T2(27) + T3(26) + T4(20) = 100đ  (+SI1/SI2, -P7/P8/S6½/P3½/R3½/R6½)
 const CRITERION_MAX = {
-  S1:7, S2:5, S3:4, S4:4, S5:4, S6:2, A3:2,
-  P1:5, P2:4, P3:3, P4:4, P5:2, P6:2, P7:1, P8:1, A1:4, A2:2,
-  R1:4, R2:5, R3:4, R4:6, R5:3, R6:2,
+  S1:7, S2:5, S3:4, S4:4, S5:4, S6:1, A3:2,
+  P1:5, P2:4, P3:2, P4:4, P5:2, P6:2, A1:4, A2:2, SI2:2,
+  R1:4, R2:5, R3:3, R4:6, R5:3, R6:1, SI1:4,
   I1:7, I2:5, I3:3, I4:3, G1:2
 };
 
@@ -2021,11 +2052,11 @@ const RUBRIC_CL_MAP = {
   'P2': { threshold: 0.70, items: ['wc1', 'wc19'] },  // Be certain → giọng chắc, không "có thể"
   'P4': { threshold: 0.70, items: ['wc21'] },          // Specific numbers → ưu tiên con số chi tiết
   'P5': { threshold: 0.75, items: ['wc5'] },           // Heading capitalize → viết hoa đầu từ
-  'P7': { threshold: 0.75, items: ['wc13'] },          // No numbering → dùng bullet, không 1.1.2
-  'P8': { threshold: 0.75, items: ['wc11'] },          // Complete sentences → câu đủ chủ-vị
   'R1': { threshold: 0.65, items: ['am2'] },           // Relevance → đọc kỹ đối thủ, context
   'R6': { threshold: 0.65, items: ['ms6', 'wc15'] },  // Head-tail → heading đầu-cuối kết nối
   'I3': { threshold: 0.65, items: ['wc17'] },          // No AI generic → không số liệu mâu thuẫn
+  'SI2':{ threshold: 0.60, items: ['si2', 'si3'] },   // SI Opening Signal → Know/Do opening
+  'SI1':{ threshold: 0.65, items: ['si4', 'si5'] },   // SI Format Match → bảng giá / combo
 };
 
 // Tooltip giải thích thuật ngữ — hiển thị khi hover vào criterion ID
@@ -2046,7 +2077,7 @@ const CRITERION_TOOLTIPS = {
   P8: `Câu đầy đủ chủ vị (1đ)\nKhông dùng câu cụt kiểu gạch đầu dòng.\n\nXấu: "• Vị trí trung tâm. • Pháp lý rõ ràng."\nTốt: "Dự án tọa lạc ngay trung tâm Bãi Sau, Vũng Tàu."`,
   R1: `RPP — Relevance (5đ)\nBài liên quan trực tiếp đến bán/tư vấn BĐS của TPI.\n\nLỗi: Bài "lịch sử Vũng Tàu" không dẫn đến hành động mua bán`,
   R2: `RPP — Prominence (5đ)\nBài phải nêu đủ 5 thuộc tính thiết yếu của loại BĐS:\n① Vị trí  ② Tiện ích  ③ Pháp lý  ④ Giá  ⑤ Chủ đầu tư`,
-  R3: `RPP — Popularity (4đ)\nNội dung khớp đúng Search Intent của keyword.\n\nQuery "mua căn hộ Vũng Tàu" → bài tư vấn mua\nKhông phải bài lịch sử hay tổng quan chung`,
+  R3: `RPP — Popularity (3đ)\nNội dung khớp đúng Search Intent phổ biến của keyword.\n\nQuery "mua căn hộ Vũng Tàu" → bài tư vấn mua\nKhông phải bài lịch sử hay tổng quan chung\n(Xem SI1 để check sâu hơn về format)`,
   R4: `EAV Coverage (6đ)\nEntity-Attribute-Value: mỗi thuộc tính phải kèm giá trị cụ thể.\n\nXấu: "Giá hợp lý, tiện ích đầy đủ"\nTốt: "Từ 3,8 tỷ/căn 2PN · hồ bơi 1.500m² · sổ hồng lâu dài"`,
   R5: `Central Entity & CTA (3đ)\n25% cuối bài phải có CTA liên kết về TPI Land.\n\nVí dụ: "Liên hệ TPI Land để nhận báo giá mới nhất: 0909..."`,
   R6: `Heading đầu-cuối kết nối (2đ)\nH2 cuối bài gợi nhớ keyword/entity từ H1 — tạo vòng tròn.\n\nH1 "Metropolis Vũng Tàu" → H2 cuối "Sở Hữu Metropolis Qua TPI Land"`,
@@ -2054,6 +2085,8 @@ const CRITERION_TOOLTIPS = {
   I2: `Góc nhìn riêng (5đ)\nBài có nhận định / phân tích của chính TPI, không phải copy.\n\nXấu: Copy info từ website chủ đầu tư\nTốt: "Theo kinh nghiệm TPI, tầng 15-20 có view biển tốt nhất"`,
   I3: `Tránh văn phong AI (5đ)\nKhông dùng cụm sáo rỗng thường thấy trong bài AI.\n\nCần tránh: "không thể phủ nhận", "đóng vai trò quan trọng",\n"giải pháp toàn diện", "đáp ứng mọi nhu cầu"`,
   I4: `Trích dẫn nguồn uy tín (3đ)\nCó ≥ 1 nguồn: CBRE, Savills, JLL, VnExpress, báo cáo thị trường...\n\nVí dụ: "(Theo CBRE Q1/2024, BĐS Vũng Tàu tăng 8% so với cùng kỳ)"`,
+  SI1:`Search Intent Format Match (4đ) ⚡SI\nBài có ĐỊNH DẠNG phù hợp với Search Intent đã khai báo không?\n\nKnow → cấu trúc giáo dục: định nghĩa rõ, FAQ/hỏi-đáp, headings mô tả kiến thức\nDo → bảng giá/so sánh, số liệu thương mại, CTA mua/đặt lịch rõ ràng\nHybrid → CẢ HAI: phần giáo dục + phần thương mại tách biệt\nGo → thông tin liên hệ/thương hiệu/địa chỉ nổi bật`,
+  SI2:`Search Intent Opening Signal (2đ) ⚡SI\n250 từ đầu bài phải chứa tín hiệu khớp với Search Intent.\n\nKnow → có câu định nghĩa: "X là...", "được hiểu là", "có nghĩa là"\nDo → có giá/số liệu thương mại: "từ X tỷ", bảng giá, CTA, hotline\nHybrid → có CẢ 2 loại tín hiệu trên\nGo → có địa chỉ, hotline, showroom trong mở đầu`,
 };
 
 // Tooltip cho thuật ngữ chuyên ngành ngoài criterion IDs
@@ -2200,14 +2233,14 @@ Nội dung (đầu+cuối bài):
 ${preview}
 
 Chấm JSON (số thực, v2 weights):
-{"S1":<0-7>,"S2":<0-5>,"S5":<0-4>,"P1":<0-5>,"R1":<0-4>,"R3":<0-4>,"R5":<0-3>,"R6":<0-2>,
+{"S1":<0-7>,"S2":<0-5>,"S5":<0-4>,"P1":<0-5>,"R1":<0-4>,"R3":<0-3>,"R5":<0-3>,"R6":<0-1>,
 "reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","R6":"..."}}
 
 Hướng dẫn ngắn:
 S1: H2 có đúng chủ đề H1 không | S2(max5): 9-10 heading đầu có cụ thể/liên quan không
 S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1(max5): câu đầu sau heading trả lời thẳng không
-R1(max4): heading liên quan agency BĐS TPI | R3: khớp search intent keyword
-R5: cuối bài có CTA/heading dẫn về TPI không | R6: heading đầu-cuối MC kết nối nghĩa`;
+R1(max4): heading liên quan agency BĐS TPI | R3(max3): topic khớp search intent keyword
+R5: cuối bài có CTA/heading dẫn về TPI không | R6(max1): heading đầu-cuối kết nối nghĩa`;
 
   const apicfg = getApiConfig();
   const model = apicfg.provider === 'custom' ? apicfg.custom_model_simple : apicfg.model_simple;
@@ -2224,15 +2257,15 @@ async function scoreLLMComplex(parsed, meta) {
   // Lưu ý: I3 (văn phong AI) đã được chấm bằng rule heuristic — không cần LLM
   const prompt = `${SYSTEM_SIMPLE}
 
-Keyword: ${meta.keyword} | Entity: ${meta.entity} | Business: môi giới BĐS TPI Land
+Keyword: ${meta.keyword} | Entity: ${meta.entity} | Intent: ${meta.intent} | Business: môi giới BĐS TPI Land
 
 Nội dung bài (đầu+cuối):
 ${preview}
 
-Chấm 6 tiêu chí (v2) + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
+Chấm 7 tiêu chí (v2.1) + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
 
-{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,"G1":<0|2>,
-"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","G1":"..."},
+{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,"G1":<0|2>,"SI1":<0-4>,
+"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","G1":"...","SI1":"..."},
 "top5_fixes":[
   {"priority":1,"criterion_id":"XX","location":"heading cụ thể","issue":"mô tả lỗi","fix":"giải pháp"},
   {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
@@ -2242,7 +2275,8 @@ Chấm 6 tiêu chí (v2) + tạo top5_fixes. Quy tắc fixes: location=tên head
 ]}
 
 Hướng dẫn: R2=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4=EAV có số liệu cụ thể hay mơ hồ; I1=data độc quyền TPI; I2=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín
-G1(GEO, 2đ): có ít nhất 1 đoạn ≤200 từ tự đứng được với đủ Entity+Attribute+Value để AI Search trích nguyên đoạn? 2=có, 0=không`;
+G1(GEO, 2đ): có ít nhất 1 đoạn ≤200 từ tự đứng được với đủ Entity+Attribute+Value để AI Search trích nguyên đoạn? 2=có, 0=không
+SI1(Search Intent Format Match,4đ): định dạng bài khớp intent "${meta.intent}"? Know=giáo dục/FAQ/định nghĩa rõ; Do=bảng giá/so sánh/CTA mua; Hybrid=cả 2 tách biệt; Go=liên hệ/thương hiệu nổi bật. 4=hoàn hảo,2=một phần,0=sai hoàn toàn`;
 
   const apicfg2 = getApiConfig();
   const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
@@ -2352,13 +2386,14 @@ async function submitArticle() {
       I3: ruleScores.I3 ?? 0,  // Rule heuristic (AI clichés) — không dùng LLM cho I3
       I4: complexScores.I4 ?? ruleScores.I4  ?? 0,
       G1: complexScores.G1 || 0, // v2 GEO: LLM only
+      SI1: complexScores.SI1 || 0, // v2.1 Search Intent Format: LLM only
     };
 
-    // v2 tier breakdown — T1(28) + T2(28) + T3(24) + T4(20) = 100đ
+    // v2.1 tier breakdown — T1(27) + T2(27) + T3(26) + T4(20) = 100đ
     const tierBreakdown = [
-      { name: 'Cấu trúc & Ngữ cảnh', max: 28, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6+(allScores.A3||0) },
-      { name: 'Chất lượng đoạn & AEO', max: 28, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+allScores.P7+allScores.P8+(allScores.A1||0)+(allScores.A2||0) },
-      { name: 'RPP & Entity', max: 24, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6 },
+      { name: 'Cấu trúc & Ngữ cảnh', max: 27, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6+(allScores.A3||0) },
+      { name: 'Chất lượng đoạn & AEO+SI', max: 27, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+(allScores.A1||0)+(allScores.A2||0)+(allScores.SI2||0) },
+      { name: 'RPP & Entity & SI', max: 26, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6+(allScores.SI1||0) },
       { name: 'Information Gain & GEO', max: 20, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4+(allScores.G1||0) }
     ];
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
@@ -2530,12 +2565,12 @@ function switchResultTab(tabId, btn) {
 
 // Render tab Chi tiết — điểm từng tiêu chí theo tầng
 function renderDetailTab(allScores, reasons) {
-  // v2: T1(28) + T2(28) + T3(24) + T4(20) = 100đ
+  // v2.1: T1(27) + T2(27) + T3(26) + T4(20) = 100đ
   const tiers = [
-    { label: 'T1 — Cấu trúc & Ngữ cảnh', ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 28 },
-    { label: 'T2 — Chất lượng đoạn & AEO', ids: ['P1','P2','P3','P4','P5','P6','P7','P8','A1','A2'], max: 28 },
-    { label: 'T3 — RPP & Entity',           ids: ['R1','R2','R3','R4','R5','R6'], max: 24 },
-    { label: 'T4 — Information Gain & GEO', ids: ['I1','I2','I3','I4','G1'], max: 20 },
+    { label: 'T1 — Cấu trúc & Ngữ cảnh',       ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 27 },
+    { label: 'T2 — Chất lượng đoạn & AEO+SI',   ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 27 },
+    { label: 'T3 — RPP & Entity & SI',           ids: ['R1','R2','R3','R4','R5','R6','SI1'], max: 26 },
+    { label: 'T4 — Information Gain & GEO',      ids: ['I1','I2','I3','I4','G1'], max: 20 },
   ];
   return tiers.map(tier => {
     const tierScore = tier.ids.reduce((s, id) => s + (allScores?.[id] ?? 0), 0);
@@ -3930,6 +3965,46 @@ const clData = {
             tip: { m: 'Bước cuối cùng quan trọng: kiểm tra chính tả, ngữ pháp, số liệu nhất quán trước khi publish',
                    g: 'Dùng spellcheck + đọc to toàn bài 1 lần — phát hiện lỗi mà AI không thấy',
                    b: 'Publish ngay sau AI generate mà không đọc lại — dễ có số liệu mâu thuẫn, lỗi đánh máy' } },
+        ]
+      }
+    ]
+  },
+  'search-intent': {
+    label: '🎯 Search Intent',
+    groups: [
+      {
+        title: '🎯 Search Intent Format Match',
+        items: [
+          { id: 'si1', checkMode: 'manual',
+            text: '[Know] Mở đầu bài có câu định nghĩa/trả lời trực tiếp cho câu hỏi',
+            tip: { m: 'Bài Know phải mở đầu bằng định nghĩa rõ ràng — AI Search ưu tiên trích đoạn này',
+                   g: '"Căn hộ condotel là loại bất động sản kết hợp giữa căn hộ và khách sạn..."',
+                   b: 'Mở đầu bằng "Nếu bạn đang tìm kiếm..." — không trả lời thẳng câu hỏi' } },
+          { id: 'si2', checkMode: 'auto',
+            text: '[Know/SI2] 250 từ đầu bài có tín hiệu Know intent (định nghĩa, giải thích)',
+            tip: { m: 'Auto-check: 250 từ đầu có cụm "là gì", "được hiểu là", "định nghĩa", "có nghĩa là", "giải thích"',
+                   g: '"Metropolis là dự án căn hộ hạng sang... được hiểu là biểu tượng mới của Vũng Tàu"',
+                   b: 'Mở bài bằng câu hỏi hoặc cảm thán không có định nghĩa' } },
+          { id: 'si3', checkMode: 'auto',
+            text: '[Do/SI2] 250 từ đầu bài có tín hiệu Do intent (giá, CTA, hotline)',
+            tip: { m: 'Auto-check: 250 từ đầu có số liệu thương mại như giá "từ X tỷ", "liên hệ", "hotline", "bảng giá"',
+                   g: '"Từ 3,8 tỷ/căn 2PN. Liên hệ TPI Land để nhận bảng giá mới nhất: 0909..."',
+                   b: 'Bài bán hàng mà 250 từ đầu không có giá hay CTA nào' } },
+          { id: 'si4', checkMode: 'auto',
+            text: '[Do/SI1] Bài Do có bảng giá/so sánh dạng bảng hoặc danh sách chi tiết',
+            tip: { m: 'Auto-check (LLM): bài intent Do cần có bảng giá, so sánh sản phẩm, hoặc danh sách CTA rõ ràng',
+                   g: 'Có bảng: Loại căn | Diện tích | Giá từ | Tình trạng — hoặc danh sách "Căn 2PN từ 3,8 tỷ"',
+                   b: 'Bài Do chỉ mô tả tiện ích chung mà không có bảng giá hay CTA mua cụ thể' } },
+          { id: 'si5', checkMode: 'auto',
+            text: '[Hybrid/SI1] Bài Hybrid có đủ cả phần giáo dục lẫn thương mại tách biệt',
+            tip: { m: 'Auto-check (LLM): bài Hybrid cần 2 phần riêng biệt — phần Know (định nghĩa/FAQ) + phần Do (giá/CTA)',
+                   g: 'H2 "Condotel là gì?" (Know) + H2 "Bảng giá Metropolis 2024" (Do) — 2 phần tách hẳn',
+                   b: 'Trộn lẫn định nghĩa và thông tin giá trong cùng 1 đoạn — người đọc khó follow' } },
+          { id: 'si6', checkMode: 'manual',
+            text: '[Go] Thông tin liên hệ đầy đủ — địa chỉ, hotline, giờ làm việc nổi bật',
+            tip: { m: 'Bài Go (người đã biết, muốn liên hệ) phải có đủ: địa chỉ showroom, hotline, giờ làm việc',
+                   g: '"Showroom TPI Land: 123 Trần Phú, Vũng Tàu. Hotline: 0909-xxx-xxx. T2-T7: 8h-18h"',
+                   b: 'Chỉ có "liên hệ TPI Land" mà không có địa chỉ hay số điện thoại cụ thể' } },
         ]
       }
     ]
