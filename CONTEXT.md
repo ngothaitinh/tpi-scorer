@@ -1,4 +1,4 @@
-# CONTEXT — cập nhật: 20/05/2026 (session 9)
+# CONTEXT — cập nhật: 20/05/2026 (session 10)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
@@ -9,9 +9,28 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 Đã nâng cấp lên **Rubric v2 AEO/GEO Edition** — 100đ rebalanced, 4 tiêu chí mới.
 
 ## Đang làm dở
-- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin hoặc sửa initDB)
-- [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với API key thật
-- [ ] **Test v2 scoring + Checklist UX** với bài thật trên browser — xác nhận A1/A2/A3, tooltip, mode badges
+- [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin) — user tự làm
+- [ ] **Netlify env var**: set `ANTHROPIC_API_KEY` trên Netlify dashboard trước khi deploy
+- [ ] **Anthropic Console spend limit**: đặt hard limit tháng (ví dụ $10) — user tự làm
+- [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với bài thật
+- [ ] **Test v2 scoring + Checklist UX** với bài thật sau deploy — xác nhận A1/A2/A3, tooltip, mode badges
+
+## Vừa xong (session 10 — 20/05/2026)
+- [x] **Deploy infrastructure** — Netlify static + Function proxy
+  - `netlify/functions/claude.js`: proxy Claude API, đọc `ANTHROPIC_API_KEY` từ env, soft daily counter
+  - `netlify.toml`: publish=public, functions=netlify/functions, security headers
+  - `callAnthropic()` → gọi `/.netlify/functions/claude` (bỏ `anthropic-dangerous-direct-browser-access`)
+  - `callLLM()` → skip api_key check cho anthropic provider
+  - `callClaude()` dead-code → redirect về `callAnthropic()`
+  - Admin UI → ẩn api_key row khi provider=anthropic, hiện note "Server key ✓"
+  - `testApiConfig()` → test qua proxy khi provider=anthropic
+  - `submitArticle()` + `autoCheckWithAI()` → bỏ api_key guard cho anthropic
+- [x] **Hash import** `#import=<encoded>` — nhận bài từ bookmarklet Elementor
+  - DOMContentLoaded đọc hash → `window._pendingImport` → xóa hash khỏi URL
+  - `enterApp()` gọi `_injectHashImport()` → điền contenteditable + switch Paste tab + toast
+- [x] **Bookmarklet Elementor** — `docs/BOOKMARKLET.md`
+  - Extract H1/H2/H3/H4/p/li/blockquote → markdown → `SCORER/#import=...`
+  - Version auto-truncate 15000 ký tự cho bài dài
 
 ## Vừa xong (session 9 — 20/05/2026)
 - [x] **Checklist UX A+B+C** — commit `bba920b` (3986 dòng, +220 lines)
@@ -90,14 +109,14 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 - **Result layout**: 2-column grid, 3 tabs (Fixes/Checklist/Chi tiết)
 
 ## Số liệu hiện tại
-- `public/index.html`: **3986 dòng** (main file — edits trực tiếp)
+- `public/index.html`: **4048 dòng** (main file — edits trực tiếp)
 - `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 mới), 100 điểm, pass = 70
 - `src/rubric.tpi-v1.json`: frozen — không sửa
 - Commits session 8: `10aaac7` (v2 rubric + 4 new criteria)
 - Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng
-- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (3986 dòng)
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4048 dòng)
 - KHÔNG sửa file worktree
 - Server localhost:3000 đang serve đúng main file
 - `RULE_SCORERS` (~line 1843): dispatcher object — A1/A2/A3 đã thêm vào
@@ -111,11 +130,15 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 - `autoCheckWithAI` (~line 3385): smart filter — chỉ gửi `checkMode='ai'` items
 
 ## Backlog ưu tiên (từ docs/ROADMAP.md)
-### Làm tiếp theo (P1)
-1. **Test trên browser** — v2 scoring (A1/A2/A3) + tooltip + mode badges + AI button với API key thật
-2. Đổi mật khẩu admin trong UI (trước khi deploy)
-3. Export báo cáo ra Markdown
-4. **Test AI button** với API key thật — Mức 2 + safeParseJSON pipeline
+### Làm tiếp theo (P1) — DEPLOY CHECKLIST
+1. **[ USER ]** Push repo lên GitHub
+2. **[ USER ]** Connect GitHub → Netlify, build settings: publish=`public`, functions=`netlify/functions`
+3. **[ USER ]** Netlify → Site settings → Environment variables → thêm `ANTHROPIC_API_KEY`
+4. **[ USER ]** Anthropic Console → đặt spend limit tháng (ví dụ $10)
+5. **[ USER ]** Đổi mật khẩu admin trong app UI sau khi deploy
+6. **Test sau deploy** — chấm bài thật, xác nhận proxy hoạt động (không còn lỗi CORS/key)
+7. **Test bookmarklet** — mở Elementor Preview, bấm bookmark → scorer mở với bài đã điền
+8. Export báo cáo ra Markdown (P1 backlog tiếp theo)
 
 ### Sau đó (P2)
 - Webhook Telegram sau khi chấm xong

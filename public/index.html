@@ -1034,13 +1034,17 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
           <option value="custom">Custom / OpenAI-compatible</option>
         </select>
       </div>
-      <div class="config-row">
+      <div class="config-row" id="row-api-key" style="display:none">
         <span class="config-key mono">api_key</span>
         <span class="config-desc" id="api-key-desc">API Key của provider</span>
         <div style="display:flex;gap:8px;align-items:center">
           <input class="config-val mono" id="cfg-api-key" type="password" placeholder="sk-ant-api03-..." style="width:220px;font-size:12px">
           <button class="btn-outline" style="padding:6px 10px" onclick="toggleApiKeyVis()">👁</button>
         </div>
+      </div>
+      <div class="config-row" id="row-anthropic-note">
+        <span class="config-key mono">api_key</span>
+        <span class="config-desc" style="color:var(--green)">✓ Server key — quản lý qua Netlify env var <code>ANTHROPIC_API_KEY</code></span>
       </div>
       <div class="config-row" id="row-custom-endpoint" style="display:none">
         <span class="config-key mono">endpoint</span>
@@ -1310,6 +1314,60 @@ function enterApp() {
   renderLimitBar();
   loadConfig();
   if (currentUser.role === 'admin') loadApiConfig();
+
+  // Hash import: #import=<encodedMarkdown> — từ bookmarklet Elementor/WordPress
+  if (window._pendingImport) {
+    _injectHashImport(window._pendingImport);
+    window._pendingImport = null;
+  }
+}
+
+// Nhận nội dung bài từ hash → tự điền vào Paste tab
+function _injectHashImport(mdText) {
+  // Chuyển markdown sang HTML đơn giản để contenteditable render đúng
+  const html = mdText
+    .split(/\n/)
+    .map(line => {
+      const h = line.match(/^(#{1,4})\s+(.+)/);
+      if (h) {
+        const tag = 'h' + h[1].length;
+        const safe = h[2].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return `<${tag}>${safe}</${tag}>`;
+      }
+      const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return safe.trim() ? `<p>${safe}</p>` : '';
+    })
+    .filter(Boolean)
+    .join('');
+
+  const editor = document.getElementById('f-content-editor');
+  if (editor) {
+    editor.innerHTML = html;
+    updateWordCount();
+  }
+  // Đọc giá trị mới vào f-content (hidden input nếu có)
+  const hidden = document.getElementById('f-content');
+  if (hidden) hidden.value = html;
+
+  // Chuyển sang Paste tab
+  switchContentMode('paste');
+  // Scroll lên form
+  document.getElementById('f-content-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Toast thông báo
+  _showImportToast();
+}
+
+function _showImportToast() {
+  let toast = document.getElementById('import-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'import-toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 22px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = '✓ Đã nhập bài từ Elementor — kiểm tra nội dung rồi điền Từ khóa & Entity.';
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 5000);
 }
 
 // ============================================================
@@ -1440,12 +1498,18 @@ function loadApiConfig() {
   document.getElementById('cfg-api-key').value = cfg.api_key || '';
   document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[cfg.provider] || 'API key...';
   document.getElementById('cfg-custom-endpoint').value = cfg.custom_endpoint || '';
+  const isAnth = cfg.provider === 'anthropic';
+  document.getElementById('row-api-key').style.display       = isAnth ? 'none' : '';
+  document.getElementById('row-anthropic-note').style.display = isAnth ? '' : 'none';
   updateModelDropdowns(cfg.provider, cfg.model_simple, cfg.model_complex, cfg.custom_model_simple, cfg.custom_model_complex);
 }
 
 function onProviderChange() {
   const p = document.getElementById('cfg-provider').value;
   document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[p] || 'API key...';
+  const isAnth = p === 'anthropic';
+  document.getElementById('row-api-key').style.display       = isAnth ? 'none' : '';
+  document.getElementById('row-anthropic-note').style.display = isAnth ? '' : 'none';
   updateModelDropdowns(p);
 }
 
@@ -1493,18 +1557,22 @@ function saveApiConfig() {
 
 async function testApiConfig() {
   const provider = document.getElementById('cfg-provider').value;
-  const api_key  = document.getElementById('cfg-api-key').value.trim();
   const msg = document.getElementById('api-config-msg');
-  if (!api_key) { msg.style.color = 'var(--red)'; msg.textContent = 'Chưa nhập API key.'; return; }
   msg.style.color = 'var(--ink2)'; msg.textContent = 'Đang kiểm tra...';
   try {
     const isCustom = provider === 'custom';
+    // Anthropic: dùng proxy — không cần api_key từ UI
+    const api_key = provider !== 'anthropic' ? document.getElementById('cfg-api-key').value.trim() : '';
+    if (provider !== 'anthropic' && !api_key) {
+      msg.style.color = 'var(--red)'; msg.textContent = 'Chưa nhập API key.'; return;
+    }
     const model = isCustom
       ? document.getElementById('cfg-custom-model-simple').value.trim()
       : (PROVIDER_MODELS[provider]?.[0]?.id || '');
     const endpoint = isCustom ? document.getElementById('cfg-custom-endpoint').value.trim() : '';
     await callLLM('Say "OK" in one word.', { provider, api_key, model, custom_endpoint: endpoint }, 10);
-    msg.style.color = 'var(--green)'; msg.textContent = '✓ Kết nối OK — ' + provider;
+    const note = provider === 'anthropic' ? ' (server key ✓)' : '';
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ Kết nối OK — ' + provider + note;
   } catch (e) {
     msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
   }
@@ -1512,9 +1580,10 @@ async function testApiConfig() {
 
 async function callLLM(prompt, cfg, maxTokens) {
   const { provider, api_key, model, custom_endpoint } = cfg;
-  if (!api_key) throw new Error('Chưa nhập API key. Vào Admin → API Key & Model để cấu hình.');
-  if (!model)   throw new Error('Chưa chọn model. Vào Admin → API Key & Model để lưu lại cấu hình.');
+  if (!model) throw new Error('Chưa chọn model. Vào Admin → API Key & Model để lưu lại cấu hình.');
+  // anthropic: không cần api_key (key lưu server-side qua Netlify Function)
   if (provider === 'anthropic') return callAnthropic(prompt, api_key, model, maxTokens);
+  if (!api_key) throw new Error('Chưa nhập API key. Vào Admin → API Key & Model để cấu hình.');
   if (provider === 'google')    return callGemini(prompt, api_key, model, maxTokens);
   const ep = provider === 'openai'   ? 'https://api.openai.com/v1/chat/completions'
            : provider === 'kimi'     ? 'https://api.moonshot.cn/v1/chat/completions'
@@ -1533,12 +1602,12 @@ function _parseApiBody(body, status) {
   }
 }
 
-async function callAnthropic(prompt, apiKey, model, maxTokens) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+async function callAnthropic(prompt, _apiKey, model, maxTokens) {
+  // Gọi qua Netlify Function proxy — API key lưu server-side (env var)
+  const res = await fetch('/.netlify/functions/claude', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey,
-               'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, prompt, maxTokens }),
   });
   const body = await res.text();
   const data = _parseApiBody(body, res.status);
@@ -1912,27 +1981,9 @@ function runPreflight(parsed, meta) {
 // ============================================================
 // LLM SCORING
 // ============================================================
-async function callClaude(prompt, apiKey, model, maxTokens = 1000) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
-  }
-  const data = await res.json();
-  return data.content[0].text;
+// callClaude — legacy wrapper, routes qua Netlify Function proxy
+async function callClaude(prompt, _apiKey, model, maxTokens = 1000) {
+  return callAnthropic(prompt, null, model, maxTokens);
 }
 
 // Tên và max weight của từng tiêu chí — rubric.tpi-v2 (AEO/GEO Edition)
@@ -2212,7 +2263,7 @@ async function submitArticle() {
 
   if (!keyword || !entity) { alert('Vui lòng điền Từ khóa và Main Entity.'); return; }
   if (!content) { alert('Vui lòng dán nội dung bài viết.'); return; }
-  if (!apiCfg.api_key) { alert('Vui lòng cấu hình API Key trong trang Admin.'); return; }
+  if (!apiCfg.api_key && apiCfg.provider !== 'anthropic') { alert('Vui lòng cấu hình API Key trong trang Admin.'); return; }
   if (getDailyCount() >= currentUser.dailyLimit) { alert('Bạn đã dùng hết lượt chấm hôm nay.'); return; }
   const monthlyCfg = DB.get('config', {}).monthly_limit || 30;
   if (currentUser.role !== 'admin' && getMonthlyCount() >= monthlyCfg) {
@@ -3068,6 +3119,17 @@ function updateWordCount() {
 // BOOT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  // Hash import: ?#import=<encodedMarkdown> từ bookmarklet
+  // Lưu vào window._pendingImport, xóa hash ngay để không leak URL
+  if (location.hash.startsWith('#import=')) {
+    try {
+      window._pendingImport = decodeURIComponent(location.hash.slice(8));
+    } catch (_) {
+      window._pendingImport = null;
+    }
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+
   checkSession();
   const editor = document.getElementById('f-content-editor');
   if (editor) {
@@ -3385,7 +3447,7 @@ function autoCheckFromRubric(allScores, keyword, entity) {
 // Mức 2: Auto-check remaining unchecked items via Haiku (requires API key)
 async function autoCheckWithAI(keyword, entity) {
   const apiCfg = getApiConfig();
-  if (!apiCfg.api_key) { alert('Cần cấu hình API Key trong trang Admin để dùng tính năng này.'); return; }
+  if (!apiCfg.api_key && apiCfg.provider !== 'anthropic') { alert('Cần cấu hình API Key trong trang Admin để dùng tính năng này.'); return; }
 
   const state   = loadACL(keyword, entity);
   const autoSet = loadACLAuto(keyword, entity);

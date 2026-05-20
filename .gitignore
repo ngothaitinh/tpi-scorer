@@ -9,4 +9,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Không có node_modules vì không có build step
+node_modules/
+.netlify/
+.claude/settings.local.json
