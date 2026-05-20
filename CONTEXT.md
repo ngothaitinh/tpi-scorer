@@ -1,28 +1,42 @@
-# CONTEXT — cập nhật: 20/05/2026 (session 10)
+# CONTEXT — cập nhật: 20/05/2026 (session 11)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v2.0.0 — ĐANG DEPLOY (Netlify + GitHub)
+## Trạng thái hiện tại: v2.1.0 — ĐANG DEPLOY (Netlify + GitHub)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Netlify auto-deploy mỗi lần push.
 Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
-Đã nâng cấp lên **Rubric v2 AEO/GEO Edition** — 100đ rebalanced, 4 tiêu chí mới.
+Đã nâng cấp lên **Rubric v2.1 AEO/GEO+SI Edition** — 100đ, 6 tiêu chí AEO/GEO/SI mới.
 
-## ĐỊNH NGHĨA HOÀN THÀNH v2.0 (xong hết → NHẮC JIMMY mở track V3)
-- [ ] Netlify build pass (đã fix submodule worktree — chờ xác nhận)
+## ĐỊNH NGHĨA HOÀN THÀNH v2.1 (xong hết → NHẮC JIMMY mở track V3)
+- [ ] Netlify build pass (commit `65c0267` vừa push — chờ xác nhận)
 - [ ] Set 3 env var Netlify: `LLM_ENDPOINT`, `LLM_API_KEY`, `DAILY_CALL_LIMIT`
 - [ ] Test proxy `/.netlify/functions/claude` trả JSON đúng
-- [ ] Test chấm 1 bài thật — xác nhận v2 scoring + checklist chạy OK
+- [ ] Test chấm 1 bài thật — xác nhận v2.1 scoring + SI1/SI2 + checklist tab mới
 - [ ] Đổi mật khẩu admin khỏi `admin2024` (user tự làm qua UI)
 - [ ] (tùy chọn) gắn tên miền riêng
 
 > ⏳ **V3 WordPress Plugin** đã lập kế hoạch (`docs/V3-WORDPRESS-PLUGIN.md`)
-> nhưng ĐANG CHỜ. Khi 6 mục trên xong hết → NHẮC JIMMY bắt đầu track V3.
+> nhưng ĐANG CHỜ. Khi 5 mục trên xong hết → NHẮC JIMMY bắt đầu track V3.
 
 ## Đang làm dở
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với bài thật
-- [ ] **Test v2 scoring + Checklist UX** với bài thật sau deploy — xác nhận A1/A2/A3, tooltip, mode badges
+- [ ] **Test v2.1 scoring** với bài thật — xác nhận SI1/SI2 score, tab 🎯 Search Intent, tooltip/badge
+
+## Vừa xong (session 11 — 20/05/2026)
+- [x] **Rubric v2.1 AEO/GEO+SI Edition** — commit `65c0267` (+102 lines, 4123 dòng)
+  - Thêm **SI1** (Search Intent Format Match, 4đ, LLM): `scoreLLMComplex` nhận `meta.intent`, chấm định dạng bài
+  - Thêm **SI2** (Search Intent Opening Signal, 2đ, Rule): `_scoreSI2` — detect Know/Do/Go/Hybrid signals trong 250 từ đầu
+  - Rebalance: R3(4→3), R6(2→1), P7/P8(bỏ, -2đ), S6(3→1), P3(4→2)
+  - Tiers v2.1: T1(27)+T2(27)+T3(26)+T4(20)=100đ
+  - `scoreRules` zero-init thêm SI1
+  - `scoreLLMSimple` prompt: R3 max→3, R6 max→1
+  - `scoreLLMComplex` prompt: thêm `Intent: ${meta.intent}`, SI1 JSON schema + instructions
+  - `allScores`: thêm `SI1: complexScores.SI1`
+  - `tierBreakdown` + `renderDetailTab`: cập nhật tên/max tầng (T2=AEO+SI, T3=RPP+SI)
+  - `clData`: thêm tab `🎯 Search Intent` với 6 items si1-si6 (auto/manual)
+- [x] Push → GitHub → Netlify auto-deploy triggered
 
 ## Vừa xong (session 10 — 20/05/2026)
 - [x] **V3 WordPress Plugin** — lập kế hoạch `docs/V3-WORDPRESS-PLUGIN.md` (track riêng, CHƯA code)
@@ -122,14 +136,15 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 - **Result layout**: 2-column grid, 3 tabs (Fixes/Checklist/Chi tiết)
 
 ## Số liệu hiện tại
-- `public/index.html`: **4048 dòng** (main file — edits trực tiếp)
-- `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 mới), 100 điểm, pass = 70
+- `public/index.html`: **4123 dòng** (main file — edits trực tiếp)
+- `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 AEO/GEO), 100 điểm, pass = 70
+- Rubric v2.1 (in-code): 28 tiêu chí + SI1 + SI2 = 30 tiêu chí, 100đ, pass = 70
 - `src/rubric.tpi-v1.json`: frozen — không sửa
 - Commits session 8: `10aaac7` (v2 rubric + 4 new criteria)
 - Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng
-- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4048 dòng)
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4123 dòng)
 - KHÔNG sửa file worktree
 - Server localhost:3000 đang serve đúng main file
 - `RULE_SCORERS` (~line 1843): dispatcher object — A1/A2/A3 đã thêm vào
