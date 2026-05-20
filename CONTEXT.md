@@ -1,4 +1,4 @@
-# CONTEXT — cập nhật: 19/05/2026 (session 8)
+# CONTEXT — cập nhật: 20/05/2026 (session 9)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
@@ -11,20 +11,19 @@ App chạy được trên localhost:3000. Tất cả edits đang ở main file t
 ## Đang làm dở
 - [ ] **Trước khi deploy**: đổi mật khẩu admin từ `admin2024` (qua UI Admin hoặc sửa initDB)
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với API key thật
-- [ ] **Test v2 scoring** với bài thật — kiểm tra A1/A2/A3 hoạt động đúng trên browser
-- [ ] **Checklist UX upgrade** — anh Jimmy T7 đã xem đề xuất, chưa chốt phương án. 3 options:
-  - **A**: Tooltip 2 dòng (meaning + example ✓/✗) cho 52 items — rê chuột hiện
-  - **B**: Phân loại 3 mức `🤖 auto` / `🤝 AI-check` / `👁 manual` + filter button
-  - **C**: Smart AI button — chỉ gửi items `🤝 AI`, skip `👁 manual` (tiết kiệm ~60% token)
-  - Đang chờ chốt: làm cả A+B+C hay làm A trước? Hoặc em phân loại 52 items để anh review trước rồi mới code?
+- [ ] **Test v2 scoring + Checklist UX** với bài thật trên browser — xác nhận A1/A2/A3, tooltip, mode badges
 
-## Phiên thảo luận cuối session 8 — Checklist UX (chưa code)
-Anh Jimmy T7 yêu cầu nâng cấp UX cho 52 checklist items:
-1. Mỗi item có tooltip giải thích ngắn + ví dụ khi rê chuột
-2. Items "khó/optional" không auto-chấm, gợi ý user tự xem & tick
-
-Em đã đề xuất 3 mức phân loại + smart AI button. Đang chờ anh chốt phương án.
-Files liên quan: `clData` (~line 3594), `RUBRIC_CL_MAP` (~line 1947), `autoCheckWithAI`.
+## Vừa xong (session 9 — 20/05/2026)
+- [x] **Checklist UX A+B+C** — commit `bba920b` (3986 dòng, +220 lines)
+  - **A (Tooltip)**: `tip: {m, g, b}` cho tất cả 43 items — rê chuột hiện meaning + ✓ good + ✗ bad
+  - **B (Mode badges)**: `checkMode: 'auto'|'ai'|'manual'` — badge 🤖/🤝/👁 inline trước label
+    - 🤖 auto = 20 items (tự động từ rubric scores)
+    - 🤝 AI = 11 items (AI button kiểm tra)
+    - 👁 manual = 12 items (tự review thủ công)
+  - **C (Smart AI button)**: chỉ gửi items `checkMode='ai'` lên LLM → tiết kiệm ~60% token
+  - `_clItemHtml()` helper — DRY render dùng chung CL page + ACL result tab
+  - Note legend giải thích 3 modes inline cho user: "🤖 auto=từ rubric · 🤝 AI=nút này · 👁 manual=tự review"
+  - CSS: `.cl-mode-badge`, `.cl-tt`, `.cl-tt-good`, `.cl-tt-bad`
 
 ## Vừa xong (session 8 — 19/05/2026)
 - [x] **Refactor #1**: Dispatcher pattern `RULE_SCORERS` + evidence pass-through
@@ -91,30 +90,32 @@ Files liên quan: `clData` (~line 3594), `RUBRIC_CL_MAP` (~line 1947), `autoChec
 - **Result layout**: 2-column grid, 3 tabs (Fixes/Checklist/Chi tiết)
 
 ## Số liệu hiện tại
-- `public/index.html`: **3766 dòng** (main file — edits trực tiếp)
+- `public/index.html`: **3986 dòng** (main file — edits trực tiếp)
 - `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 mới), 100 điểm, pass = 70
 - `src/rubric.tpi-v1.json`: frozen — không sửa
 - Commits session 8: `10aaac7` (v2 rubric + 4 new criteria)
 - Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng
-- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (3766 dòng)
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (3986 dòng)
 - KHÔNG sửa file worktree
 - Server localhost:3000 đang serve đúng main file
 - `RULE_SCORERS` (~line 1843): dispatcher object — A1/A2/A3 đã thêm vào
 - `_scoreA1/A2/A3` (~line 1739): 3 scorer AEO/GEO mới
 - `CRITERION_MAX` (~line 1926): v2 weights — total = 100đ
-- `RUBRIC_CL_MAP` (~line 1875): 15 mappings criterion → checklist items
+- `RUBRIC_CL_MAP` (~line 1947): 15 mappings criterion → checklist items
 - `renderDetailTab` (~line 2535): tier breakdown v2 (T1=28/T2=28/T3=24/T4=20)
 - `generateRuleFixes(ruleScores, parsed, evidence)` — 3 params
+- `clData` (~line 3611): 43 items với tip + checkMode (auto/ai/manual)
+- `_clItemHtml(item, done, isAuto, prefix, onChangeFn)` (~line 3903): DRY helper render 1 item
+- `autoCheckWithAI` (~line 3385): smart filter — chỉ gửi `checkMode='ai'` items
 
 ## Backlog ưu tiên (từ docs/ROADMAP.md)
 ### Làm tiếp theo (P1)
-1. **Checklist UX** — chốt phương án A/B/C rồi triển khai (xem "Đang làm dở")
-2. **Test v2 scoring** với bài The Metropolis — xác nhận A1/A2/A3 hoạt động đúng
-3. Đổi mật khẩu admin trong UI (trước khi deploy)
-4. Export báo cáo ra Markdown
-5. **Test AI button** với API key thật — Mức 2 + safeParseJSON
+1. **Test trên browser** — v2 scoring (A1/A2/A3) + tooltip + mode badges + AI button với API key thật
+2. Đổi mật khẩu admin trong UI (trước khi deploy)
+3. Export báo cáo ra Markdown
+4. **Test AI button** với API key thật — Mức 2 + safeParseJSON pipeline
 
 ### Sau đó (P2)
 - Webhook Telegram sau khi chấm xong
