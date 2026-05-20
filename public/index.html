@@ -403,6 +403,21 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+/* === CHECKLIST MODE BADGES + TOOLTIPS === */
+.cl-item { display: flex; align-items: flex-start; gap: 6px; }
+.cl-mode-badge {
+  font-size: 11px; padding: 1px 5px; border-radius: 3px;
+  flex-shrink: 0; margin-top: 2px; cursor: help;
+  font-weight: 600; letter-spacing: .2px;
+}
+.cl-mode-badge.auto   { background: rgba(76,175,130,.15); color: var(--green); }
+.cl-mode-badge.ai     { background: rgba(91,141,217,.15);  color: var(--blue);  }
+.cl-mode-badge.manual { background: rgba(155,163,184,.1);  color: var(--ink3);  }
+/* Wider tooltip box for checklist */
+.cl-tt { min-width: 320px; max-width: 400px !important; }
+.cl-tt-good { color: var(--green); display: block; margin-top: 6px; }
+.cl-tt-bad  { color: var(--red);   display: block; margin-top: 3px; }
+
 /* === SCORECARD === */
 .scorecard-block {
   background: var(--bg2);
@@ -3375,14 +3390,21 @@ async function autoCheckWithAI(keyword, entity) {
   const state   = loadACL(keyword, entity);
   const autoSet = loadACLAuto(keyword, entity);
 
-  // Collect unchecked items across all tabs
+  // Smart filter: chỉ gửi items checkMode='ai' chưa được check
+  // - 'auto' items đã được xử lý bởi autoCheckFromRubric (free)
+  // - 'manual' items cần tự review, LLM không đủ context để kiểm tra chính xác
   const unchecked = [];
   Object.values(clData).forEach(tab =>
     tab.groups.forEach(g =>
-      g.items.forEach(item => { if (!state[item.id]) unchecked.push(item); })
+      g.items.forEach(item => {
+        if (!state[item.id] && item.checkMode === 'ai') unchecked.push(item);
+      })
     )
   );
-  if (unchecked.length === 0) { alert('Tất cả tiêu chí đã được đánh dấu!'); return; }
+  if (unchecked.length === 0) {
+    alert('Tất cả tiêu chí AI (🤝) đã được kiểm tra!\nCác tiêu chí 👁 Manual cần tự review thủ công.');
+    return;
+  }
 
   const btn = document.getElementById('acl-ai-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ AI đang kiểm tra...'; }
@@ -3474,20 +3496,21 @@ function _drawACL() {
     g.items.forEach(item => {
       const done   = !!state[item.id];
       const isAuto = !!autoSet[item.id];
-      const autoTag = isAuto ? ' <span class="acl-auto-tag" title="Tự động từ kết quả chấm bài">🤖 auto</span>' : '';
-      itemsHtml += `<div class="cl-item${done ? ' done' : ''}${isAuto && done ? ' auto-checked' : ''}">
-        <input type="checkbox" id="acl_cb_${item.id}" ${done ? 'checked' : ''} onchange="toggleACLItem('${item.id}',this.checked)">
-        <label class="cl-item-text" for="acl_cb_${item.id}">${item.text}${autoTag}</label>
-      </div>`;
+      itemsHtml += _clItemHtml(item, done, isAuto, 'acl', 'toggleACLItem');
     });
   });
 
   const uncheckedCount = prog.total - prog.done;
   const kwEsc  = _aclKW.replace(/'/g, "\\'");
   const entEsc = _aclEntity.replace(/'/g, "\\'");
-  const aiLabel = uncheckedCount > 0
-    ? `🤖 Phân tích AI (${uncheckedCount} tiêu chí còn lại)`
-    : `✓ Tất cả đã được đánh dấu`;
+  // Đếm riêng items 🤝 AI chưa được check
+  const state2 = loadACL(_aclKW, _aclEntity);
+  const aiUnchecked = Object.values(clData).reduce((n, tab) =>
+    n + tab.groups.reduce((m, g) =>
+      m + g.items.filter(it => !state2[it.id] && it.checkMode === 'ai').length, 0), 0);
+  const aiLabel = aiUnchecked > 0
+    ? `🤝 Phân tích AI (${aiUnchecked} tiêu chí 🤝)`
+    : `✓ Tất cả tiêu chí AI đã kiểm tra`;
 
   container.innerHTML = `
     <div class="acl-wrap">
@@ -3501,8 +3524,8 @@ function _drawACL() {
       <div class="cl-tabs">${tabBtns}</div>
       <div id="acl-items">${itemsHtml}</div>
       <div class="acl-ai-row">
-        <button class="acl-ai-btn" id="acl-ai-btn" ${uncheckedCount === 0 ? 'disabled' : ''} onclick="autoCheckWithAI('${kwEsc}','${entEsc}')">${aiLabel}</button>
-        ${uncheckedCount > 0 ? '<span class="acl-ai-note">Haiku kiểm tra nội dung bài · ~$0.002/lần</span>' : ''}
+        <button class="acl-ai-btn" id="acl-ai-btn" ${aiUnchecked === 0 ? 'disabled' : ''} onclick="autoCheckWithAI('${kwEsc}','${entEsc}')">${aiLabel}</button>
+        <span class="acl-ai-note">🤖 auto=từ rubric · 🤝 AI=nút này kiểm tra · 👁 manual=tự review · ~$0.002/lần</span>
       </div>
       <div class="acl-kw-tag">📌 ${_aclKW} × ${_aclEntity}</div>
     </div>`;
@@ -3591,6 +3614,8 @@ function triggerCelebration() {
 // ============================================================
 const CL_KEY = 'tpi_aeo_cl';
 
+// checkMode: 'auto'=tự động từ rubric | 'ai'=AI button kiểm tra | 'manual'=tự review
+// tip.m=ý nghĩa | tip.g=ví dụ đúng | tip.b=ví dụ sai
 const clData = {
   'main-supplement': {
     label: '📐 Main / Supplement',
@@ -3598,31 +3623,91 @@ const clData = {
       {
         name: 'Main Content — Cấu Trúc Heading',
         items: [
-          { id: 'ms1', text: '9-10 Heading đầu phải là chất lượng nhất — phản ánh nội dung đã khai báo ở H1/Title' },
-          { id: 'ms2', text: 'H2 phản chiếu nội dung H1 và nhái lại tông giọng của H1 (tích cực → H2 cũng tích cực)' },
-          { id: 'ms3', text: 'H3 đào sâu / mở rộng nội dung H2, tương tự H4 (nếu có)' },
-          { id: 'ms4', text: 'Các heading cùng ý được nhóm lại gần nhau' },
-          { id: 'ms5', text: 'Dùng Tiêu Đề Gia Tăng (Incremental list) cho nội dung liệt kê: Top 10, 5 lợi ích...' },
-          { id: 'ms6', text: 'Heading cuối kết nối với heading đầu về ý (đồng nghĩa hoặc trái nghĩa)' },
-          { id: 'ms7', text: 'Mỗi heading có format content rõ ràng tương ứng: Bảng / List / Đoạn văn' },
+          { id: 'ms1', checkMode: 'auto',
+            text: '9-10 Heading đầu phải là chất lượng nhất — phản ánh nội dung đã khai báo ở H1/Title',
+            tip: { m: '9-10 heading đầu phải liên quan trực tiếp, cụ thể với keyword/entity ở H1',
+                   g: 'H1: "Dự án Metropolis" → H2: "Vị Trí Metropolis", "Giá Căn Hộ Metropolis"',
+                   b: 'H2: "Xu Hướng BĐS 2026", "Thị Trường Khu Đông" (quá chung, lạc đề)' } },
+          { id: 'ms2', checkMode: 'auto',
+            text: 'H2 phản chiếu nội dung H1 và nhái lại tông giọng của H1 (tích cực → H2 cũng tích cực)',
+            tip: { m: 'H2 phải nhất quán với tông giọng H1 — H1 tích cực thì H2 dùng ngôn từ tích cực',
+                   g: 'H1: "Bí Quyết Đầu Tư BĐS Sinh Lời" → H2: "Lợi Nhuận Cho Thuê Hấp Dẫn"',
+                   b: 'H1: "Bí Quyết Đầu Tư" → H2: "Rủi Ro Khi Đầu Tư BĐS" (chuyển sang tiêu cực)' } },
+          { id: 'ms3', checkMode: 'auto',
+            text: 'H3 đào sâu / mở rộng nội dung H2, tương tự H4 (nếu có)',
+            tip: { m: 'H3 phải cụ thể hoá hoặc liệt kê chi tiết nội dung của H2 cha, không đi chệch',
+                   g: 'H2: "Tiện Ích Nội Khu" → H3: "Hồ Bơi Olympic 50m", "Gym Cao Cấp 500m²"',
+                   b: 'H2: "Tiện Ích Nội Khu" → H3: "Tổng Quan Dự Án", "Pháp Lý" (lạc H2)' } },
+          { id: 'ms4', checkMode: 'auto',
+            text: 'Các heading cùng ý được nhóm lại gần nhau',
+            tip: { m: 'Heading cùng chủ đề phải đặt liền nhau, không bị phân tán rải rác trong bài',
+                   g: 'Tất cả H2/H3 về "Pháp Lý" nằm trong cùng 1 section liền kề',
+                   b: 'Pháp lý ở H2#2, rồi lại xuất hiện ở H2#7 — người đọc phải cuộn tìm' } },
+          { id: 'ms5', checkMode: 'manual',
+            text: 'Dùng Tiêu Đề Gia Tăng (Incremental list) cho nội dung liệt kê: Top 10, 5 lợi ích...',
+            tip: { m: 'Với nội dung đếm được, dùng số thứ tự trong heading để tối ưu Featured Snippet',
+                   g: '"Top 5 Dự Án Đáng Đầu Tư 2026" → H3: "1. Vinhomes...", "2. Metropolis..."',
+                   b: 'H2: "Các Dự Án Đáng Đầu Tư" mà không có danh sách đánh số bên dưới' } },
+          { id: 'ms6', checkMode: 'auto',
+            text: 'Heading cuối kết nối với heading đầu về ý (đồng nghĩa hoặc trái nghĩa)',
+            tip: { m: 'Heading đầu và cuối Main Content phải liên kết ý — hỗ trợ hoặc đối lập có chủ đích',
+                   g: 'Đầu: "Lý Do Nên Đầu Tư Metropolis" — Cuối: "Cơ Hội Không Nên Bỏ Lỡ"',
+                   b: 'Đầu: "Tổng Quan Dự Án" — Cuối: "Câu Hỏi Thường Gặp" (không liên kết)' } },
+          { id: 'ms7', checkMode: 'ai',
+            text: 'Mỗi heading có format content rõ ràng tương ứng: Bảng / List / Đoạn văn',
+            tip: { m: 'Heading khai báo format ngầm định — nếu liệt kê thì dùng bullet, so sánh thì dùng bảng',
+                   g: 'H2: "So Sánh 3 Loại Căn Hộ" → content là bảng 3 cột rõ ràng',
+                   b: 'H2: "So Sánh 3 Loại Căn Hộ" → content là đoạn văn mô tả lộn xộn' } },
         ]
       },
       {
         name: 'Contextual Flow & Coverage',
         items: [
-          { id: 'ms8', text: 'Nội dung mượt mà, logic từ trên xuống dưới theo đường thẳng' },
-          { id: 'ms9', text: 'Heading đầu tiên là quan trọng nhất — độ quan trọng giảm dần về cuối bài' },
-          { id: 'ms10', text: 'Không đề cập sub-context / sub-topic quá nhiều trong vùng Main Content' },
-          { id: 'ms11', text: 'Macro Context (ngữ cảnh tổng thể) được viết chuyên sâu & chi tiết tại Main Content' },
+          { id: 'ms8', checkMode: 'auto',
+            text: 'Nội dung mượt mà, logic từ trên xuống dưới theo đường thẳng',
+            tip: { m: 'Đọc từ đầu đến cuối không bị vướng — mỗi phần tự nhiên dẫn sang phần kế tiếp',
+                   g: 'Định nghĩa → Vị trí → Tiện ích → Giá → Pháp lý → CTA (logic từng bước)',
+                   b: 'CTA xuất hiện giữa bài, rồi lại quay về mô tả dự án sau đó' } },
+          { id: 'ms9', checkMode: 'auto',
+            text: 'Heading đầu tiên là quan trọng nhất — độ quan trọng giảm dần về cuối bài',
+            tip: { m: 'Phần đầu phải có giá trị cao nhất — phần sau hỗ trợ thêm, không quan trọng hơn',
+                   g: 'H2#1: "Vị Trí Vàng Mai Chí Thọ" (cốt lõi) → H2#6: "FAQ" (phụ trợ)',
+                   b: 'FAQ hoặc disclaimer đặt ở H2#2 ngay sau intro — sai thứ tự quan trọng' } },
+          { id: 'ms10', checkMode: 'ai',
+            text: 'Không đề cập sub-context / sub-topic quá nhiều trong vùng Main Content',
+            tip: { m: 'Main Content phải giữ focus cho entity chính — không sa đà vào entity/sub-topic phụ',
+                   g: 'Bài về Metropolis chỉ đề cập Thủ Thiêm như context 1-2 câu, không dành H2 riêng',
+                   b: 'Bài về Metropolis có 5 H2 nói về "Khu Đô Thị Thủ Thiêm" — entity phụ lấn át' } },
+          { id: 'ms11', checkMode: 'auto',
+            text: 'Macro Context (ngữ cảnh tổng thể) được viết chuyên sâu & chi tiết tại Main Content',
+            tip: { m: 'Entity/keyword chính phải được phân tích đầy đủ, không viết sơ sài',
+                   g: 'Bài Metropolis có đủ: vị trí cụ thể, quy mô m², số block, tiện ích chi tiết, giá',
+                   b: 'Main Content chỉ 1 đoạn giới thiệu ngắn, phần còn lại là nội dung chung chung' } },
         ]
       },
       {
         name: 'Supplement Content',
         items: [
-          { id: 'ms12', text: 'Tìm heading chuyển tiếp / cầu nối (Contextual Bridge) giữa Main và Supplement' },
-          { id: 'ms13', text: 'Supplement củng cố nội dung chính trong Macro Context, không pha loãng' },
-          { id: 'ms14', text: 'Supplement có thể dựa trên Customer Search Journey (người đọc muốn biết gì tiếp theo?)' },
-          { id: 'ms15', text: 'Supplement ≤ 25% tổng số chữ (lý tưởng 20–25%) — không đi quá sâu' },
+          { id: 'ms12', checkMode: 'manual',
+            text: 'Tìm heading chuyển tiếp / cầu nối (Contextual Bridge) giữa Main và Supplement',
+            tip: { m: 'Cần có câu/heading chuyển tiếp nối Main → Supplement một cách tự nhiên, không đột ngột',
+                   g: '"Ngoài Metropolis, nhà đầu tư có thể tham khảo thêm..." (cầu nối rõ)',
+                   b: 'Main kết thúc, Supplement bắt đầu với chủ đề mới hoàn toàn, không có câu dẫn' } },
+          { id: 'ms13', checkMode: 'ai',
+            text: 'Supplement củng cố nội dung chính trong Macro Context, không pha loãng',
+            tip: { m: 'Supplement phải hỗ trợ entity chính, không thêm nội dung không liên quan',
+                   g: 'Bài về Metropolis → Supplement: "Các Dự Án SonKim Land Khác" (cùng CĐT)',
+                   b: 'Bài về Metropolis → Supplement: "10 Nhà Hàng Ngon Ở Thủ Đức" (không liên quan)' } },
+          { id: 'ms14', checkMode: 'manual',
+            text: 'Supplement có thể dựa trên Customer Search Journey (người đọc muốn biết gì tiếp theo?)',
+            tip: { m: 'Sau Main Content, người dùng muốn biết gì tiếp? Supplement phải trả lời đúng nhu cầu đó',
+                   g: 'Bài về căn hộ mua → Supplement: "Quy Trình Mua", "Phí Quản Lý Hàng Tháng"',
+                   b: 'Supplement về lịch sử thành lập SonKim Land — không phải điều buyer cần biết tiếp' } },
+          { id: 'ms15', checkMode: 'auto',
+            text: 'Supplement ≤ 25% tổng số chữ (lý tưởng 20–25%) — không đi quá sâu',
+            tip: { m: 'Supplement không được chiếm quá 1/4 bài — kiểm tra tỷ lệ trước khi publish',
+                   g: 'Bài 1000 từ → Supplement ≤250 từ (25%)',
+                   b: 'Supplement có 5 H2 và 400 từ trong bài 800 từ (50%!) — lấn át Main' } },
         ]
       }
     ]
@@ -3633,12 +3718,36 @@ const clData = {
       {
         name: 'Checklist Xác Định Phương Pháp Triển Khai',
         items: [
-          { id: 'am1', text: 'Xác định cụ thể Format content cần triển khai: đoạn văn / liệt kê / bảng...' },
-          { id: 'am2', text: 'Đọc kỹ đối thủ (authority site & Top 1) — xác định lối hành văn, kí hiệu, đơn vị đo lường' },
-          { id: 'am3', text: 'Tường thuật nội dung bằng các câu hỏi cần giải đáp, xếp theo thứ tự phù hợp' },
-          { id: 'am4', text: 'Heading có Entity khác → nội dung bên dưới liên kết thông tin (địa chỉ, SĐT, mô tả) của entity đó' },
-          { id: 'am5', text: 'Câu đầu tiên sau mỗi heading phải trả lời sớm, trực tiếp và chính xác cho câu hỏi ở heading' },
-          { id: 'am6', text: 'Luôn tối ưu tốt hơn đối thủ ở Micro Context (text, hình ảnh, bảng trong từng section)' },
+          { id: 'am1', checkMode: 'manual',
+            text: 'Xác định cụ thể Format content cần triển khai: đoạn văn / liệt kê / bảng...',
+            tip: { m: 'Trước khi viết, xác định rõ format từng section — bảng, bullet, hay đoạn văn',
+                   g: 'Planning: "Section giá → bảng 3 cột | Section tiện ích → bullet list"',
+                   b: 'Viết ngẫu hứng, mỗi section format khác nhau, không nhất quán' } },
+          { id: 'am2', checkMode: 'auto',
+            text: 'Đọc kỹ đối thủ (authority site & Top 1) — xác định lối hành văn, kí hiệu, đơn vị đo lường',
+            tip: { m: 'Nghiên cứu top 3-5 đối thủ để nắm cách dùng từ, đơn vị, cách trình bày trong ngành',
+                   g: 'Đối thủ dùng "m²" không phải "mét vuông", giá tính theo "tỷ/căn" — follow theo',
+                   b: 'Tự đặt đơn vị khác ngành → LLM không nhận ra, người đọc khó so sánh' } },
+          { id: 'am3', checkMode: 'manual',
+            text: 'Tường thuật nội dung bằng các câu hỏi cần giải đáp, xếp theo thứ tự phù hợp',
+            tip: { m: 'Outline bằng cách đặt câu hỏi người dùng cần trả lời, sắp xếp theo logic hành trình',
+                   g: '"Metropolis ở đâu? → Quy mô? → Tiện ích? → Giá? → Pháp lý?" (logic từng bước)',
+                   b: 'Outline là danh sách topic ngẫu hứng không theo logic người đọc' } },
+          { id: 'am4', checkMode: 'ai',
+            text: 'Heading có Entity khác → nội dung bên dưới liên kết thông tin (địa chỉ, SĐT, mô tả) của entity đó',
+            tip: { m: 'Khi heading đề cập entity khác (ga metro, trường học...), nội dung phải có thông tin cụ thể về entity đó',
+                   g: 'H3: "Ga Metro Thủ Thiêm" → nội dung có địa chỉ, tuyến số 2, khoảng cách 200m',
+                   b: 'H3: "Ga Metro Thủ Thiêm" → chỉ nói "nằm gần ga metro" — không có thông tin cụ thể' } },
+          { id: 'am5', checkMode: 'auto',
+            text: 'Câu đầu tiên sau mỗi heading phải trả lời sớm, trực tiếp và chính xác cho câu hỏi ở heading',
+            tip: { m: 'Câu mở đầu section phải trả lời thẳng vào heading — không dẫn dắt context dài',
+                   g: 'H2: "Giá Metropolis?" → Câu 1: "Giá căn hộ Metropolis dự kiến từ 5 tỷ/căn."',
+                   b: 'H2: "Giá Metropolis?" → Câu 1: "Trong bối cảnh thị trường BĐS sôi động hiện nay..."' } },
+          { id: 'am6', checkMode: 'manual',
+            text: 'Luôn tối ưu tốt hơn đối thủ ở Micro Context (text, hình ảnh, bảng trong từng section)',
+            tip: { m: 'Từng section phải tốt hơn đối thủ — không chỉ bằng mà phải vượt về độ chi tiết và format',
+                   g: 'Đối thủ có bảng 2 cột giá → mình có bảng 3 cột: diện tích + giá/m² + so sánh',
+                   b: 'Copy y hệt structure của đối thủ mà không cải thiện nội dung hay format' } },
         ]
       }
     ]
@@ -3649,28 +3758,116 @@ const clData = {
       {
         name: '22 Tiêu Chí Viết & Edit Content Chuẩn SEO',
         items: [
-          { id: 'wc1',  text: 'Be Certain: Giọng văn trả lời chắc chắn, nhất là với định nghĩa, lợi ích và trong thị trường YMYL' },
-          { id: 'wc2',  text: 'Xóa những đoạn nội dung thừa thải, không đóng góp giá trị' },
-          { id: 'wc3',  text: 'Hiểu rõ ngữ cảnh của động từ dùng — VD: "xây dựng", "tăng trưởng" trong sức khỏe khác nhau' },
-          { id: 'wc4',  text: 'Luôn đưa ví dụ cụ thể và phổ biến khi dùng danh từ số nhiều — VD: "3 tiền điện tử: Bitcoin, Ethereum, Binance"' },
-          { id: 'wc5',  text: 'Viết Hoa Chữ Cái Đầu Tiên Của Mỗi Từ Trong Mọi Heading' },
-          { id: 'wc6',  text: 'Nội dung cấp dưới heading phải trực tiếp trả lời heading (không sai Macro Context)' },
-          { id: 'wc7',  text: 'Không bao giờ Delay câu trả lời — trả lời ngay, không dẫn dắt dài' },
-          { id: 'wc8',  text: 'Bài How To → không có heading "X là gì?" của entity chính trong bài' },
-          { id: 'wc9',  text: 'Heading không thừa thải, phù hợp với hành trình khách hàng (Customer Search Journey)' },
-          { id: 'wc10', text: 'In đậm câu trả lời — không in đậm từ khóa SEO, áp dụng trong FAQ / Featured Snippet' },
-          { id: 'wc11', text: 'Câu đầy đủ chủ ngữ - vị ngữ, không câu dang dở, không đạo văn' },
-          { id: 'wc12', text: 'Tuân thủ viết hoa/thường, dấu câu. In đậm có chọn lọc — không lạm dụng in nghiêng' },
-          { id: 'wc13', text: 'Dùng bullet (chấm tròn) cho danh sách. KHÔNG dùng hệ thống số đếm 1.1, 1.2, 1.1.2...' },
-          { id: 'wc14', text: 'Hai mục cuối trong list phân tách bằng "và" / "hoặc" có dấu phẩy đằng trước' },
-          { id: 'wc15', text: 'Bài viết có kết nối liên tục giữa các phần — phần đầu và phần cuối kết nối (hỗ trợ hoặc trái ngược)' },
-          { id: 'wc16', text: 'Viết ngắn gọn, câu ngắn, súc tích — đủ thông tin nhưng không dài dòng' },
-          { id: 'wc17', text: 'Không ý kiến cá nhân, không ngôn ngữ nói. Không có số liệu mâu thuẫn/xung đột trong bài' },
-          { id: 'wc18', text: 'Chọn từ ngữ tích cực. Chỉ dùng động từ tiêu cực khi cảnh báo hoặc nói về tác động xấu' },
-          { id: 'wc19', text: 'Dùng cách diễn đạt chắc chắn — không dùng "có thể", "khả năng", "sẽ..." với điều chắc chắn xảy ra' },
-          { id: 'wc20', text: 'Bỏ tất cả từ / cụm từ không liên quan, không cần thiết' },
-          { id: 'wc21', text: 'Luôn ưu tiên con số chi tiết — dùng số và % bất cứ khi nào có thể' },
-          { id: 'wc22', text: 'Kiểm tra kỹ lỗi chính tả, ngữ pháp và lỗi trình bày trước khi xuất bản' },
+          { id: 'wc1',  checkMode: 'auto',
+            text: 'Be Certain: Giọng văn trả lời chắc chắn, nhất là với định nghĩa, lợi ích và trong thị trường YMYL',
+            tip: { m: 'Dùng ngôn từ khẳng định, chắc chắn — đặc biệt quan trọng với định nghĩa và nội dung YMYL',
+                   g: '"The Metropolis có 12 block cao tầng." (chắc chắn)',
+                   b: '"The Metropolis có thể có khoảng 12 block." (do dự, không chắc)' } },
+          { id: 'wc2',  checkMode: 'ai',
+            text: 'Xóa những đoạn nội dung thừa thải, không đóng góp giá trị',
+            tip: { m: 'Xóa mọi câu/đoạn không thêm giá trị cho người đọc — bài ngắn đủ ý tốt hơn bài dài loãng',
+                   g: 'Xóa đoạn "chúng tôi rất tự hào giới thiệu..." — không có thông tin hữu ích',
+                   b: 'Giữ 3 câu mở đầu chung về "thị trường BĐS năm nay" chỉ để tăng từ' } },
+          { id: 'wc3',  checkMode: 'manual',
+            text: 'Hiểu rõ ngữ cảnh của động từ dùng — VD: "xây dựng", "tăng trưởng" trong sức khỏe khác nhau',
+            tip: { m: 'Chọn động từ phù hợp ngành — cùng một từ có nghĩa khác nhau trong các lĩnh vực',
+                   g: 'BĐS: "bàn giao" không phải "giao hàng" | Y tế: "điều trị" không phải "xử lý"',
+                   b: 'Dùng "xây dựng" cho cả công trình lẫn chế độ ăn uống — mơ hồ ngữ cảnh' } },
+          { id: 'wc4',  checkMode: 'ai',
+            text: 'Luôn đưa ví dụ cụ thể và phổ biến khi dùng danh từ số nhiều — VD: "3 tiền điện tử: Bitcoin, Ethereum, Binance"',
+            tip: { m: 'Khi dùng danh từ số nhiều không có danh sách cụ thể — luôn cho ví dụ 2-3 cái cụ thể',
+                   g: '"3 tiện ích nổi bật: hồ bơi vô cực, gym 500m², spa 5 sao"',
+                   b: '"Nhiều tiện ích cao cấp" mà không liệt kê — người đọc không biết cụ thể là gì' } },
+          { id: 'wc5',  checkMode: 'auto',
+            text: 'Viết Hoa Chữ Cái Đầu Tiên Của Mỗi Từ Trong Mọi Heading',
+            tip: { m: 'Mỗi từ ≥3 ký tự trong heading phải viết Hoa Chữ Đầu — áp dụng nhất quán H1/H2/H3',
+                   g: '"Quy Mô Dự Án The Metropolis SonKim Land"',
+                   b: '"Quy mô dự án the metropolis" hoặc "QUY MÔ DỰ ÁN" (all caps)' } },
+          { id: 'wc6',  checkMode: 'ai',
+            text: 'Nội dung cấp dưới heading phải trực tiếp trả lời heading (không sai Macro Context)',
+            tip: { m: 'Nội dung ngay dưới heading phải liên quan trực tiếp, không nói lan man sang chủ đề khác',
+                   g: 'H2: "Pháp Lý Dự Án" → content về sổ đỏ, quyền sở hữu, giấy phép xây dựng',
+                   b: 'H2: "Pháp Lý Dự Án" → content nói thêm về tiện ích và giá (sai ngữ cảnh)' } },
+          { id: 'wc7',  checkMode: 'auto',
+            text: 'Không bao giờ Delay câu trả lời — trả lời ngay, không dẫn dắt dài',
+            tip: { m: 'Câu trả lời cho heading phải đến ngay lập tức — không có intro hay context dài dòng trước',
+                   g: 'H2: "Giá Metropolis?" → Câu 1: "Giá từ 5 tỷ/căn 1PN, 7-9 tỷ/căn 2PN."',
+                   b: 'H2: "Giá Metropolis?" → Câu 1: "Trong bối cảnh BĐS hạng sang hiện nay..."' } },
+          { id: 'wc8',  checkMode: 'ai',
+            text: 'Bài How To → không có heading "X là gì?" của entity chính trong bài',
+            tip: { m: 'Bài hướng dẫn không cần heading định nghĩa entity chính vì người dùng đã biết nó là gì',
+                   g: 'Bài "Cách Mua Căn Hộ Metropolis" → không có H2 "The Metropolis Là Gì?"',
+                   b: 'Bài How-To nhưng H2 đầu tiên là "Metropolis SonKim Land Là Gì?" — sai intent' } },
+          { id: 'wc9',  checkMode: 'ai',
+            text: 'Heading không thừa thải, phù hợp với hành trình khách hàng (Customer Search Journey)',
+            tip: { m: 'Mỗi heading phải phản ánh đúng nhu cầu/câu hỏi của buyer ở từng giai đoạn tìm kiếm',
+                   g: 'Buyer intent "mua căn hộ" → headings: vị trí, giá, tiện ích, pháp lý, cách mua',
+                   b: 'Heading về lịch sử thành lập SonKim Land — buyer không cần biết khi đang search giá' } },
+          { id: 'wc10', checkMode: 'manual',
+            text: 'In đậm câu trả lời — không in đậm từ khóa SEO, áp dụng trong FAQ / Featured Snippet',
+            tip: { m: 'Trong FAQ và Featured Snippet, in đậm câu trả lời chính — không in đậm từ khóa',
+                   g: '"Giá căn hộ Metropolis là **từ 5 đến 12 tỷ đồng** tùy loại căn."',
+                   b: '"Giá **căn hộ Metropolis** là từ **5 tỷ** đến **12 tỷ**." (in đậm quá nhiều)' } },
+          { id: 'wc11', checkMode: 'auto',
+            text: 'Câu đầy đủ chủ ngữ - vị ngữ, không câu dang dở, không đạo văn',
+            tip: { m: 'Mỗi câu phải có đủ chủ ngữ và vị ngữ — không viết kiểu bullet point thiếu động từ',
+                   g: '"Dự án cung cấp 3.200 căn hộ với diện tích từ 48 đến 90m²."',
+                   b: '"3.200 căn hộ. Diện tích 48-90m²." (câu cụt, thiếu chủ ngữ/vị ngữ)' } },
+          { id: 'wc12', checkMode: 'manual',
+            text: 'Tuân thủ viết hoa/thường, dấu câu. In đậm có chọn lọc — không lạm dụng in nghiêng',
+            tip: { m: 'Dùng viết hoa/thường và dấu câu nhất quán toàn bài — in đậm/nghiêng có chọn lọc',
+                   g: 'Tên dự án luôn là "The Metropolis" (nhất quán từ đầu đến cuối bài)',
+                   b: 'Đoạn 1: "The Metropolis", đoạn 3: "the metropolis", đoạn 5: "METROPOLIS"' } },
+          { id: 'wc13', checkMode: 'auto',
+            text: 'Dùng bullet (chấm tròn) cho danh sách. KHÔNG dùng hệ thống số đếm 1.1, 1.2, 1.1.2...',
+            tip: { m: 'Dùng dấu chấm tròn (•) cho danh sách thông thường. Tuyệt đối không dùng 1.1, 1.2.3...',
+                   g: '• Hồ bơi vô cực\n• Gym 500m²\n• Spa cao cấp',
+                   b: '1.1 Hồ bơi\n  1.1.2 Hồ bơi vô cực\n1.2 Gym (lồng nhau phức tạp)' } },
+          { id: 'wc14', checkMode: 'manual',
+            text: 'Hai mục cuối trong list phân tách bằng "và" / "hoặc" có dấu phẩy đằng trước',
+            tip: { m: 'Phần tử cuối trong list phải có dấu phẩy + "và" hoặc "hoặc" — ngữ pháp danh sách chuẩn',
+                   g: '"...hồ bơi, gym, và spa." (có dấu phẩy + "và" trước phần tử cuối)',
+                   b: '"...hồ bơi, gym, spa." (thiếu "và" trước phần tử cuối)' } },
+          { id: 'wc15', checkMode: 'auto',
+            text: 'Bài viết có kết nối liên tục giữa các phần — phần đầu và phần cuối kết nối (hỗ trợ hoặc trái ngược)',
+            tip: { m: 'Phần đầu và cuối bài phải kết nối về ý — có thể dùng lại từ/ý của intro ở kết luận',
+                   g: 'Mở đầu: "vị trí vàng" → Kết: "vị trí vàng đã xác nhận tiềm năng đầu tư"',
+                   b: 'Kết bài nói chủ đề hoàn toàn khác intro mà không có liên kết ý nào' } },
+          { id: 'wc16', checkMode: 'ai',
+            text: 'Viết ngắn gọn, câu ngắn, súc tích — đủ thông tin nhưng không dài dòng',
+            tip: { m: 'Câu ngắn dưới 30 từ, mỗi câu truyền tải 1 ý — không có mệnh đề phức tạp lồng nhau',
+                   g: '"Dự án rộng 9,6ha. Có 12 block cao từ 25 đến 35 tầng." (2 câu ngắn rõ ràng)',
+                   b: '"Dự án, với quy mô lên đến 9,6ha, bao gồm 12 block từ 25 đến 35 tầng..." (quá dài)' } },
+          { id: 'wc17', checkMode: 'auto',
+            text: 'Không ý kiến cá nhân, không ngôn ngữ nói. Không có số liệu mâu thuẫn/xung đột trong bài',
+            tip: { m: 'Không dùng "tôi nghĩ...", không dùng cụm AI-generic, không mâu thuẫn số liệu trong bài',
+                   g: '"Dự án có 23.000m² cảnh quan — cao nhất khu vực." (khách quan, có số liệu)',
+                   b: '"Không thể phủ nhận đây là lựa chọn hoàn hảo cho nhà đầu tư thông minh."' } },
+          { id: 'wc18', checkMode: 'manual',
+            text: 'Chọn từ ngữ tích cực. Chỉ dùng động từ tiêu cực khi cảnh báo hoặc nói về tác động xấu',
+            tip: { m: 'Ưu tiên từ ngữ tích cực, năng lượng tốt — tiêu cực chỉ dùng khi cần cảnh báo thật',
+                   g: '"Giá cạnh tranh so với khu vực" thay vì "giá không quá cao"',
+                   b: '"Không thiếu tiện ích" → nên đổi thành "đầy đủ tiện ích" (tích cực hơn)' } },
+          { id: 'wc19', checkMode: 'auto',
+            text: 'Dùng cách diễn đạt chắc chắn — không dùng "có thể", "khả năng", "sẽ..." với điều chắc chắn xảy ra',
+            tip: { m: 'Thông tin đã xác nhận thì viết chắc chắn — không dùng "sẽ", "có thể", "dự kiến"',
+                   g: '"Dự án **có** 12 block, **gồm** 3.200 căn." (thông tin đã xác nhận)',
+                   b: '"Dự án **dự kiến sẽ có** 12 block, **có thể** đạt 3.200 căn." (khi đã xác nhận rồi)' } },
+          { id: 'wc20', checkMode: 'ai',
+            text: 'Bỏ tất cả từ / cụm từ không liên quan, không cần thiết',
+            tip: { m: 'Cắt bỏ từ/cụm không cần thiết mà không làm mất nghĩa — đặc biệt cụm mở đầu dài dòng',
+                   g: 'Xóa "Như chúng ta đã biết, " ở đầu câu — không thêm giá trị gì',
+                   b: 'Giữ "Việc thực hiện điều này sẽ giúp" thay vì nói thẳng điều cần nói' } },
+          { id: 'wc21', checkMode: 'auto',
+            text: 'Luôn ưu tiên con số chi tiết — dùng số và % bất cứ khi nào có thể',
+            tip: { m: 'Thay thế mô tả mơ hồ bằng con số cụ thể — số liệu tăng credibility và SEO score',
+                   g: '"Cách trung tâm 5km, thời gian lái xe 10 phút" (có số cụ thể)',
+                   b: '"Cách trung tâm một khoảng không xa, thuận tiện di chuyển" (mơ hồ)' } },
+          { id: 'wc22', checkMode: 'manual',
+            text: 'Kiểm tra kỹ lỗi chính tả, ngữ pháp và lỗi trình bày trước khi xuất bản',
+            tip: { m: 'Bước cuối cùng quan trọng: kiểm tra chính tả, ngữ pháp, số liệu nhất quán trước khi publish',
+                   g: 'Dùng spellcheck + đọc to toàn bài 1 lần — phát hiện lỗi mà AI không thấy',
+                   b: 'Publish ngay sau AI generate mà không đọc lại — dễ có số liệu mâu thuẫn, lỗi đánh máy' } },
         ]
       }
     ]
@@ -3700,6 +3897,33 @@ function switchCLTab(tabId) {
   renderCLContent();
 }
 
+// Helper: HTML cho 1 checklist item — dùng chung cho CL page + ACL result
+// prefix: 'cl' (writing checklist page) | 'acl' (result checklist)
+// done, isAuto: trạng thái item | onChangeFn: tên function khi toggle
+function _clItemHtml(item, done, isAuto, prefix, onChangeFn) {
+  const cbId = prefix + '_cb_' + item.id;
+  const mode = item.checkMode || 'manual';
+  const modeLabel = mode === 'auto' ? '🤖' : mode === 'ai' ? '🤝' : '👁';
+  const modeTitle = mode === 'auto' ? 'Tự động từ điểm rubric'
+                  : mode === 'ai'   ? 'AI button có thể kiểm tra'
+                  : 'Tự review thủ công';
+  const autoTag = isAuto ? ' <span class="acl-auto-tag" title="Tự động từ kết quả chấm bài">🤖 auto</span>' : '';
+  // Tooltip
+  let tipHtml = '';
+  if (item.tip) {
+    const t = item.tip;
+    tipHtml = `<span class="tt-box cl-tt"><strong>💡 ${t.m}</strong>`
+            + (t.g ? `<span class="cl-tt-good">✓ ${t.g}</span>` : '')
+            + (t.b ? `<span class="cl-tt-bad">✗ ${t.b}</span>` : '')
+            + `</span>`;
+  }
+  return `<div class="cl-item${done ? ' done' : ''}${isAuto && done ? ' auto-checked' : ''}">
+    <input type="checkbox" id="${cbId}" ${done ? 'checked' : ''} onchange="${onChangeFn}('${item.id}',this.checked)">
+    <span class="cl-mode-badge ${mode}" title="${modeTitle}">${modeLabel}</span>
+    <label class="cl-item-text" for="${cbId}"><span class="tt">${item.text}${tipHtml}</span>${autoTag}</label>
+  </div>`;
+}
+
 function renderCLContent() {
   const tab = clData[clCurrentTab];
   if (!tab) return;
@@ -3709,13 +3933,9 @@ function renderCLContent() {
   let html = '';
   tab.groups.forEach(group => {
     html += `<div class="cl-group-title">${group.name}</div>`;
-    group.items.forEach((item, idx) => {
-      const cbId = 'cl_' + item.id;
+    group.items.forEach(item => {
       const done = !!clState[item.id];
-      html += `<div class="cl-item${done ? ' done' : ''}">
-        <input type="checkbox" id="${cbId}" ${done ? 'checked' : ''} onchange="toggleCLItem('${item.id}', this.checked)">
-        <label class="cl-item-text" for="${cbId}">${item.text}</label>
-      </div>`;
+      html += _clItemHtml(item, done, false, 'cl', 'toggleCLItem');
     });
   });
   container.innerHTML = html;
