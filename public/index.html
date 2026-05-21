@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TPI Content Scorer</title>
+<meta name="description" content="Công cụ chấm bài viết SEO/AEO/GEO cho TPI Land — đánh giá chuẩn 30 tiêu chí, hỗ trợ AI Haiku + Sonnet.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -16,7 +17,8 @@
   --line2: #353d50;
   --ink: #e8eaf0;
   --ink2: #9ba3b8;
-  --ink3: #5c6478;
+  --ink3: #838ca0;       /* was #5c6478 — lightened for WCAG AA contrast ≥4.5:1 */
+  --btn-accent: #bf4428; /* darker accent for button/chip bg — white text = 5:1 */
   --accent: #e05c3a;
   --accent2: #f07a58;
   --green: #4caf82;
@@ -76,7 +78,7 @@ body {
   transition: all .15s;
 }
 .nav-btn:hover, .nav-btn.active { background: var(--bg3); color: var(--ink); }
-.nav-btn.active { color: var(--accent); }
+.nav-btn.active { color: var(--accent2); } /* accent2 #f07a58 = 5.4:1 on --bg3 */
 .user-chip {
   background: var(--bg3);
   border: 1px solid var(--line2);
@@ -151,7 +153,7 @@ body {
 
 .btn-primary {
   width: 100%;
-  background: var(--accent);
+  background: var(--btn-accent);
   border: none; border-radius: 4px;
   padding: 13px;
   font-family: 'Be Vietnam Pro', sans-serif;
@@ -160,7 +162,7 @@ body {
   color: #fff; cursor: pointer;
   transition: background .15s;
 }
-.btn-primary:hover { background: var(--accent2); }
+.btn-primary:hover { background: #a83c20; } /* darker on hover — white text 6.3:1 */
 .btn-primary:disabled { background: var(--bg3); color: var(--ink3); cursor: not-allowed; }
 
 .force-llm-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink2); margin-bottom:10px; cursor:pointer; user-select:none; }
@@ -223,7 +225,7 @@ body {
   font-family: 'DM Mono', monospace; font-size: 12px;
   color: var(--ink2); cursor: pointer; transition: all .15s;
 }
-.intent-chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+.intent-chip.selected { background: var(--btn-accent); border-color: var(--btn-accent); color: #fff; }
 
 .textarea {
   width: 100%; min-height: 280px;
@@ -242,7 +244,7 @@ body {
 .content-mode-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
 .mode-tab { background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink3); cursor: pointer; transition: all .15s; }
 .mode-tab:hover { color: var(--ink); border-color: var(--line); }
-.mode-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.mode-tab.active { background: var(--btn-accent); border-color: var(--btn-accent); color: #fff; }
 
 .content-editor { width: 100%; min-height: 280px; max-height: 520px; overflow-y: auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 4px; padding: 14px 16px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; color: var(--ink); outline: none; line-height: 1.75; transition: border-color .15s; }
 .content-editor:focus { border-color: var(--accent); }
@@ -858,7 +860,7 @@ body {
 </div>
 
 <!-- MAIN APP -->
-<div id="page-app" style="display:none">
+<div id="page-app" role="main" style="display:none">
 
   <!-- SUBMIT PAGE -->
   <div id="view-submit" class="page active">
