@@ -1357,17 +1357,26 @@ function _injectHashImport(mdText) {
   _showImportToast();
 }
 
-function _showImportToast() {
-  let toast = document.getElementById('import-toast');
+// Toast dùng chung — type: 'success' (xanh) | 'warn' (cam) | 'error' (đỏ)
+function _showToast(msg, type) {
+  let toast = document.getElementById('tpi-toast');
   if (!toast) {
     toast = document.createElement('div');
-    toast.id = 'import-toast';
-    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 22px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+    toast.id = 'tpi-toast';
     document.body.appendChild(toast);
   }
-  toast.textContent = '✓ Đã nhập bài từ Elementor — kiểm tra nội dung rồi điền Từ khóa & Entity.';
+  const bg = type === 'warn' ? '#c47f1a' : type === 'error' ? 'var(--red)' : 'var(--green)';
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:' + bg
+    + ';color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;z-index:9999;'
+    + 'box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:90vw;text-align:center;line-height:1.5';
+  toast.textContent = msg;
   toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 5000);
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.display = 'none'; }, type === 'success' ? 5000 : 8000);
+}
+
+function _showImportToast() {
+  _showToast('✓ Đã nhập bài từ Elementor — kiểm tra nội dung rồi điền Từ khóa & Entity.', 'success');
 }
 
 // ============================================================
@@ -1674,6 +1683,16 @@ function parseArticle(raw) {
     }
   }
 
+  // Vị trí ký tự của mỗi heading trong plainText — search tuần tự (cursor tiến dần)
+  // → đúng cả khi nhiều heading trùng text; tránh indexOf bắt nhầm lần xuất hiện đầu
+  let _hCursor = 0;
+  headings.forEach(h => {
+    let pos = plainText.indexOf(h.text, _hCursor);
+    if (pos === -1) pos = plainText.indexOf(h.text); // fallback: tìm lại từ đầu
+    h.pos = pos;
+    if (pos !== -1) _hCursor = pos + h.text.length;
+  });
+
   const h1 = headings.filter(h => h.level === 1);
   const h2 = headings.filter(h => h.level === 2);
   const h3 = headings.filter(h => h.level === 3);
@@ -1717,7 +1736,7 @@ function _scoreS6(parsed) {
   const { text, wordCount, headings } = parsed;
   // Tìm heading đầu tiên nằm sau 70% text (ranh giới Supplement)
   const boundary70 = Math.floor(text.length * 0.70);
-  const suppHeading = headings.find(h => text.indexOf(h.text) > boundary70) || null;
+  const suppHeading = headings.find(h => h.pos != null && h.pos > boundary70) || null;
   const suppText = text.slice(boundary70);
   const suppWords = suppText.split(/\s+/).filter(w => w.length > 0).length;
   const suppPct = Math.round(suppWords / Math.max(1, wordCount) * 100);
@@ -1826,19 +1845,16 @@ function _scoreP8(parsed) {
 function _scoreA1(parsed) {
   const { text, h1, headings } = parsed;
   if (!h1.length) return { score: 0, evidence: { firstParaWords: 0 } };
-  const h1Text = h1[0].text;
-  const h1Pos = text.indexOf(h1Text);
+  const h1El = h1[0];
+  // Dùng vị trí đã parse sẵn — tránh indexOf bắt nhầm khi heading trùng text
+  const h1Pos = (h1El.pos != null && h1El.pos !== -1) ? h1El.pos : text.indexOf(h1El.text);
   if (h1Pos === -1) return { score: 0, evidence: { firstParaWords: 0 } };
 
-  const afterH1 = text.slice(h1Pos + h1Text.length).trimStart();
-  // Find next heading to delimit the first paragraph
-  let nextHPos = afterH1.length;
-  for (const h of headings) {
-    if (h === h1[0]) continue;
-    const pos = afterH1.indexOf(h.text);
-    if (pos > 0 && pos < nextHPos) nextHPos = pos;
-  }
-  const firstParaText = afterH1.slice(0, nextHPos).trim();
+  // Đoạn đầu = text giữa cuối H1 và heading kế tiếp (theo thứ tự tài liệu)
+  const startPara = h1Pos + h1El.text.length;
+  const nextH = headings.find(h => h.pos != null && h.pos > h1Pos);
+  const endPara = nextH ? nextH.pos : text.length;
+  const firstParaText = text.slice(startPara, endPara).trim();
   const firstParaWords = firstParaText.split(/\s+/).filter(w => w.length > 0).length;
   const score = firstParaWords >= 40 && firstParaWords <= 70 ? 4
               : firstParaWords > 70 && firstParaWords <= 100 ? 2
@@ -1854,16 +1870,14 @@ function _scoreA2(parsed) {
 
   let passedPairs = 0;
   faqH3.forEach(faq => {
-    const hPos = text.indexOf(faq.text);
+    // Dùng vị trí đã parse sẵn — tránh indexOf bắt nhầm khi câu hỏi trùng nhau
+    const hPos = (faq.pos != null && faq.pos !== -1) ? faq.pos : text.indexOf(faq.text);
     if (hPos === -1) return;
-    const afterH = text.slice(hPos + faq.text.length).trimStart();
-    // Find next heading after this FAQ H3
-    let nextHPos = afterH.length;
-    for (const h of headings) {
-      const pos = afterH.indexOf(h.text);
-      if (pos > 0 && pos < nextHPos) nextHPos = pos;
-    }
-    const answerText = afterH.slice(0, nextHPos).trim();
+    // Câu trả lời = text giữa cuối H3 FAQ và heading kế tiếp
+    const startAns = hPos + faq.text.length;
+    const nextH = headings.find(h => h.pos != null && h.pos > hPos);
+    const endAns = nextH ? nextH.pos : text.length;
+    const answerText = text.slice(startAns, endAns).trim();
     const wordCount = answerText.split(/\s+/).filter(w => w.length > 0).length;
     if (wordCount <= 100 && wordCount > 0) passedPairs++;
   });
@@ -1931,11 +1945,16 @@ function _fallbackHeuristic(parsed) {
 
 // SI2: Search Intent Opening Signal (2đ) — rule-based, kiểm tra 250 từ đầu
 function _scoreSI2(parsed, meta) {
-  const words = parsed.plainText.split(/\s+/).slice(0, 250).join(' ');
+  // parseArticle trả về key `text` (plain text) — KHÔNG có `plainText`
+  const words = (parsed.text || '').split(/\s+/).slice(0, 250).join(' ');
   const intent = (meta?.intent || 'Know').toLowerCase();
 
-  // Know signals: "là", "được hiểu là", "có nghĩa là", "định nghĩa", "giải thích"
-  const hasKnow = /\blà\b|được hiểu là|định nghĩa|là gì|có nghĩa là|khái niệm|giải thích/i.test(words);
+  // Know signals: chỉ bắt CÂU ĐỊNH NGHĨA thực sự — không bắt mọi chữ "là"
+  // (chữ "là" quá phổ biến trong tiếng Việt → false-positive cho bài Do/Go)
+  const entity = (meta?.entity || '').trim();
+  const entityDef = entity
+    && new RegExp(entity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s+(là|–|—|:)\\s', 'i').test(words);
+  const hasKnow = entityDef || /được hiểu là|có nghĩa là|\blà gì\b|định nghĩa|khái niệm|giải thích|\blà (một|loại|hình thức|dạng|kiểu|thuật ngữ|mô hình|phương thức|quá trình|sản phẩm|dịch vụ|cách)\b/i.test(words);
   // Do signals: giá tiền, hotline, CTA mua/đặt lịch
   const hasDo  = /\d[\d.,]*\s*(tỷ|triệu|tr\/|m²|usd|\$|đồng)|liên hệ|hotline|đặt lịch|mua ngay|giá từ|giá chỉ|bảng giá/i.test(words);
   // Go signals: số điện thoại 10 số, địa chỉ, showroom
@@ -2339,7 +2358,7 @@ async function submitArticle() {
     setLoaderTxt(forceLLM ? 'Chấm rule xong. Đang gọi AI...' : 'Đang phân tích nhanh (không AI)...');
 
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
-    let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {};
+    let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {}, llmErrors = [];
 
     if (forceLLM) {
       // Chạy 2 LLM call song song — giảm latency ~50% so với tuần tự
@@ -2352,14 +2371,18 @@ async function submitArticle() {
         simpleScores = simpleResult.value || {};
         allReasons = { ...allReasons, ...(simpleScores.reasons || {}) };
       } else {
-        console.warn('[TPI] LLM Simple failed:', simpleResult.reason?.message);
+        const m = simpleResult.reason?.message || 'lỗi không xác định';
+        console.warn('[TPI] LLM Simple failed:', m);
+        llmErrors.push('Nhóm tiêu chí nhanh (S1/S2/S5/P1/R1/R3/R5/R6): ' + m);
       }
       if (complexResult.status === 'fulfilled') {
         complexScores = complexResult.value || {};
         allReasons = { ...allReasons, ...(complexScores.reasons || {}) };
         top5 = complexScores.top5_fixes || [];
       } else {
-        console.warn('[TPI] LLM Complex failed:', complexResult.reason?.message);
+        const m = complexResult.reason?.message || 'lỗi không xác định';
+        console.warn('[TPI] LLM Complex failed:', m);
+        llmErrors.push('Nhóm tiêu chí chuyên sâu (R2/R4/I1/I2/I4/G1/SI1): ' + m);
       }
       // Nếu cả 2 fail hoặc top5 rỗng: fallback sang rule-based fixes
       if (!top5.length) top5 = generateRuleFixes(ruleScores, parsed, ruleEvidence);
@@ -2399,7 +2422,9 @@ async function submitArticle() {
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
     const passed = total >= cfg2.pass_score;
-    const llmUsed = forceLLM; // Checkbox là điều khiển duy nhất — không tự động trigger LLM
+    // llmUsed = true CHỈ khi forceLLM và ít nhất 1 call AI thành công
+    // (cả 2 fail → coi như chấm Rule, scorecard hiện thang /55)
+    const llmUsed = forceLLM && llmErrors.length < 2;
 
     // Save submission
     const submission = {
@@ -2412,6 +2437,7 @@ async function submitArticle() {
       tierBreakdown,
       top5,
       llmUsed,
+      llmErrors,
       tokens: { in: _tok.in, out: _tok.out, total: _tok.in + _tok.out },
       submitter: currentUser.username
     };
@@ -2422,6 +2448,13 @@ async function submitArticle() {
 
     // Render result
     renderResult(resultWrap, submission, allReasons, allScores);
+
+    // Cảnh báo nếu AI lỗi — user không bị hiểu nhầm điểm thấp là do bài kém
+    if (llmErrors.length >= 2) {
+      _showToast('⚠ AI lỗi hoàn toàn — điểm dưới đây chỉ tính bằng Rule (kém chính xác). Bấm "Chấm lại" để thử AI.', 'error');
+    } else if (llmErrors.length === 1) {
+      _showToast('⚠ Một phần AI lỗi — vài tiêu chí chưa được chấm (hiện 0đ). Xem cảnh báo trong kết quả.', 'warn');
+    }
 
   } catch (e) {
     resultWrap.innerHTML = `<div class="preflight-fail">
@@ -2727,7 +2760,18 @@ function renderResult(wrap, sub, reasons, allScores) {
   const fixCount   = sub.top5.length;
   const detailHtml = renderDetailTab(allScores, reasons);
 
-  wrap.innerHTML = `<div class="result-2col result-panel">
+  // Banner cảnh báo khi AI lỗi — hiện rõ để user không hiểu nhầm điểm
+  const llmErrs = sub.llmErrors || [];
+  const llmWarnHtml = llmErrs.length ? `
+    <div style="background:#3a2a12;border:1px solid #c47f1a;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#f0c674;">
+      <strong>⚠ ${llmErrs.length >= 2 ? 'AI lỗi hoàn toàn' : 'Một phần AI lỗi'}</strong> —
+      ${llmErrs.length >= 2
+        ? 'điểm dưới đây chỉ tính bằng Rule (kém chính xác). Bấm "Chấm lại" để thử AI lại.'
+        : 'một số tiêu chí chưa được AI chấm nên hiển thị 0đ. Bấm "Chấm lại" nếu cần điểm đầy đủ.'}
+      <div style="margin-top:6px;color:#c9a96a;font-size:12px;">${llmErrs.map(e => '• ' + e).join('<br>')}</div>
+    </div>` : '';
+
+  wrap.innerHTML = `${llmWarnHtml}<div class="result-2col result-panel">
     <!-- LEFT: sticky scorecard -->
     <div class="result-left">
       <div class="scorecard-block result-sticky">
