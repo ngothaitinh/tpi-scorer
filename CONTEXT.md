@@ -1,4 +1,4 @@
-# CONTEXT — cập nhật: 20/05/2026 (session 11)
+# CONTEXT — cập nhật: 21/05/2026 (session 12)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
@@ -23,6 +23,17 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 ## Đang làm dở
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với bài thật
 - [ ] **Test v2.1 scoring** với bài thật — xác nhận SI1/SI2 score, tab 🎯 Search Intent, tooltip/badge
+
+## Vừa xong (session 12 — 21/05/2026)
+- [x] **P1 độ tin cậy chấm điểm** — commit `0c7956d` (+79/-35, 4167 dòng)
+  - **Fix bug nghiêm trọng**: `_scoreSI2` đọc `parsed.plainText` (undefined) → throw mỗi lần chấm → toàn bộ chấm bài fail. Đổi sang `parsed.text`
+  - `parseArticle`: ghi `h.pos` (vị trí ký tự) cho mỗi heading — search tuần tự, đúng cả khi heading trùng text
+  - `_scoreA1/A2/S6`: dùng `h.pos` thay `text.indexOf(h.text)` (bug cũ bắt nhầm lần xuất hiện đầu)
+  - LLM error tracking: `llmUsed=true` chỉ khi ≥1 call AI OK; cả 2 fail → chấm Rule (/55), không tính quota
+  - Banner cảnh báo + toast khi AI lỗi — user không hiểu nhầm điểm thấp
+  - `_scoreSI2`: siết regex Know, bỏ `\blà\b` false-positive
+  - Thêm `_showToast()` dùng chung
+- [ ] **Test v2.1 với bài thật sau deploy** — xác nhận SI1/SI2, banner AI lỗi
 
 ## Vừa xong (session 11 — 20/05/2026)
 - [x] **Rubric v2.1 AEO/GEO+SI Edition** — commit `65c0267` (+102 lines, 4123 dòng)
@@ -136,7 +147,7 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 - **Result layout**: 2-column grid, 3 tabs (Fixes/Checklist/Chi tiết)
 
 ## Số liệu hiện tại
-- `public/index.html`: **4123 dòng** (main file — edits trực tiếp)
+- `public/index.html`: **4167 dòng** (main file — edits trực tiếp)
 - `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 AEO/GEO), 100 điểm, pass = 70
 - Rubric v2.1 (in-code): 28 tiêu chí + SI1 + SI2 = 30 tiêu chí, 100đ, pass = 70
 - `src/rubric.tpi-v1.json`: frozen — không sửa
@@ -144,7 +155,7 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 - Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng
-- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4123 dòng)
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4167 dòng)
 - KHÔNG sửa file worktree
 - Server localhost:3000 đang serve đúng main file
 - `RULE_SCORERS` (~line 1843): dispatcher object — A1/A2/A3 đã thêm vào
