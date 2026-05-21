@@ -2815,6 +2815,159 @@ function renderResult(wrap, sub, reasons, allScores) {
   const prog = getACLProgress(sub.keyword, sub.entity);
   const aclBadge = document.getElementById('acl-tab-badge');
   if (aclBadge && prog.total > 0) aclBadge.textContent = prog.pct + '%';
+
+  // Lưu để exportMarkdown() dùng
+  window._currentResult = { sub, reasons, allScores };
+}
+
+// ============================================================
+// EXPORT MARKDOWN
+// ============================================================
+function exportMarkdown() {
+  const r = window._currentResult;
+  if (!r) { _showToast('Chưa có kết quả để export.', 'warn'); return; }
+  const { sub, reasons, allScores } = r;
+
+  const totalRnd = Math.round(sub.total * 10) / 10;
+  const status = sub.passed ? '✓ ĐẠT CHUẨN' : '✗ CHƯA ĐẠT';
+  const dateStr = sub.date ? sub.date.slice(0, 10) : '—';
+  const aiNote  = sub.llmUsed ? 'AI (đầy đủ)' : 'Rule only (không AI)';
+
+  // Helper
+  const sc = id => {
+    const v = allScores?.[id] ?? 0;
+    return Math.round(v * 10) / 10;
+  };
+  const pct = (id) => {
+    const max = CRITERION_MAX[id] || 1;
+    const v   = allScores?.[id] ?? 0;
+    return Math.round(v / max * 100);
+  };
+  const sevLabel = f => {
+    const max = CRITERION_MAX[f.criterion_id] || 5;
+    const score = allScores ? (allScores[f.criterion_id] ?? max) : max;
+    const deficit = max - score;
+    if (deficit >= 5) return '🔴 Critical';
+    if (deficit >= 3) return '🟡 Major';
+    return '🟢 Minor';
+  };
+
+  // Tầng
+  const tiers = [
+    { label: 'T1 — Cấu trúc & Ngữ cảnh',     ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 27 },
+    { label: 'T2 — Chất lượng đoạn & AEO+SI', ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 27 },
+    { label: 'T3 — RPP & Entity & SI',         ids: ['R1','R2','R3','R4','R5','R6','SI1'], max: 26 },
+    { label: 'T4 — Information Gain & GEO',    ids: ['I1','I2','I3','I4','G1'], max: 20 },
+  ];
+
+  const tierRows = tiers.map((t, i) => {
+    const s = t.ids.reduce((acc, id) => acc + (allScores?.[id] ?? 0), 0);
+    const td = sub.tierBreakdown?.[i];
+    const score = td ? Math.round(td.score * 10) / 10 : Math.round(s * 10) / 10;
+    return `| T${i+1} | ${t.label.replace(/^T\d — /, '')} | ${score} | ${t.max} |`;
+  }).join('\n');
+
+  // Fix cards
+  const critical = sub.top5.filter(f => sevLabel(f).startsWith('🔴'));
+  const others   = sub.top5.filter(f => !sevLabel(f).startsWith('🔴'));
+
+  const renderFix = (f, idx) => {
+    const cname = CRITERION_NAMES[f.criterion_id] || f.criterion_id;
+    const sv = sevLabel(f);
+    const loc = f.location || 'Toàn bài';
+    return `### Fix #${f.priority} — ${sv}  ${f.criterion_id}: ${cname}
+
+**Vị trí:** ${loc}
+**Vấn đề:** ${f.issue}
+**Gợi ý:** ${f.fix}`;
+  };
+
+  const criticalMD = critical.length > 0
+    ? `#### 🔴 Critical — Phải sửa trước khi publish (${critical.length})\n\n` + critical.map(renderFix).join('\n\n---\n\n')
+    : '';
+  const othersMD = others.length > 0
+    ? `#### 🟡🟢 Major & Minor (${others.length})\n\n` + others.map(renderFix).join('\n\n---\n\n')
+    : '';
+  const fixesMD = sub.top5.length === 0
+    ? '_✓ Bài viết đạt chuẩn tốt, không có vấn đề lớn cần sửa._'
+    : [criticalMD, othersMD].filter(Boolean).join('\n\n');
+
+  // Chi tiết từng tiêu chí
+  const detailMD = tiers.map(tier => {
+    const rows = tier.ids.map(id => {
+      const s   = sc(id);
+      const max = CRITERION_MAX[id] || 1;
+      const nm  = CRITERION_NAMES[id] || id;
+      const rsn = reasons?.[id] ? ` — _${reasons[id]}_` : '';
+      return `| \`${id}\` | ${nm} | **${s}/${max}** (${pct(id)}%)${rsn} |`;
+    }).join('\n');
+    const tierScore = tier.ids.reduce((acc, id) => acc + (allScores?.[id] ?? 0), 0);
+    return `### ${tier.label} — ${Math.round(tierScore * 10) / 10}/${tier.max}
+
+| ID | Tên tiêu chí | Điểm |
+|----|-------------|------|
+${rows}`;
+  }).join('\n\n');
+
+  // LLM warning nếu có
+  const llmErrs = sub.llmErrors || [];
+  const warnMD = llmErrs.length > 0
+    ? `> ⚠ **${llmErrs.length >= 2 ? 'AI lỗi hoàn toàn' : 'Một phần AI lỗi'}** — ${llmErrs.map(e => e).join('; ')}\n\n`
+    : '';
+
+  const md = `# Báo cáo chấm điểm — TPI Content Scorer
+
+${warnMD}## Thông tin bài viết
+
+| | |
+|---|---|
+| **Từ khóa** | ${sub.keyword || '—'} |
+| **Entity** | ${sub.entity || '—'} |
+| **Search Intent** | ${sub.intent || '—'} |
+| **Số từ** | ${sub.wordCount || '—'} |
+| **Ngày chấm** | ${dateStr} |
+| **Người chấm** | ${sub.submitter || '—'} |
+| **Phương thức** | ${aiNote} |
+
+---
+
+## 📊 Kết quả tổng: ${totalRnd}/100 — ${status}
+
+| Tầng | Tên | Điểm | Tối đa |
+|------|-----|-----:|-------:|
+${tierRows}
+| **Tổng** | | **${totalRnd}** | **100** |
+
+---
+
+## 🛠 Issues cần xử lý (${sub.top5.length})
+
+${fixesMD}
+
+---
+
+## 📋 Chi tiết từng tiêu chí
+
+${detailMD}
+
+---
+
+_Báo cáo tạo bởi [TPI Content Scorer](https://aeotpi.netlify.app/) · Rubric v2.1 AEO/GEO+SI_
+`;
+
+  // Download file
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const slug = (sub.keyword || 'bai-viet').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').slice(0, 40);
+  a.href     = url;
+  a.download = `tpi-report_${slug}_${dateStr}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  _showToast('✓ Đã tải báo cáo Markdown!', 'success');
 }
 
 // ============================================================
