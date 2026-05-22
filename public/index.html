@@ -3165,6 +3165,7 @@ function renderAdmin() {
       </span>
       <div class="user-actions">
         ${u.status === 'pending' ? `<button class="btn-sm btn-approve" onclick="approveUser('${username}')">Duyệt</button>` : ''}
+        <button class="btn-sm btn-edit" onclick="resetPassword('${username}')">🔑 Mật khẩu</button>
         ${username !== 'admin' ? `
           <button class="btn-sm btn-edit" onclick="setLimit('${username}')">Giới hạn</button>
           <button class="btn-sm btn-danger" onclick="removeUser('${username}')">Xóa</button>
@@ -3192,6 +3193,17 @@ function setLimit(username) {
     renderAdmin();
     alert(`✓ Đã cập nhật giới hạn cho ${username}: ${newLimit} bài/ngày`);
   }
+}
+
+function resetPassword(username) {
+  const newPass = prompt(`Đặt mật khẩu mới cho "${username}":\n(tối thiểu 6 ký tự)`);
+  if (!newPass) return;
+  if (newPass.length < 6) { alert('Mật khẩu phải ít nhất 6 ký tự.'); return; }
+  const users = DB.get('users', {});
+  if (!users[username]) return;
+  users[username].pass = hashPass(newPass);
+  DB.set('users', users);
+  alert(`✓ Đã đổi mật khẩu cho "${username}". Thông báo mật khẩu mới cho người dùng.`);
 }
 
 function removeUser(username) {
