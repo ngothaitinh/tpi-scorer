@@ -835,7 +835,7 @@ body {
         <label class="form-label">Mật khẩu</label>
         <input class="form-input mono" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button class="btn-primary syne" onclick="doLogin()">Đăng nhập</button>
+      <button class="btn-primary syne" id="btn-login" onclick="doLogin()">Đăng nhập</button>
       <div class="auth-msg" id="login-msg"></div>
     </div>
 
@@ -1271,48 +1271,54 @@ function switchTab(tab) {
   document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
 }
 
-function doLogin() {
-  const username = document.getElementById('l-user').value.trim();
-  const pass = document.getElementById('l-pass').value;
-  const msg = document.getElementById('login-msg');
-  const users = DB.get('users', {});
-
-  if (!username || !pass) { msg.className = 'auth-msg err'; msg.textContent = 'Vui lòng điền đầy đủ.'; return; }
-
-  const user = users[username];
-  if (!user || user.pass !== hashPass(pass)) {
-    msg.className = 'auth-msg err'; msg.textContent = 'Sai tên đăng nhập hoặc mật khẩu.'; return;
-  }
-  if (user.status === 'pending') {
-    msg.className = 'auth-msg err'; msg.textContent = 'Tài khoản đang chờ admin duyệt. Vui lòng liên hệ Jimmy T7.'; return;
-  }
-
-  currentUser = { username, ...user };
-  DB.set('session', username);
-  enterApp();
+// ── API helper ────────────────────────────────────────────────
+async function usersAPI(body) {
+  const res = await fetch('/.netlify/functions/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Lỗi server ' + res.status);
+  return data;
 }
 
-function doRegister() {
-  const name = document.getElementById('r-name').value.trim();
-  const username = document.getElementById('r-user').value.trim();
-  const pass = document.getElementById('r-pass').value;
-  const msg = document.getElementById('register-msg');
+async function doLogin() {
+  const username = document.getElementById('l-user').value.trim();
+  const pass     = document.getElementById('l-pass').value;
+  const msg      = document.getElementById('login-msg');
+  const btn      = document.getElementById('btn-login');
+  if (!username || !pass) { msg.className = 'auth-msg err'; msg.textContent = 'Vui lòng điền đầy đủ.'; return; }
 
+  msg.className = 'auth-msg'; msg.textContent = 'Đang kiểm tra...';
+  if (btn) btn.disabled = true;
+  try {
+    const res = await usersAPI({ action: 'login', username, pass });
+    currentUser = { username, passHash: hashPass(pass), ...res.user };
+    DB.set('session', JSON.stringify({ username, passHash: hashPass(pass), ...res.user }));
+    enterApp();
+  } catch (e) {
+    msg.className = 'auth-msg err'; msg.textContent = e.message;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function doRegister() {
+  const name     = document.getElementById('r-name').value.trim();
+  const username = document.getElementById('r-user').value.trim();
+  const pass     = document.getElementById('r-pass').value;
+  const msg      = document.getElementById('register-msg');
   if (!name || !username || !pass) { msg.className = 'auth-msg err'; msg.textContent = 'Vui lòng điền đầy đủ.'; return; }
   if (pass.length < 6) { msg.className = 'auth-msg err'; msg.textContent = 'Mật khẩu ít nhất 6 ký tự.'; return; }
 
-  const users = DB.get('users', {});
-  if (users[username]) { msg.className = 'auth-msg err'; msg.textContent = 'Tên đăng nhập đã tồn tại.'; return; }
-
-  users[username] = {
-    name, pass: hashPass(pass), role: 'user',
-    status: 'active',
-    dailyLimit: DB.get('config', {}).daily_limit || 5,
-    submissions: []
-  };
-  DB.set('users', users);
-  msg.className = 'auth-msg ok';
-  msg.textContent = '✓ Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.';
+  msg.className = 'auth-msg'; msg.textContent = 'Đang gửi...';
+  try {
+    const res = await usersAPI({ action: 'register', name, username, pass });
+    msg.className = 'auth-msg ok'; msg.textContent = res.message || '✓ Đã gửi đăng ký! Admin sẽ duyệt sớm.';
+  } catch (e) {
+    msg.className = 'auth-msg err'; msg.textContent = e.message;
+  }
 }
 
 function logout() {
@@ -1327,14 +1333,16 @@ function logout() {
 }
 
 function checkSession() {
-  initDB();
-  const session = DB.get('session', null);
-  const users   = DB.get('users', {});
-  if (session && users[session] && users[session].status === 'active') {
-    currentUser = { username: session, ...users[session] };
-    enterApp();
-  }
-  // else: trang login hiển thị mặc định (page-auth visible)
+  // Session lưu trong localStorage (không sensitive — chỉ dùng để khỏi login lại)
+  const raw = DB.get('session', null);
+  if (!raw) return;
+  try {
+    const s = typeof raw === 'string' && raw.startsWith('{') ? JSON.parse(raw) : null;
+    if (s && s.username && s.role) {
+      currentUser = s;
+      enterApp();
+    }
+  } catch { DB.set('session', null); }
 }
 
 function enterApp() {
@@ -3167,47 +3175,54 @@ function renderCostDashboard(subs) {
     </div>`;
 }
 
-function renderAdmin() {
-  const users = DB.get('users', {});
-  const subs  = DB.get('submissions', []);
-
-  // Token stats per user
-  const tokByUser = {};
-  const cntByUser = {};
-  subs.forEach(s => {
-    tokByUser[s.submitter] = (tokByUser[s.submitter] || 0) + (s.tokens?.total || 0);
-    cntByUser[s.submitter] = (cntByUser[s.submitter] || 0) + 1;
-  });
-
+async function renderAdmin() {
+  const subs = DB.get('submissions', []);
   renderCostDashboard(subs);
 
   const el = document.getElementById('user-list');
-  el.innerHTML = Object.entries(users).map(([username, u]) => {
-    const tok = tokByUser[username] || 0;
-    const cnt = cntByUser[username] || 0;
-    return `
-    <div class="user-row">
-      <div class="user-info">
-        <div class="user-name syne">${u.name} <span style="color:var(--ink3);font-size:11px;">(${username})</span></div>
-        <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày · ${cnt} bài · ${tok.toLocaleString('vi-VN')} token</div>
-      </div>
-      <span class="user-status ${u.status === 'active' ? 'status-active' : 'status-pending'}">
-        ${u.status === 'active' ? 'Active' : 'Chờ duyệt'}
-      </span>
-      <div class="user-actions">
-        ${u.status === 'pending' ? `<button class="btn-sm btn-approve" onclick="approveUser('${username}')">Duyệt</button>` : ''}
-        <button class="btn-sm btn-edit" onclick="resetPassword('${username}')">🔑 Mật khẩu</button>
-        ${username !== 'admin' ? `
-          <button class="btn-sm btn-edit" onclick="setLimit('${username}')">Giới hạn</button>
-          <button class="btn-sm btn-danger" onclick="removeUser('${username}')">Xóa</button>
-        ` : ''}
-      </div>
-    </div>
-  `}).join('');
+  el.innerHTML = '<div style="color:var(--ink3);font-size:13px;padding:12px 0;">Đang tải danh sách...</div>';
+
+  try {
+    const res = await usersAPI({ action: 'list', adminUser: currentUser.username, adminPassHash: currentUser.passHash });
+    const users = res.users || [];
+
+    // Token stats từ local submissions (admin browser)
+    const tokByUser = {};
+    const cntByUser = {};
+    subs.forEach(s => {
+      tokByUser[s.submitter] = (tokByUser[s.submitter] || 0) + (s.tokens?.total || 0);
+      cntByUser[s.submitter] = (cntByUser[s.submitter] || 0) + 1;
+    });
+
+    el.innerHTML = users.map(u => {
+      const tok = tokByUser[u.username] || 0;
+      const cnt = cntByUser[u.username] || u.subCount || 0;
+      return `
+      <div class="user-row">
+        <div class="user-info">
+          <div class="user-name syne">${u.name} <span style="color:var(--ink3);font-size:11px;">(${u.username})</span></div>
+          <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày · ${cnt} bài · ${tok.toLocaleString('vi-VN')} token</div>
+        </div>
+        <span class="user-status ${u.status === 'active' ? 'status-active' : 'status-pending'}">
+          ${u.status === 'active' ? 'Active' : 'Chờ duyệt'}
+        </span>
+        <div class="user-actions">
+          ${u.status === 'pending' ? `<button class="btn-sm btn-approve" onclick="approveUser('${u.username}')">Duyệt</button>` : ''}
+          <button class="btn-sm btn-edit" onclick="resetPassword('${u.username}')">🔑 Mật khẩu</button>
+          ${u.username !== 'admin' ? `
+            <button class="btn-sm btn-edit" onclick="setLimit('${u.username}')">Giới hạn</button>
+            <button class="btn-sm btn-danger" onclick="removeUser('${u.username}')">Xóa</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div style="color:var(--err);font-size:13px;padding:12px 0;">Lỗi tải danh sách: ${e.message}</div>`;
+  }
 }
 
 // ── Tạo user từ Admin + sinh Invite Link ────────────────────
-function createUserAdmin() {
+async function createUserAdmin() {
   const name  = document.getElementById('nu-name').value.trim();
   const uname = document.getElementById('nu-user').value.trim().toLowerCase();
   const pass  = document.getElementById('nu-pass').value;
@@ -3215,23 +3230,23 @@ function createUserAdmin() {
   if (!name || !uname || !pass) { _showToast('Điền đầy đủ Tên, Username, Mật khẩu.', 'warn'); return; }
   if (/\s/.test(uname))         { _showToast('Username không được có khoảng trắng.', 'warn'); return; }
   if (pass.length < 6)          { _showToast('Mật khẩu tối thiểu 6 ký tự.', 'warn'); return; }
-  const users = DB.get('users', {});
-  if (users[uname])             { _showToast(`Username "${uname}" đã tồn tại.`, 'warn'); return; }
 
-  // Lưu vào admin's browser
-  users[uname] = { name, pass: hashPass(pass), role: 'user', status: 'active', dailyLimit: limit, submissions: [] };
-  DB.set('users', users);
-  renderAdmin();
+  try {
+    const res = await usersAPI({ action: 'create', adminUser: currentUser.username, adminPassHash: currentUser.passHash, name, username: uname, pass, limit });
+    renderAdmin();
 
-  // Sinh invite link — mã hoá thông tin để user tự kích hoạt trên browser của họ
-  const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ u: uname, n: name, p: hashPass(pass), l: limit }))));
-  const url = location.origin + '/#join=' + payload;
-  document.getElementById('invite-box').style.display = '';
-  document.getElementById('invite-link').value = url;
+    // Sinh invite link từ payload server trả về
+    const url = location.origin + '/#join=' + res.invitePayload;
+    document.getElementById('invite-box').style.display = '';
+    document.getElementById('invite-link').value = url;
 
-  // Clear form
-  ['nu-name','nu-user','nu-pass'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('nu-limit').value = '5';
+    // Clear form
+    ['nu-name','nu-user','nu-pass'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nu-limit').value = '5';
+    _showToast(`✓ Đã tạo user "${uname}"!`, 'success');
+  } catch (e) {
+    _showToast(e.message, 'err');
+  }
 }
 
 function copyInviteLink() {
@@ -3244,62 +3259,63 @@ function copyInviteLink() {
 }
 
 // Kích hoạt account từ invite link (#join=...)
+// Tài khoản đã được tạo sẵn trên server — chỉ cần điền username vào form login
 function checkInviteHash() {
   const hash = location.hash;
   if (!hash.startsWith('#join=')) return;
   history.replaceState(null, '', location.pathname + location.search);
   try {
     const d = JSON.parse(decodeURIComponent(escape(atob(hash.slice(6)))));
-    if (!d.u || !d.p) return;
-    const users = DB.get('users', {});
-    if (!users[d.u]) {
-      users[d.u] = { name: d.n || d.u, pass: d.p, role: 'user', status: 'active', dailyLimit: d.l || 5, submissions: [] };
-      DB.set('users', users);
-    }
+    if (!d.u) return;
     // Điền sẵn username vào form login
     const lUser = document.getElementById('l-user');
     if (lUser) lUser.value = d.u;
-    _showToast(`✓ Tài khoản "${d.u}" đã kích hoạt trên thiết bị này! Nhập mật khẩu để đăng nhập.`, 'success');
+    _showToast(`✓ Tài khoản "${d.u}" đã sẵn sàng! Nhập mật khẩu để đăng nhập.`, 'success');
   } catch (e) { console.warn('Invalid invite hash', e); }
 }
 
-function approveUser(username) {
-  const users = DB.get('users', {});
-  if (users[username]) {
-    users[username].status = 'active';
-    DB.set('users', users);
+async function approveUser(username) {
+  try {
+    await usersAPI({ action: 'approve', adminUser: currentUser.username, adminPassHash: currentUser.passHash, username });
+    _showToast(`✓ Đã duyệt tài khoản "${username}"`, 'success');
     renderAdmin();
+  } catch (e) {
+    _showToast(e.message, 'err');
   }
 }
 
-function setLimit(username) {
-  const newLimit = prompt(`Giới hạn bài/ngày cho "${username}" (hiện tại: ${DB.get('users', {})[username]?.dailyLimit || 5}):`);
-  if (newLimit && !isNaN(newLimit)) {
-    const users = DB.get('users', {});
-    users[username].dailyLimit = parseInt(newLimit);
-    DB.set('users', users);
+async function setLimit(username) {
+  const newLimit = prompt(`Giới hạn bài/ngày cho "${username}":`);
+  if (!newLimit || isNaN(newLimit)) return;
+  try {
+    await usersAPI({ action: 'setlimit', adminUser: currentUser.username, adminPassHash: currentUser.passHash, username, limit: parseInt(newLimit) });
+    _showToast(`✓ Đã cập nhật giới hạn cho ${username}: ${newLimit} bài/ngày`, 'success');
     renderAdmin();
-    alert(`✓ Đã cập nhật giới hạn cho ${username}: ${newLimit} bài/ngày`);
+  } catch (e) {
+    _showToast(e.message, 'err');
   }
 }
 
-function resetPassword(username) {
+async function resetPassword(username) {
   const newPass = prompt(`Đặt mật khẩu mới cho "${username}":\n(tối thiểu 6 ký tự)`);
   if (!newPass) return;
   if (newPass.length < 6) { alert('Mật khẩu phải ít nhất 6 ký tự.'); return; }
-  const users = DB.get('users', {});
-  if (!users[username]) return;
-  users[username].pass = hashPass(newPass);
-  DB.set('users', users);
-  alert(`✓ Đã đổi mật khẩu cho "${username}". Thông báo mật khẩu mới cho người dùng.`);
+  try {
+    await usersAPI({ action: 'resetpass', adminUser: currentUser.username, adminPassHash: currentUser.passHash, username, newPass });
+    _showToast(`✓ Đã đổi mật khẩu cho "${username}". Thông báo mật khẩu mới cho người dùng.`, 'success');
+  } catch (e) {
+    _showToast(e.message, 'err');
+  }
 }
 
-function removeUser(username) {
+async function removeUser(username) {
   if (!confirm(`Xóa tài khoản "${username}"?`)) return;
-  const users = DB.get('users', {});
-  delete users[username];
-  DB.set('users', users);
-  renderAdmin();
+  try {
+    await usersAPI({ action: 'delete', adminUser: currentUser.username, adminPassHash: currentUser.passHash, username });
+    renderAdmin();
+  } catch (e) {
+    _showToast(e.message, 'err');
+  }
 }
 
 // ============================================================
