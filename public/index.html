@@ -1276,13 +1276,13 @@ function doRegister() {
 
   users[username] = {
     name, pass: hashPass(pass), role: 'user',
-    status: 'pending',
+    status: 'active',
     dailyLimit: DB.get('config', {}).daily_limit || 5,
     submissions: []
   };
   DB.set('users', users);
   msg.className = 'auth-msg ok';
-  msg.textContent = '✓ Đã gửi đăng ký! Admin sẽ duyệt và thông báo cho bạn.';
+  msg.textContent = '✓ Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.';
 }
 
 function logout() {
