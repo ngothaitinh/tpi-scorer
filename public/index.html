@@ -1084,6 +1084,37 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
     </div>
 
     <div class="config-section">
+      <h3 class="syne">Tạo tài khoản mới</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:560px;margin-bottom:12px">
+        <div>
+          <div class="form-label" style="margin-bottom:4px">Tên hiển thị *</div>
+          <input class="form-input" id="nu-name" placeholder="Nguyễn Văn A" style="width:100%">
+        </div>
+        <div>
+          <div class="form-label" style="margin-bottom:4px">Username *</div>
+          <input class="form-input" id="nu-user" placeholder="nguyenvana" style="width:100%">
+        </div>
+        <div>
+          <div class="form-label" style="margin-bottom:4px">Mật khẩu *</div>
+          <input class="form-input" id="nu-pass" type="password" placeholder="Tối thiểu 6 ký tự" style="width:100%">
+        </div>
+        <div>
+          <div class="form-label" style="margin-bottom:4px">Giới hạn bài/ngày</div>
+          <input class="form-input" id="nu-limit" type="number" value="5" min="1" max="999" style="width:100%">
+        </div>
+      </div>
+      <button class="btn-outline" style="padding:8px 20px" onclick="createUserAdmin()">➕ Tạo tài khoản</button>
+      <div id="invite-box" style="display:none;margin-top:14px;padding:14px 16px;background:var(--bg2);border:1px solid var(--green);border-radius:8px">
+        <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:8px">✓ Đã tạo tài khoản! Gửi link này cho user:</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="invite-link" class="form-input mono" readonly style="flex:1;font-size:11px;color:var(--ink2)">
+          <button class="btn-outline" style="padding:6px 14px;white-space:nowrap" onclick="copyInviteLink()">📋 Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:6px">User mở link này → account tự kích hoạt trên browser của họ → đăng nhập ngay được.</div>
+      </div>
+    </div>
+
+    <div class="config-section">
       <h3 class="syne">Danh sách tài khoản</h3>
       <div class="user-list" id="user-list"></div>
     </div>
@@ -3175,6 +3206,63 @@ function renderAdmin() {
   `}).join('');
 }
 
+// ── Tạo user từ Admin + sinh Invite Link ────────────────────
+function createUserAdmin() {
+  const name  = document.getElementById('nu-name').value.trim();
+  const uname = document.getElementById('nu-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('nu-pass').value;
+  const limit = parseInt(document.getElementById('nu-limit').value) || 5;
+  if (!name || !uname || !pass) { _showToast('Điền đầy đủ Tên, Username, Mật khẩu.', 'warn'); return; }
+  if (/\s/.test(uname))         { _showToast('Username không được có khoảng trắng.', 'warn'); return; }
+  if (pass.length < 6)          { _showToast('Mật khẩu tối thiểu 6 ký tự.', 'warn'); return; }
+  const users = DB.get('users', {});
+  if (users[uname])             { _showToast(`Username "${uname}" đã tồn tại.`, 'warn'); return; }
+
+  // Lưu vào admin's browser
+  users[uname] = { name, pass: hashPass(pass), role: 'user', status: 'active', dailyLimit: limit, submissions: [] };
+  DB.set('users', users);
+  renderAdmin();
+
+  // Sinh invite link — mã hoá thông tin để user tự kích hoạt trên browser của họ
+  const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ u: uname, n: name, p: hashPass(pass), l: limit }))));
+  const url = location.origin + '/#join=' + payload;
+  document.getElementById('invite-box').style.display = '';
+  document.getElementById('invite-link').value = url;
+
+  // Clear form
+  ['nu-name','nu-user','nu-pass'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nu-limit').value = '5';
+}
+
+function copyInviteLink() {
+  const inp = document.getElementById('invite-link');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(inp.value).then(() => _showToast('✓ Đã copy link mời!', 'success'));
+  } else {
+    inp.select(); document.execCommand('copy'); _showToast('✓ Đã copy!', 'success');
+  }
+}
+
+// Kích hoạt account từ invite link (#join=...)
+function checkInviteHash() {
+  const hash = location.hash;
+  if (!hash.startsWith('#join=')) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const d = JSON.parse(decodeURIComponent(escape(atob(hash.slice(6)))));
+    if (!d.u || !d.p) return;
+    const users = DB.get('users', {});
+    if (!users[d.u]) {
+      users[d.u] = { name: d.n || d.u, pass: d.p, role: 'user', status: 'active', dailyLimit: d.l || 5, submissions: [] };
+      DB.set('users', users);
+    }
+    // Điền sẵn username vào form login
+    const lUser = document.getElementById('l-user');
+    if (lUser) lUser.value = d.u;
+    _showToast(`✓ Tài khoản "${d.u}" đã kích hoạt trên thiết bị này! Nhập mật khẩu để đăng nhập.`, 'success');
+  } catch (e) { console.warn('Invalid invite hash', e); }
+}
+
 function approveUser(username) {
   const users = DB.get('users', {});
   if (users[username]) {
@@ -3382,7 +3470,6 @@ function updateWordCount() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   // Hash import: ?#import=<encodedMarkdown> từ bookmarklet
-  // Lưu vào window._pendingImport, xóa hash ngay để không leak URL
   if (location.hash.startsWith('#import=')) {
     try {
       window._pendingImport = decodeURIComponent(location.hash.slice(8));
@@ -3391,6 +3478,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     history.replaceState(null, '', location.pathname + location.search);
   }
+
+  // Invite link: #join=<encoded> — kích hoạt account trên browser này
+  checkInviteHash();
 
   checkSession();
   const editor = document.getElementById('f-content-editor');
