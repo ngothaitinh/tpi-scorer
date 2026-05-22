@@ -1044,9 +1044,8 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
           <button class="btn-outline" style="padding:6px 10px" onclick="toggleApiKeyVis()">👁</button>
         </div>
       </div>
-      <div class="config-row" id="row-anthropic-note">
-        <span class="config-key mono">api_key</span>
-        <span class="config-desc" style="color:var(--green)">✓ Server key — quản lý qua Netlify env var <code>ANTHROPIC_API_KEY</code></span>
+      <div id="row-anthropic-note" style="display:none;padding:0 0 6px 0;font-size:12px;color:var(--ink3)">
+        💡 Để trống nếu đã set <code>ANTHROPIC_API_KEY</code> trên Netlify (server key). Nhập key ở đây để gọi trực tiếp từ browser.
       </div>
       <div class="config-row" id="row-custom-endpoint" style="display:none">
         <span class="config-key mono">endpoint</span>
@@ -1510,8 +1509,9 @@ function loadApiConfig() {
   document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[cfg.provider] || 'API key...';
   document.getElementById('cfg-custom-endpoint').value = cfg.custom_endpoint || '';
   const isAnth = cfg.provider === 'anthropic';
-  document.getElementById('row-api-key').style.display       = isAnth ? 'none' : '';
+  document.getElementById('row-api-key').style.display       = '';
   document.getElementById('row-anthropic-note').style.display = isAnth ? '' : 'none';
+  if (isAnth) document.getElementById('cfg-api-key').placeholder = 'sk-ant-api03-... (tùy chọn)';
   updateModelDropdowns(cfg.provider, cfg.model_simple, cfg.model_complex, cfg.custom_model_simple, cfg.custom_model_complex);
 }
 
@@ -1519,8 +1519,9 @@ function onProviderChange() {
   const p = document.getElementById('cfg-provider').value;
   document.getElementById('cfg-api-key').placeholder = KEY_PLACEHOLDERS[p] || 'API key...';
   const isAnth = p === 'anthropic';
-  document.getElementById('row-api-key').style.display       = isAnth ? 'none' : '';
+  document.getElementById('row-api-key').style.display       = '';
   document.getElementById('row-anthropic-note').style.display = isAnth ? '' : 'none';
+  if (isAnth) document.getElementById('cfg-api-key').placeholder = 'sk-ant-api03-... (tùy chọn)';
   updateModelDropdowns(p);
 }
 
@@ -1572,8 +1573,8 @@ async function testApiConfig() {
   msg.style.color = 'var(--ink2)'; msg.textContent = 'Đang kiểm tra...';
   try {
     const isCustom = provider === 'custom';
-    // Anthropic: dùng proxy — không cần api_key từ UI
-    const api_key = provider !== 'anthropic' ? document.getElementById('cfg-api-key').value.trim() : '';
+    // Lấy api_key từ UI (Anthropic: tùy chọn — nếu trống thì dùng proxy)
+    const api_key = document.getElementById('cfg-api-key').value.trim();
     if (provider !== 'anthropic' && !api_key) {
       msg.style.color = 'var(--red)'; msg.textContent = 'Chưa nhập API key.'; return;
     }
@@ -1582,7 +1583,7 @@ async function testApiConfig() {
       : (PROVIDER_MODELS[provider]?.[0]?.id || '');
     const endpoint = isCustom ? document.getElementById('cfg-custom-endpoint').value.trim() : '';
     await callLLM('Say "OK" in one word.', { provider, api_key, model, custom_endpoint: endpoint }, 10);
-    const note = provider === 'anthropic' ? ' (server key ✓)' : '';
+    const note = (provider === 'anthropic' && !api_key) ? ' (Netlify proxy ✓)' : '';
     msg.style.color = 'var(--green)'; msg.textContent = '✓ Kết nối OK — ' + provider + note;
   } catch (e) {
     msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
@@ -1592,7 +1593,7 @@ async function testApiConfig() {
 async function callLLM(prompt, cfg, maxTokens) {
   const { provider, api_key, model, custom_endpoint } = cfg;
   if (!model) throw new Error('Chưa chọn model. Vào Admin → API Key & Model để lưu lại cấu hình.');
-  // anthropic: không cần api_key (key lưu server-side qua Netlify Function)
+  // anthropic: có key → gọi trực tiếp; không có key → qua Netlify proxy
   if (provider === 'anthropic') return callAnthropic(prompt, api_key, model, maxTokens);
   if (!api_key) throw new Error('Chưa nhập API key. Vào Admin → API Key & Model để cấu hình.');
   if (provider === 'google')    return callGemini(prompt, api_key, model, maxTokens);
@@ -1613,14 +1614,29 @@ function _parseApiBody(body, status) {
   }
 }
 
-async function callAnthropic(prompt, _apiKey, model, maxTokens) {
-  // Gọi qua Netlify Function proxy — API key lưu server-side (env var)
-  const res = await fetch('/.netlify/functions/claude', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, prompt, maxTokens }),
-  });
-  const body = await res.text();
+async function callAnthropic(prompt, apiKey, model, maxTokens) {
+  let res, body;
+  if (apiKey) {
+    // Gọi trực tiếp từ browser khi user đã nhập API key trong Admin
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    });
+  } else {
+    // Fallback: gọi qua Netlify Function proxy (key lưu server-side ANTHROPIC_API_KEY)
+    res = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, prompt, maxTokens }),
+    });
+  }
+  body = await res.text();
   const data = _parseApiBody(body, res.status);
   if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
   if (data.usage) { _tok.in += data.usage.input_tokens || 0; _tok.out += data.usage.output_tokens || 0; }
