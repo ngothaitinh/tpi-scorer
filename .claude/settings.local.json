@@ -72,7 +72,15 @@
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__lighthouse_audit",
       "Bash(gh run *)",
       "Bash(curl -s \"https://api.netlify.com/api/v1/sites\" -H \"Authorization: Bearer dummy\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git config *)",
+      "Bash(node *)",
+      "Bash(Get-Content public/index.html)",
+      "Bash(Measure-Object -Line)",
+      "Bash(Select-Object -ExpandProperty Lines)",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_snapshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__click"
     ]
   }
 }

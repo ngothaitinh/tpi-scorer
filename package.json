@@ -1,0 +1,9 @@
+{
+  "name": "tpi-scorer",
+  "version": "2.0.0",
+  "description": "TPI Content Scorer — AEO/GEO Edition",
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}

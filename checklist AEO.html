@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản Kế Hoạch Tác Chiến AEO/GEO: The Metropolis Ga Thủ Thiêm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased selection:bg-teal-200 selection:text-teal-900">
+
+    <!-- Header / Context -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-stone-900">AEO/GEO Action Plan (Bản Hiệu Chỉnh)</h1>
+                <p class="text-sm text-stone-500 mt-1">Dự án: <span class="font-semibold text-teal-700">The Metropolis (Ga Thủ Thiêm - Quận 2)</span> | Chủ đầu tư: Sơn Kim Land</p>
+            </div>
+            <div class="flex items-center gap-3 bg-teal-50 border border-teal-100 px-4 py-2 rounded-full text-sm">
+                <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                <span class="text-teal-800 font-medium">Cập nhật: Mới ra mắt 17/05/2026</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Evaluation Section -->
+        <div class="lg:col-span-12 bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+            <h2 class="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2">
+                <span class="text-xl">🚨</span> Căn chỉnh Chiến lược (Update 18/05/2026)
+            </h2>
+            <div class="text-stone-600 space-y-4 text-sm leading-relaxed">
+                <p>Bản kế hoạch này đã được hiệu chỉnh nghiêm ngặt để giải quyết 2 bài toán lớn nhất giúp dự án mới chiếm Top trên AI Overviews:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r">
+                        <p class="font-bold text-red-800 mb-1">1. Xóa bỏ llms.txt & Chuyển sang Indexing API</p>
+                        <p class="text-red-700 mb-2">Đã loại bỏ task dùng file <code>llms.txt</code> vì Googlebot/GPTBot không ưu tiên đọc file này lúc suy luận (inference). Phải dùng <strong>Google Indexing API</strong> để đưa dữ liệu mới tinh (17/05) vào chỉ mục ngay lập tức.</p>
+                        <a href="https://developers.google.com/search/docs/appearance/ai-overviews" target="_blank" class="text-red-600 hover:underline text-xs font-semibold flex items-center gap-1">
+                            🔗 Tài liệu: Google AI Overviews & Indexing
+                        </a>
+                    </div>
+                    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r">
+                        <p class="font-bold text-amber-800 mb-1">2. Chống nhầm lẫn Thực thể (Entity Ambiguity)</p>
+                        <p class="text-amber-700">AI rất dễ nhầm <em>The Metropolis (mới)</em> với <em>The Metropole (cũ)</em>. Toàn bộ URL, Prompt và bài viết đã được đổi trọng tâm sang <strong>Ga Thủ Thiêm, TOD 5.0, và Lịch sử quỹ đất</strong> để định danh một thực thể hoàn toàn mới.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="lg:col-span-4 flex flex-col gap-4">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-5 sticky top-28">
+                <h3 class="font-bold text-stone-800 mb-4 uppercase tracking-wider text-sm">Lộ trình Triển khai Chuẩn AEO</h3>
+                
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-xs mb-1 text-stone-500">
+                        <span>Tiến độ dự án</span>
+                        <span id="overall-progress-text" class="font-bold text-teal-600">0%</span>
+                    </div>
+                    <div class="w-full bg-stone-100 rounded-full h-2">
+                        <div id="overall-progress-bar" class="bg-teal-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <ul id="phase-nav" class="space-y-2 custom-scrollbar overflow-y-auto max-h-[60vh] pr-2">
+                    <!-- Nav items generated by JS -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Dynamic Phase Detail Box -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 min-h-[400px]">
+                <div class="flex justify-between items-start mb-6 border-b border-stone-100 pb-4">
+                    <div>
+                        <span id="phase-badge" class="inline-block px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full mb-2">Tuần 1</span>
+                        <h2 id="phase-title" class="text-2xl font-bold text-stone-800">...</h2>
+                    </div>
+                </div>
+                
+                <p id="phase-desc" class="text-stone-600 mb-6 text-sm leading-relaxed">...</p>
+
+                <div class="bg-stone-50 rounded-lg p-5 border border-stone-200">
+                    <h3 class="font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <span class="text-lg">📋</span> Hạng mục công việc (Checklist đã hiệu chỉnh)
+                    </h3>
+                    <ul id="task-list" class="space-y-3">
+                        <!-- Tasks generated by JS -->
+                    </ul>
+                </div>
+                
+                <!-- Contextual Hint Box -->
+                <div id="phase-hint" class="mt-6 p-4 bg-teal-50 text-teal-900 text-sm rounded-lg border border-teal-100 hidden">
+                    <!-- Hint injected by JS -->
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h3 class="font-bold text-stone-800 mb-2">Biểu đồ Mô phỏng: Chỉ số "Entity Trust" (Mức độ AI tin tưởng)</h3>
+                <p class="text-sm text-stone-500 mb-6">Đo lường mức độ AI tách bạch thành công "The Metropolis" khỏi "The Metropole" và chọn bạn làm Source of Truth.</p>
+                <div class="chart-container">
+                    <canvas id="trustChart"></canvas>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        // --- DATA STRUCTURE (FULLY REVISED FOR METROPOLIS GA THU THIEM) ---
+        const planData = [
+            {
+                id: 'phase1',
+                title: 'Định Danh Thực Thể & Hạ Tầng Index',
+                week: 'Tuần 1',
+                desc: 'Tạo ranh giới rõ ràng cho AI hiểu The Metropolis (Ga Thủ Thiêm) là dự án mới, đồng thời ép Google Index lập tức dữ liệu mới nhất (17/05).',
+                hint: 'Đã loại bỏ llms.txt. AI Overviews (SGE) lấy dữ liệu trực tiếp từ Google Index. Dùng Indexing API là cách nhanh nhất để "nhồi" dữ liệu dự án vừa ra mắt vào AI.',
+                tasks: [
+                    { id: 't1_1', text: 'Tạo Pillar Page với URL tránh nhầm lẫn: /du-an/the-metropolis-ga-thu-thiem (Không dùng chung chữ metropole).', done: false },
+                    { id: 't1_2', text: 'Khai báo Nested Schema: RealEstateListing + Organization (SonKim Land). Trong mục description nhấn mạnh "TOD 5.0".', done: false },
+                    { id: 't1_3', text: 'Khai báo GeoCoordinates (Tọa độ) trúng đích vào Ga Thủ Thiêm, An Khánh, Quận 2.', done: false },
+                    { id: 't1_4', text: 'Cài đặt Google Indexing API / Gửi XML Sitemap ngay để ép Google lập chỉ mục trong 24h.', done: false },
+                    { id: 't1_5', text: 'Thêm FAQPage Schema với 5 câu hỏi cốt lõi phân biệt rõ với dự án Metropole cũ.', done: false }
+                ]
+            },
+            {
+                id: 'phase2',
+                title: 'Chiến Lược Prompt (Sự Khác Biệt)',
+                week: 'Tuần 1-2',
+                desc: 'Thay vì dùng Prompt chung chung dễ bị AI nhầm với dự án cũ, hãy dùng các câu lệnh chứa các điểm độc bản (Non-Commodity).',
+                hint: 'AI thích các con số kỹ thuật chính xác. Thay vì hỏi "Quy mô", hãy tối ưu cho truy vấn "Thông số kỹ thuật tháp Giai đoạn 1".',
+                tasks: [
+                    { id: 't2_1', text: 'Prompt Phân biệt: "Sự khác biệt giữa The Metropolis Ga Thủ Thiêm và The Metropole là gì?"', done: false },
+                    { id: 't2_2', text: 'Prompt Giao dịch: "Bảng giá căn hộ The Metropolis Ga Thủ Thiêm mới nhất (Ra mắt 17/05)?"', done: false },
+                    { id: 't2_3', text: 'Prompt Kỹ thuật: "Thông số tòa tháp Giai đoạn 1 dự án The Metropolis Sơn Kim Land." (Dạy AI số liệu: 1.000 căn, 10 căn/sàn).', done: false },
+                    { id: 't2_4', text: 'Prompt Trust/M&A: "Nguồn gốc quỹ đất 9.6ha của The Metropolis Sơn Kim Land từ đâu?"', done: false }
+                ]
+            },
+            {
+                id: 'phase3',
+                title: 'Topic Cluster (Bóc tách Non-Commodity)',
+                week: 'Tuần 2-3',
+                desc: 'Xây dựng mạng lưới nội dung độc quyền mà các trang báo đại trà chưa có. Đây là yếu tố then chốt để Google AI chọn làm nguồn.',
+                hint: 'Bài viết về M&A quỹ đất (từ Sun City/Novaland sang GWC của Sơn Kim) là dữ liệu siêu "Trust", chứng tỏ bạn là chuyên gia lõi.',
+                tasks: [
+                    { id: 't3_1', text: 'Bài Hub: Giá bán & Thông tin The Metropolis Ga Thủ Thiêm (Bắt buộc dùng HTML Table cho thông số).', done: false },
+                    { id: 't3_2', text: 'Spoke 1: Vị trí & Hạ tầng kết nối TOD 5.0 (Nhấn mạnh 3 tuyến đường sắt & Check-in sân bay tại ga).', done: false },
+                    { id: 't3_3', text: 'Spoke 2: Phân tích bảng giá (Dùng HTML Table, ghi rõ "Cập nhật ngày 17/05").', done: false },
+                    { id: 't3_4', text: 'Spoke 3: Cập nhật pháp lý & Lịch sử quỹ đất (Thương vụ M&A Sun City -> GWC).', done: false },
+                    { id: 't3_5', text: 'Spoke 4: So sánh chi tiết The Metropolis Ga Thủ Thiêm và The Metropole (Để AI phân biệt rõ).', done: false }
+                ]
+            },
+            {
+                id: 'phase4',
+                title: 'SOP Content (Answer-First & Fact Density)',
+                week: 'Xuyên suốt',
+                desc: 'Quy chuẩn cách viết để máy đọc (Machine-Readable). Cấm viết sáo rỗng, tập trung vào mật độ sự kiện (Fact Density).',
+                hint: 'Đảm bảo tỷ lệ Original Information (Thông tin gốc) > 30%. Không copy lại các thông tin mô tả tiện ích chung chung.',
+                tasks: [
+                    { id: 't4_1', text: 'Mở bài (Dưới H1) bằng Executive Answer (90-120 từ), trả lời thẳng vào tiêu đề bài viết.', done: false },
+                    { id: 't4_2', text: 'Cấu trúc H2/H3 phải là định dạng Câu hỏi (Question-based) như bộ Prompt ở Phase 2.', done: false },
+                    { id: 't4_3', text: 'Fact Density: Dùng số liệu (96,014 m2, 10 căn/sàn, 9 thang máy) thay cho "diện tích lớn", "mật độ thấp".', done: false },
+                    { id: 't4_4', text: 'Tối ưu Scannability: 100% các dữ liệu giá bán, chính sách phải bọc trong thẻ Bảng (Table HTML).', done: false }
+                ]
+            },
+            {
+                id: 'phase5',
+                title: 'Digital PR & Video RAG (Co-occurrence)',
+                week: 'Tuần 4',
+                desc: 'Gửi tín hiệu xác thực từ bên ngoài (Off-page) bằng cách đồng xuất hiện thực thể, không phải bằng cách spam backlink.',
+                hint: 'AI đa phương thức (Gemini, ChatGPT-4o) quét rất mạnh nội dung Video trên YouTube. Hãy tận dụng mô tả video.',
+                tasks: [
+                    { id: 't5_1', text: 'Book bài PR phân tích chuyên sâu (VD: "Mô hình TOD 5.0 tại The Metropolis"), không PR rập khuôn.', done: false },
+                    { id: 't5_2', text: 'Bài PR nhắc đủ 3 cụm: [The Metropolis Ga Thủ Thiêm] + [Sơn Kim Land] + [Tên Thương Hiệu Bạn].', done: false },
+                    { id: 't5_3', text: 'Đăng Video Flycam công trường lên YouTube (Kèm metadata C2PA nếu có).', done: false },
+                    { id: 't5_4', text: 'Tối ưu hóa Mô tả Video (Video RAG): Viết 150 từ chứa từ khóa TOD, Ga Thủ Thiêm và chèn link về website.', done: false }
+                ]
+            }
+        ];
+
+        // --- State Management ---
+        let currentPhaseIndex = 0;
+        let chartInstance = null;
+
+        // --- DOM Elements ---
+        const phaseNavEl = document.getElementById('phase-nav');
+        const phaseBadgeEl = document.getElementById('phase-badge');
+        const phaseTitleEl = document.getElementById('phase-title');
+        const phaseDescEl = document.getElementById('phase-desc');
+        const phaseHintEl = document.getElementById('phase-hint');
+        const taskListEl = document.getElementById('task-list');
+        const overallProgressBar = document.getElementById('overall-progress-bar');
+        const overallProgressText = document.getElementById('overall-progress-text');
+
+        // --- Initialization ---
+        function init() {
+            renderNav();
+            renderPhase(0);
+            initChart();
+            updateOverallProgress();
+        }
+
+        // --- Render Functions ---
+        function renderNav() {
+            phaseNavEl.innerHTML = '';
+            planData.forEach((phase, index) => {
+                const li = document.createElement('li');
+                const isActive = index === currentPhaseIndex;
+                
+                const completedTasks = phase.tasks.filter(t => t.done).length;
+                const isPhaseDone = completedTasks === phase.tasks.length && phase.tasks.length > 0;
+                
+                let icon = isActive ? '🔹' : (isPhaseDone ? '✅' : '🔸');
+                
+                li.className = `p-3 rounded-lg cursor-pointer transition-colors border ${isActive ? 'bg-teal-50 border-teal-200 shadow-sm' : 'bg-transparent border-transparent hover:bg-stone-100'} flex items-start gap-3`;
+                li.onclick = () => {
+                    currentPhaseIndex = index;
+                    renderNav();
+                    renderPhase(index);
+                };
+                li.innerHTML = `
+                    <span class="mt-0.5 text-sm">${icon}</span>
+                    <div>
+                        <div class="text-sm font-semibold ${isActive ? 'text-teal-900' : 'text-stone-700'}">${phase.title}</div>
+                        <div class="text-xs text-stone-500 mt-1">${phase.week} • ${completedTasks}/${phase.tasks.length} task</div>
+                    </div>
+                `;
+                phaseNavEl.appendChild(li);
+            });
+        }
+
+        function renderPhase(index) {
+            const phase = planData[index];
+            phaseBadgeEl.textContent = phase.week;
+            phaseTitleEl.textContent = phase.title;
+            phaseDescEl.textContent = phase.desc;
+            
+            if (phase.hint) {
+                phaseHintEl.innerHTML = `<strong>💡 Cập nhật AEO 2026:</strong> ${phase.hint}`;
+                phaseHintEl.classList.remove('hidden');
+            } else {
+                phaseHintEl.classList.add('hidden');
+            }
+
+            taskListEl.innerHTML = '';
+            phase.tasks.forEach((task, taskIndex) => {
+                const li = document.createElement('li');
+                li.className = `flex items-start gap-3 p-3 rounded border ${task.done ? 'bg-stone-50 border-stone-200' : 'bg-white border-stone-200'} transition-all`;
+                
+                const checkboxId = `check_${index}_${taskIndex}`;
+                
+                li.innerHTML = `
+                    <div class="flex-shrink-0 mt-0.5">
+                        <input type="checkbox" id="${checkboxId}" class="w-5 h-5 text-teal-600 rounded border-stone-300 focus:ring-teal-500 cursor-pointer" ${task.done ? 'checked' : ''}>
+                    </div>
+                    <label for="${checkboxId}" class="text-sm cursor-pointer select-none ${task.done ? 'text-stone-400 line-through' : 'text-stone-700'}">
+                        ${task.text}
+                    </label>
+                `;
+                
+                const checkbox = li.querySelector('input');
+                checkbox.addEventListener('change', (e) => {
+                    planData[index].tasks[taskIndex].done = e.target.checked;
+                    renderPhase(index);
+                    renderNav();
+                    updateOverallProgress();
+                    updateChartData();
+                });
+                
+                taskListEl.appendChild(li);
+            });
+        }
+
+        function updateOverallProgress() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            planData.forEach(phase => {
+                totalTasks += phase.tasks.length;
+                completedTasks += phase.tasks.filter(t => t.done).length;
+            });
+            
+            const percent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+            overallProgressBar.style.width = `${percent}%`;
+            overallProgressText.textContent = `${percent}%`;
+        }
+
+        // --- Chart.js Implementation ---
+        function initChart() {
+            const ctx = document.getElementById('trustChart').getContext('2d');
+            const chartData = calculateChartData();
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Khởi đầu', 'Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4 (Mục tiêu)'],
+                    datasets: [
+                        {
+                            label: 'Quỹ đạo Trust tối ưu (AEO)',
+                            data: [10, 30, 60, 85, 100],
+                            borderColor: '#d6d3d1',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Mức độ AI tách bạch & tin tưởng Thực tế',
+                            data: chartData,
+                            borderColor: '#0f766e',
+                            backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#0f766e',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Entity Trust Score (%)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateChartData() {
+            let score = 10;
+            const data = [score];
+            
+            const p1Done = planData[0].tasks.filter(t => t.done).length / planData[0].tasks.length;
+            score += (p1Done * 20);
+            data.push(Math.round(score));
+            
+            const p2Done = planData[1].tasks.filter(t => t.done).length / planData[1].tasks.length;
+            score += (p2Done * 30);
+            data.push(Math.round(score));
+            
+            const p3Done = planData[2].tasks.filter(t => t.done).length / planData[2].tasks.length;
+            const p4Done = planData[3].tasks.filter(t => t.done).length / planData[3].tasks.length;
+            score += ((p3Done + p4Done)/2 * 25);
+            data.push(Math.round(score));
+            
+            const p5Done = planData[4].tasks.filter(t => t.done).length / planData[4].tasks.length;
+            score += (p5Done * 15);
+            data.push(Math.min(100, Math.round(score)));
+            
+            return data;
+        }
+
+        function updateChartData() {
+            if (chartInstance) {
+                chartInstance.data.datasets[1].data = calculateChartData();
+                chartInstance.update();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
