@@ -1,4 +1,4 @@
-# CONTEXT — cập nhật: 21/05/2026 (session 12)
+# CONTEXT — cập nhật: 23/05/2026 (session 13)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
@@ -23,6 +23,14 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 ## Đang làm dở
 - [ ] **CHƯA XÁC NHẬN**: `safeParseJSON` 4-stage pipeline có fix được "Unexpected token ')'" không — cần test với bài thật
 - [ ] **Test v2.1 scoring** với bài thật — xác nhận SI1/SI2 score, tab 🎯 Search Intent, tooltip/badge
+
+## Vừa xong (session 13 — 23/05/2026)
+- [x] **Tạo PR #1** trên GitHub (`claude/priceless-tu-20b2b5` → `master`) — https://github.com/ngothaitinh/tpi-scorer/pull/1
+- [x] **Resolve merge conflicts** trong PR — accept master cho `public/index.html`, `CONTEXT.md`; merge cả 2 sides cho `.claude/settings.local.json`
+- [x] **Fix Netlify deploy preview fail** — root cause: esbuild không tìm được `@netlify/blobs` khi build fresh (không có cached node_modules)
+  - Fix: thêm `external_node_modules = ["@netlify/blobs"]` vào `[functions]` trong `netlify.toml`
+  - Áp dụng fix cho cả `master` (commit `9e582f9`)
+  - CI checks: Header rules ✅ success, Pages changed ✅ neutral, Redirect rules ✅ neutral
 
 ## Vừa xong (session 12 — 21/05/2026)
 - [x] **P1 độ tin cậy chấm điểm** — commit `0c7956d` (+79/-35, 4167 dòng)
@@ -131,7 +139,8 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 
 ## Quyết định đã chốt — KHÔNG thay đổi nếu chưa hỏi Jimmy T7
 - **Single-file HTML** — không tách JS/CSS, không dùng React/Vue
-- **localStorage only** — không có backend, không có DB
+- **localStorage only** cho user session** — user DB đã migrate sang Netlify Blobs (server-side)
+- **`external_node_modules = ["@netlify/blobs"]`** trong `netlify.toml` — bắt buộc để deploy preview hoạt động
 - **Admin key mặc định**: `admin` / `admin2024` (đổi sau khi deploy)
 - **skip_llm_threshold = 30** — rule < 30đ thì skip LLM tier 3+4
 - **llm_mode**: `balanced` (Haiku+Sonnet) / `economy` (Haiku all) / `accurate` (Sonnet all)
@@ -147,7 +156,7 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 - **Result layout**: 2-column grid, 3 tabs (Fixes/Checklist/Chi tiết)
 
 ## Số liệu hiện tại
-- `public/index.html`: **4167 dòng** (main file — edits trực tiếp)
+- `public/index.html`: **4456 dòng** (main file — edits trực tiếp)
 - `src/rubric.tpi-v2.json`: 28 tiêu chí (24 v1 + 4 AEO/GEO), 100 điểm, pass = 70
 - Rubric v2.1 (in-code): 28 tiêu chí + SI1 + SI2 = 30 tiêu chí, 100đ, pass = 70
 - `src/rubric.tpi-v1.json`: frozen — không sửa
@@ -155,7 +164,7 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible) qua universal proxy.
 - Ước tính chi phí: ~530đ/bài (balanced), ~$0.007 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng
-- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4167 dòng)
+- File chính: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (4456 dòng)
 - KHÔNG sửa file worktree
 - Server localhost:3000 đang serve đúng main file
 - `RULE_SCORERS` (~line 1843): dispatcher object — A1/A2/A3 đã thêm vào
