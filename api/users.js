@@ -1,8 +1,8 @@
 // Vercel Function — User Management API
-// Dùng Upstash Redis làm persistent storage
+// Dùng Vercel Blob làm persistent storage (free, không cần setup riêng)
 //
-// Setup: Vercel Dashboard → Storage → Upstash → Create Redis DB → Connect to project
-// → Tự động inject UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// Setup: Vercel Dashboard → Storage → Blob → Create → Connect to project
+// → Tự động inject BLOB_READ_WRITE_TOKEN
 //
 // Actions:
 //   register   POST { name, username, pass }
@@ -14,11 +14,9 @@
 //   resetpass  POST { adminUser, adminPassHash, username, newPass }
 //   delete     POST { adminUser, adminPassHash, username }
 
-const { Redis } = require('@upstash/redis');
-const redis = new Redis({
-  url:   process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+const { put, list } = require('@vercel/blob');
+
+const USERS_BLOB = 'tpi-users.json';
 
 function setCORS(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -36,10 +34,21 @@ function ok(res, data)           { return res.status(200).json(data); }
 function err(res, msg, code=400) { return res.status(code).json({ error: msg }); }
 
 async function getUsers() {
-  try { return (await redis.get('tpi-users')) || {}; }
-  catch { return {}; }
+  try {
+    const { blobs } = await list({ prefix: USERS_BLOB, limit: 1 });
+    if (!blobs.length) return {};
+    const res = await fetch(blobs[0].url);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch { return {}; }
 }
-async function saveUsers(users) { await redis.set('tpi-users', users); }
+async function saveUsers(users) {
+  await put(USERS_BLOB, JSON.stringify(users), {
+    access: 'public',
+    contentType: 'application/json',
+    addRandomSuffix: false,
+  });
+}
 
 async function ensureAdmin() {
   const users = await getUsers();
