@@ -5,8 +5,5 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "@netlify/blobs": "^7.3.0"
-  },
-  "private": true
+"private": true
 }
