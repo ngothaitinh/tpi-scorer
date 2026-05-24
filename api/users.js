@@ -1,8 +1,8 @@
 // Vercel Function — User Management API
-// Dùng Vercel KV (Redis) làm persistent storage
+// Dùng Upstash Redis làm persistent storage
 //
-// Setup: Vercel Dashboard → Storage → Create KV → Connect to project
-// → Tự động inject KV_REST_API_URL + KV_REST_API_TOKEN
+// Setup: Vercel Dashboard → Storage → Upstash → Create Redis DB → Connect to project
+// → Tự động inject UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
 //
 // Actions:
 //   register   POST { name, username, pass }
@@ -14,7 +14,11 @@
 //   resetpass  POST { adminUser, adminPassHash, username, newPass }
 //   delete     POST { adminUser, adminPassHash, username }
 
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
+const redis = new Redis({
+  url:   process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 function setCORS(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -32,10 +36,10 @@ function ok(res, data)           { return res.status(200).json(data); }
 function err(res, msg, code=400) { return res.status(code).json({ error: msg }); }
 
 async function getUsers() {
-  try { return (await kv.get('tpi-users')) || {}; }
+  try { return (await redis.get('tpi-users')) || {}; }
   catch { return {}; }
 }
-async function saveUsers(users) { await kv.set('tpi-users', users); }
+async function saveUsers(users) { await redis.set('tpi-users', users); }
 
 async function ensureAdmin() {
   const users = await getUsers();
