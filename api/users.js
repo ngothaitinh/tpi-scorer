@@ -57,7 +57,7 @@ async function ensureAdmin() {
       name: 'Jimmy T7', pass: hashPass('admin2024'),
       role: 'admin', status: 'active', dailyLimit: 999, submissions: []
     };
-    await saveUsers(users);
+    try { await saveUsers(users); } catch (e) { console.error('ensureAdmin save error:', e.message); }
   }
   return users;
 }
@@ -80,7 +80,15 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return err(res, 'Method Not Allowed', 405);
 
-  const body = req.body || {};
+  // Kiểm tra Blob token
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return err(res, 'Storage chưa cấu hình. Vào Vercel → Storage → Connect Blob store vào project.', 503);
+  }
+
+  let body;
+  try { body = req.body || {}; } catch { body = {}; }
+
+  try {
   const { action } = body;
 
   // ── REGISTER ────────────────────────────────────────────────
@@ -193,4 +201,9 @@ module.exports = async (req, res) => {
   }
 
   return err(res, 'Unknown action');
+
+  } catch (e) {
+    console.error('users API crash:', e.message);
+    return err(res, 'Lỗi server: ' + e.message, 500);
+  }
 };
