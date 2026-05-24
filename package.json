@@ -1,9 +1,12 @@
 {
   "name": "tpi-scorer",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "TPI Content Scorer — AEO/GEO Edition",
   "engines": {
     "node": ">=18"
   },
-"private": true
+  "private": true,
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
 }

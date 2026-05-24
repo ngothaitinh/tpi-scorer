@@ -1273,7 +1273,7 @@ function switchTab(tab) {
 
 // ── API helper ────────────────────────────────────────────────
 async function usersAPI(body) {
-  const res = await fetch('/.netlify/functions/users', {
+  const res = await fetch('/api/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -1668,8 +1668,8 @@ async function callAnthropic(prompt, apiKey, model, maxTokens) {
       body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
     });
   } else {
-    // Fallback: gọi qua Netlify Function proxy (key lưu server-side ANTHROPIC_API_KEY)
-    res = await fetch('/.netlify/functions/claude', {
+    // Fallback: gọi qua Vercel Function proxy (key lưu server-side ANTHROPIC_API_KEY)
+    res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model, prompt, maxTokens }),
@@ -3426,8 +3426,8 @@ async function fetchArticleFromUrl() {
     status.style.color = 'var(--ink3)';
     status.textContent = 'Đang tải Google Docs qua proxy...';
   } else {
-    // Dùng Netlify Function để fetch server-side — tránh CORS
-    fetchUrl = '/.netlify/functions/fetch';
+    // Dùng Vercel Function để fetch server-side — tránh CORS
+    fetchUrl = '/api/fetch';
     fetchOpts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: rawUrl }) };
     status.style.color = 'var(--ink3)';
     status.textContent = 'Đang tải...';
