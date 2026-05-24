@@ -14,7 +14,7 @@
 //   resetpass  POST { adminUser, adminPassHash, username, newPass }
 //   delete     POST { adminUser, adminPassHash, username }
 
-const { put, list, getDownloadUrl } = require('@vercel/blob');
+const { put, list } = require('@vercel/blob');
 
 const USERS_BLOB = 'tpi-users.json';
 
@@ -37,8 +37,10 @@ async function getUsers() {
   try {
     const { blobs } = await list({ prefix: USERS_BLOB, limit: 1 });
     if (!blobs.length) return {};
-    const signedUrl = await getDownloadUrl(blobs[0].url);
-    const res = await fetch(signedUrl);
+    // Private store: fetch với Bearer token
+    const res = await fetch(blobs[0].url, {
+      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+    });
     if (!res.ok) return {};
     return await res.json();
   } catch (e) {
@@ -47,8 +49,8 @@ async function getUsers() {
   }
 }
 async function saveUsers(users) {
+  // Private store: không truyền access field
   await put(USERS_BLOB, JSON.stringify(users), {
-    access: 'private',
     contentType: 'application/json',
     addRandomSuffix: false,
   });
