@@ -14,9 +14,31 @@
 //   resetpass  POST { adminUser, adminPassHash, username, newPass }
 //   delete     POST { adminUser, adminPassHash, username }
 
-const { put, list } = require('@vercel/blob');
-
+// Vercel Blob REST API — bypass SDK để tránh lỗi "access must be public" trên private store
 const USERS_BLOB = 'tpi-users.json';
+
+async function blobList() {
+  const token = process.env.BLOB_READ_WRITE_TOKEN || '';
+  const res = await fetch(`https://blob.vercel-storage.com?prefix=${USERS_BLOB}&limit=1`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Blob list failed: ' + res.status);
+  return res.json();
+}
+
+async function blobPut(content) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN || '';
+  const res = await fetch(`https://blob.vercel-storage.com/${USERS_BLOB}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'x-api-version': '7',
+    },
+    body: content,
+  });
+  if (!res.ok) throw new Error('Blob put failed: ' + await res.text());
+}
 
 function setCORS(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,9 +57,12 @@ function err(res, msg, code=400) { return res.status(code).json({ error: msg });
 
 async function getUsers() {
   try {
-    const { blobs } = await list({ prefix: USERS_BLOB, limit: 1 });
-    if (!blobs.length) return {};
-    const res = await fetch(blobs[0].url);
+    const { blobs } = await blobList();
+    if (!blobs || !blobs.length) return {};
+    const token = process.env.BLOB_READ_WRITE_TOKEN || '';
+    const res = await fetch(blobs[0].url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!res.ok) return {};
     return await res.json();
   } catch (e) {
@@ -46,11 +71,7 @@ async function getUsers() {
   }
 }
 async function saveUsers(users) {
-  await put(USERS_BLOB, JSON.stringify(users), {
-    access: 'public',
-    contentType: 'application/json',
-    addRandomSuffix: false,
-  });
+  await blobPut(JSON.stringify(users));
 }
 
 async function ensureAdmin() {
