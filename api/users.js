@@ -37,10 +37,7 @@ async function getUsers() {
   try {
     const { blobs } = await list({ prefix: USERS_BLOB, limit: 1 });
     if (!blobs.length) return {};
-    // Private store: fetch với Bearer token
-    const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-    });
+    const res = await fetch(blobs[0].url);
     if (!res.ok) return {};
     return await res.json();
   } catch (e) {
@@ -49,8 +46,8 @@ async function getUsers() {
   }
 }
 async function saveUsers(users) {
-  // Private store: không truyền access field
   await put(USERS_BLOB, JSON.stringify(users), {
+    access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
   });
