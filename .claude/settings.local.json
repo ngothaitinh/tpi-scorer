@@ -80,7 +80,10 @@
       "Bash(Select-Object -ExpandProperty Lines)",
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
       "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_snapshot",
-      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__click"
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__click",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git checkout *)"
     ]
   }
 }
