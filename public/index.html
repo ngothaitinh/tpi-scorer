@@ -3416,6 +3416,7 @@ async function fetchArticleFromUrl() {
   // Xử lý Google Docs: chuyển sang /pub rồi fetch qua CORS proxy
   const gdocsMatch = rawUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/);
   let fetchUrl = rawUrl;
+  let fetchOpts = {};
   let isGoogleDoc = false;
   if (gdocsMatch) {
     isGoogleDoc = true;
@@ -3425,12 +3426,15 @@ async function fetchArticleFromUrl() {
     status.style.color = 'var(--ink3)';
     status.textContent = 'Đang tải Google Docs qua proxy...';
   } else {
+    // Dùng Netlify Function để fetch server-side — tránh CORS
+    fetchUrl = '/.netlify/functions/fetch';
+    fetchOpts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: rawUrl }) };
     status.style.color = 'var(--ink3)';
     status.textContent = 'Đang tải...';
   }
 
   try {
-    const res = await fetch(fetchUrl);
+    const res = await fetch(fetchUrl, fetchOpts);
     const body = await res.text();
 
     if (!res.ok) {
