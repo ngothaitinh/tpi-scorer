@@ -14,7 +14,7 @@
 //   resetpass  POST { adminUser, adminPassHash, username, newPass }
 //   delete     POST { adminUser, adminPassHash, username }
 
-const { put, list } = require('@vercel/blob');
+const { put, list, getDownloadUrl } = require('@vercel/blob');
 
 const USERS_BLOB = 'tpi-users.json';
 
@@ -37,14 +37,18 @@ async function getUsers() {
   try {
     const { blobs } = await list({ prefix: USERS_BLOB, limit: 1 });
     if (!blobs.length) return {};
-    const res = await fetch(blobs[0].url);
+    const signedUrl = await getDownloadUrl(blobs[0].url);
+    const res = await fetch(signedUrl);
     if (!res.ok) return {};
     return await res.json();
-  } catch { return {}; }
+  } catch (e) {
+    console.error('getUsers error:', e.message);
+    return {};
+  }
 }
 async function saveUsers(users) {
   await put(USERS_BLOB, JSON.stringify(users), {
-    access: 'public',
+    access: 'private',
     contentType: 'application/json',
     addRandomSuffix: false,
   });
