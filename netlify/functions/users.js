@@ -71,7 +71,14 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return err('Invalid JSON'); }
 
-  const store = getStore('tpi-users');
+  // NETLIFY_BLOBS_CONTEXT không auto-inject trên một số site cũ
+  // → cấu hình manual: SITE_ID (auto-set bởi Netlify) + NETLIFY_TOKEN (user set)
+  const siteID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID || '';
+  const token  = process.env.NETLIFY_TOKEN || process.env.NETLIFY_AUTH_TOKEN || '';
+  if (!siteID || !token) {
+    return err('Chưa cấu hình Netlify Blobs. Cần set env var NETLIFY_TOKEN trên Netlify dashboard.', 503);
+  }
+  const store = getStore({ name: 'tpi-users', siteID, token });
   const { action } = body;
 
   // ── REGISTER ────────────────────────────────────────────────
