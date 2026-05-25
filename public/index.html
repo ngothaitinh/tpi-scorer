@@ -1640,6 +1640,9 @@ async function callLLM(prompt, cfg, maxTokens) {
            : provider === 'kimi'     ? 'https://api.moonshot.cn/v1/chat/completions'
            : provider === 'minimax'  ? 'https://api.minimax.chat/v1/text/chatcompletion_v2'
            : custom_endpoint;
+  // Model prefix "ant/" → Anthropic-compat endpoint (/messages, Anthropic response format)
+  // Dùng cho chiasegpu.vn "ant/claude-*" models
+  if (model.startsWith('ant/')) return callAnthropicCompat(prompt, api_key, model, maxTokens, ep);
   return callOpenAICompat(prompt, api_key, model, maxTokens, ep);
 }
 
@@ -1711,6 +1714,24 @@ async function callOpenAICompat(prompt, apiKey, model, maxTokens, endpoint) {
   if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
   if (data.usage) { _tok.in += data.usage.prompt_tokens || 0; _tok.out += data.usage.completion_tokens || 0; }
   return data.choices[0].message.content;
+}
+
+// Anthropic-compat endpoint — dùng cho chiasegpu "ant/*" models
+// POST /v1/messages, Authorization: Bearer, response format Anthropic
+async function callAnthropicCompat(prompt, apiKey, model, maxTokens, endpoint) {
+  if (!endpoint) throw new Error('Chưa nhập endpoint URL cho Custom provider.');
+  const base = endpoint.replace(/\/$/, '');
+  const url = base.includes('/messages') ? base : base + '/messages';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const body = await res.text();
+  const data = _parseApiBody(body, res.status);
+  if (!res.ok) throw new Error(data?.error?.message || 'HTTP ' + res.status);
+  if (data.usage) { _tok.in += data.usage.input_tokens || 0; _tok.out += data.usage.output_tokens || 0; }
+  return data.content[0].text;
 }
 
 // ============================================================
