@@ -19,7 +19,8 @@ const USERS_BLOB = 'tpi-users.json';
 
 async function blobList() {
   const token = process.env.BLOB_READ_WRITE_TOKEN || '';
-  const res = await fetch(`https://blob.vercel-storage.com?prefix=${USERS_BLOB}&limit=1`, {
+  // Lấy tất cả blobs với prefix — không limit=1 để đảm bảo lấy được blob mới nhất
+  const res = await fetch(`https://blob.vercel-storage.com?prefix=${encodeURIComponent(USERS_BLOB)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Blob list failed: ' + res.status);
@@ -34,6 +35,7 @@ async function blobPut(content) {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       'x-api-version': '7',
+      'x-add-random-suffix': '0',  // Giữ tên file cố định — không random suffix
     },
     body: content,
   });
@@ -59,8 +61,12 @@ async function getUsers() {
   try {
     const { blobs } = await blobList();
     if (!blobs || !blobs.length) return {};
+    // Sort descending theo uploadedAt → lấy blob MỚI NHẤT (tránh đọc blob cũ/random-suffix)
+    const newest = blobs.slice().sort((a, b) =>
+      new Date(b.uploadedAt) - new Date(a.uploadedAt)
+    )[0];
     const token = process.env.BLOB_READ_WRITE_TOKEN || '';
-    const res = await fetch(blobs[0].url, {
+    const res = await fetch(newest.url, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return {};
