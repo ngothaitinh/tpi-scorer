@@ -6,7 +6,5 @@
     "node": ">=18"
   },
   "private": true,
-  "dependencies": {
-    "_comment": "no external deps needed — blob via REST API"
-  }
+  "dependencies": {}
 }
