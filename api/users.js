@@ -19,23 +19,26 @@ const USERS_BLOB = 'tpi-users.json';
 
 async function blobList() {
   const token = process.env.BLOB_READ_WRITE_TOKEN || '';
-  // Lấy tất cả blobs với prefix — không limit=1 để đảm bảo lấy được blob mới nhất
-  const res = await fetch(`https://blob.vercel-storage.com?prefix=${encodeURIComponent(USERS_BLOB)}`, {
+  // Private store: blob có random suffix → tìm prefix "tpi-users" (không có .json)
+  // để match được cả "tpi-users.json" lẫn "tpi-users-AbCd12.json"
+  const prefix = USERS_BLOB.replace('.json', '');
+  const res = await fetch(`https://blob.vercel-storage.com?prefix=${encodeURIComponent(prefix)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error('Blob list failed: ' + res.status);
+  if (!res.ok) throw new Error('Blob list failed: ' + res.status + ' ' + await res.text());
   return res.json();
 }
 
 async function blobPut(content) {
   const token = process.env.BLOB_READ_WRITE_TOKEN || '';
+  // Private store: KHÔNG dùng x-add-random-suffix (chỉ hoạt động trên public store)
+  // Vercel sẽ tự thêm random suffix — blobList sẽ tìm bằng prefix
   const res = await fetch(`https://blob.vercel-storage.com/${USERS_BLOB}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       'x-api-version': '7',
-      'x-add-random-suffix': '0',  // Giữ tên file cố định — không random suffix
     },
     body: content,
   });
