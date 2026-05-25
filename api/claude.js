@@ -33,7 +33,8 @@ async function callAnthropic(model, prompt, maxTokens, apiKey) {
 }
 
 async function callOpenAICompat(model, prompt, maxTokens, endpoint, apiKey) {
-  const url = endpoint.replace(/\/$/, '') + '/chat/completions';
+  const base = endpoint.replace(/\/$/, '');
+  const url = base.includes('/chat/completions') ? base : base + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
     headers: {
