@@ -2113,6 +2113,22 @@ function _scoreG3(parsed) {
   return { score: count >= 3 ? 2 : count >= 2 ? 1 : 0, evidence: { hasName, hasAddress, hasPhone } };
 }
 
+// G1: GEO Citable Chunk (2đ) — rule-based: đoạn ≤200 từ có Entity+Number+Attribute
+// Chuyển từ LLM sang rule vì "tự đứng được" quá trừu tượng cho LLM scoring nhất quán
+function _scoreG1(parsed, meta) {
+  const entityName = (meta?.entity || '').trim();
+  if (!entityName) return { score: 0, evidence: { hasChunk: false } };
+  const entityRx = new RegExp(entityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const numberRx = /\d+[\d.,]*\s*(m²|m2|tầng|tỷ|triệu|km|căn|block|%|phút)/i;
+  const attrRx   = /(vị trí|tiện ích|pháp lý|giá|chủ đầu tư|diện tích|view|hướng|thiết kế)/i;
+  const paras = parsed.text.split(/\n{2,}/);
+  const hasChunk = paras.some(p => {
+    const words = p.split(/\s+/).length;
+    return words >= 30 && words <= 200 && entityRx.test(p) && numberRx.test(p) && attrRx.test(p);
+  });
+  return { score: hasChunk ? 2 : 0, evidence: { hasChunk } };
+}
+
 // Deterministic rule scorers — criterion_id → scorer fn
 const RULE_SCORERS = {
   S3: _scoreS3, S4: _scoreS4,
@@ -2121,7 +2137,7 @@ const RULE_SCORERS = {
   A1: _scoreA1, A2: _scoreA2, A3: _scoreA3, // v2 AEO/GEO rule criteria
   SI2: _scoreSI2,                             // v2.1 Search Intent Opening Signal
   E1: _scoreE1, E2: _scoreE2, E3: _scoreE3,  // v3.0 E-E-A-T rule criteria
-  G2: _scoreG2, G3: _scoreG3,                // v3.0 GEO structured format + NAP
+  G1: _scoreG1, G2: _scoreG2, G3: _scoreG3, // v3.0 GEO: citable chunk + structured + NAP
 };
 
 function scoreRules(parsed, meta) {
@@ -2141,7 +2157,7 @@ function scoreRules(parsed, meta) {
   const fb = _fallbackHeuristic(parsed);
   Object.assign(scores, { R2: fb.R2, R5: fb.R5, I3: fb.I3, I4: fb.I4 });
   // Zero-init LLM-only criteria (tránh NaN khi tính total)
-  ['S2','S5','P1','R1','R3','R4','I1','I2','G1','SI1','HC1'].forEach(id => { scores[id] = scores[id] ?? 0; });
+  ['S2','S5','P1','R1','R3','R4','I1','I2','SI1','HC1'].forEach(id => { scores[id] = scores[id] ?? 0; });
   const total = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) * 10) / 10;
   return { scores, total, evidence };
 }
@@ -2379,7 +2395,8 @@ function safeParseJSON(raw) {
   throw new Error('Phản hồi LLM không đúng định dạng JSON. Vui lòng thử lại hoặc đổi model.');
 }
 
-const SYSTEM_SIMPLE = `Bạn là chuyên gia chấm bài viết SEO/GEO theo rubric TPI Land. Chỉ trả về JSON thuần, không markdown, không giải thích.`;
+const SYSTEM_SIMPLE = `Bạn là chuyên gia chấm bài viết SEO/GEO theo rubric TPI Land. Chỉ trả về JSON thuần, không markdown, không giải thích.
+Quy tắc bắt buộc: (1) Mỗi điểm PHẢI nằm trong range đã cho — không được vượt max hoặc dưới 0. (2) Chấm nghiêm khắc — chỉ cho điểm cao khi có BẰNG CHỨNG RÕ RÀNG trong bài. (3) Nếu không chắc, chấm thấp hơn thay vì ưu ái.`;
 
 async function scoreLLMSimple(parsed, meta) {
   const headingList = parsed.headings.slice(0, 15).map(h => `${'#'.repeat(h.level)} ${h.text}`).join('\n');
@@ -2402,12 +2419,15 @@ Chấm JSON (số thực, v3.0 weights):
 {"S1":<0-5>,"S2":<0-4>,"S5":<0-4>,"P1":<0-4>,"R1":<0-4>,"R3":<0-2>,"R5":<0-3>,"HC1":<0|1.5|3>,
 "reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","HC1":"..."}}
 
-Hướng dẫn ngắn:
-S1(max5): H2 có đúng chủ đề H1 không | S2(max4): 9-10 heading đầu có cụ thể/liên quan không
-S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1(max4): câu đầu sau heading trả lời thẳng không
-R1(max4): heading liên quan agency BĐS TPI | R3(max2): topic khớp search intent keyword
-R5(max3): cuối bài có CTA/heading dẫn về TPI không
-HC1(max3): bài đề cập và giải đáp ít nhất 1 lo ngại thực tế không (pháp lý, rủi ro, developer uy tín, thanh khoản)? 3=giải đáp rõ, 1.5=đề cập mơ hồ, 0=không đề cập`;
+Hướng dẫn chấm điểm (phải tuân thủ chính xác):
+S1(max5): Đếm % H2 chứa ít nhất 1 từ từ keyword/entity của H1. ≥80%=5 | 60-79%=4 | 40-59%=3 | 20-39%=2 | <20%=1 | H2 hoàn toàn lạc đề=0
+S2(max4): 9-10 heading đầu: "Vị Trí Metropolis Gần Biển"=cụ thể(điểm cao) vs "Giới Thiệu"/"Thông Tin"=generic(điểm thấp)
+S5(max4): Heading có đủ 4 phase: (1)Định nghĩa/Vị trí (2)Đặc điểm/Tiện ích (3)Lợi ích/Giá trị (4)Hành động/CTA. 4 phase đúng thứ tự=4 | 3 phase=3 | 2 phase=2 | có logic nhưng lộn=1 | ngẫu nhiên=0
+P1(max4): câu đầu sau heading trả lời thẳng câu hỏi của heading không; đọc 150 từ đầu bài có thấy thông tin chính không?
+R1(max4): bài có ≥1 heading/đoạn dẫn đến TPI action (liên hệ TPI, xem nhà, tư vấn)? 4=đa điểm TPI | 2=1 điểm | 0=không có
+R3(max2): keyword "${meta.keyword}" + intent "${meta.intent}" — nội dung bài khớp đúng mục đích tìm kiếm? 2=khớp chính xác | 1=khớp một phần | 0=lạc hướng
+R5(max3): 25% cuối bài có CTA/heading dẫn về TPI không?
+HC1(max3): bài đề cập VÀ giải đáp ≥1 trong [rủi ro pháp lý cụ thể / tiến độ xây dựng / thanh khoản / năng lực CĐT / bảo lãnh ngân hàng]? 3=có phần Lưu ý/Rủi ro riêng + giải thích cụ thể | 1.5=đề cập thoáng qua không chi tiết | 0=bài hoàn toàn PR không có điểm bất lợi nào`;
 
   const apicfg = getApiConfig();
   const model = apicfg.provider === 'custom' ? apicfg.custom_model_simple : apicfg.model_simple;
@@ -2431,8 +2451,8 @@ ${preview}
 
 Chấm 7 tiêu chí (v2.1) + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
 
-{"R2":<0-4>,"R4":<0-5>,"I1":<0|3|6>,"I2":<0-4>,"I4":<0|1.5|3>,"G1":<0|2>,"SI1":<0-3>,
-"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","G1":"...","SI1":"..."},
+{"R2":<0-4>,"R4":<0-5>,"I1":<0|3|6>,"I2":<0-4>,"I4":<0|1.5|3>,"SI1":<0|1.5|3>,
+"reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","SI1":"..."},
 "top5_fixes":[
   {"priority":1,"criterion_id":"XX","location":"heading cụ thể","issue":"mô tả lỗi","fix":"giải pháp"},
   {"priority":2,"criterion_id":"XX","location":"...","issue":"...","fix":"..."},
@@ -2441,9 +2461,18 @@ Chấm 7 tiêu chí (v2.1) + tạo top5_fixes. Quy tắc fixes: location=tên he
   {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
 ]}
 
-Hướng dẫn: R2(max4)=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4(max5)=EAV có số liệu cụ thể hay mơ hồ; I1(max6)=data độc quyền TPI; I2(max4)=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín
-G1(GEO, 2đ): có ít nhất 1 đoạn ≤200 từ tự đứng được với đủ Entity+Attribute+Value để AI Search trích nguyên đoạn? 2=có, 0=không
-SI1(Search Intent Format Match,3đ): định dạng bài khớp intent "${meta.intent}"? Know=giáo dục/FAQ/định nghĩa rõ; Do=bảng giá/so sánh/CTA mua; Hybrid=cả 2 tách biệt; Go=liên hệ/thương hiệu nổi bật. 3=hoàn hảo,1.5=một phần,0=sai hoàn toàn`;
+Hướng dẫn chấm điểm (phải tuân thủ chính xác):
+R2(max4): đếm số attr có mặt trong [vị trí/tiện ích/pháp lý/giá/CĐT]. 4=đủ 5 | 3=4 | 2=3 | 1=2 | 0=<2
+R4(max5): EAV — mỗi attr có VALUE cụ thể? "Hồ bơi 1.500m²"=tốt vs "Hồ bơi cao cấp"=kém. 5=≥4 attr có số cụ thể | 3=2-3 attr | 1=1 attr | 0=toàn mơ hồ
+I1(max6): TPI data — tính điểm theo dấu hiệu: [A]"TPI đã hỗ trợ/tư vấn X khách"+số cụ thể [B]giá TB TPI Q/năm cụ thể [C]tên dự án+kết quả giao dịch thực. 6=≥2 trong A/B/C | 3=đúng 1 trong A/B/C | 0=không có TPI data cụ thể
+I2(max4): TPI-voice — tìm câu "Theo kinh nghiệm TPI..." / "Chúng tôi nhận thấy..." / "TPI Land đánh giá..." + nhận định cụ thể (floor, view, giá, thị trường). 4=≥2 câu TPI-voice+specific | 2=1 câu TPI-voice hoặc "chúng tôi"+claim | 0=giọng thứ 3 generic hoàn toàn
+I4(max3): nguồn uy tín — CBRE/Savills/JLL/VnExpress/cafef/báo cáo thị trường. 3=≥3 nguồn | 1.5=1-2 nguồn | 0=không có
+SI1(max3): intent="${meta.intent}" — kiểm tra FORMAT bài theo checklist:
+  Know: (1)có định nghĩa rõ ràng (2)có FAQ/H3 dạng câu hỏi (3)không bán hàng trực tiếp
+  Do: (1)có bảng giá/so sánh (2)có CTA "liên hệ/đặt lịch" (3)có hotline/số điện thoại
+  Hybrid: có ĐỦ cả Know+Do format tách biệt
+  Go: (1)thương hiệu nổi bật (2)địa chỉ cụ thể (3)hotline trong đầu bài
+3=đáp ứng ≥3/3 | 1.5=đáp ứng 2/3 | 0=≤1/3`;
 
   const apicfg2 = getApiConfig();
   const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
@@ -2540,25 +2569,28 @@ async function submitArticle() {
       top5 = generateRuleFixes(ruleScores, parsed, ruleEvidence);
     }
 
+    // clamp: đảm bảo LLM không trả điểm ngoài range [0, max]
+    const clamp = (v, id) => Math.min(CRITERION_MAX[id] || 1, Math.max(0, Number(v) || 0));
+
     // Aggregate scores — LLM overrides rule; nếu LLM không chạy thì giữ heuristic rule
     const allScores = {
       ...ruleScores,
-      S1:  simpleScores.S1  ?? ruleScores.S1  ?? 0,
-      S2:  simpleScores.S2  || 0,
-      S5:  simpleScores.S5  || 0,
-      P1:  simpleScores.P1  || 0,
-      R1:  simpleScores.R1  || 0,
-      R2:  complexScores.R2 ?? ruleScores.R2  ?? 0,
-      R3:  simpleScores.R3  || 0,
-      R4:  complexScores.R4 || 0,
-      R5:  simpleScores.R5  ?? ruleScores.R5  ?? 0,
-      I1:  complexScores.I1 || 0,
-      I2:  complexScores.I2 || 0,
-      I3:  ruleScores.I3 ?? 0,   // Rule heuristic (AI clichés) — không dùng LLM cho I3
-      I4:  complexScores.I4 ?? ruleScores.I4  ?? 0,
-      G1:  complexScores.G1 || 0,  // v2 GEO: LLM only
-      SI1: complexScores.SI1 || 0, // v2.1 Search Intent Format: LLM only
-      HC1: simpleScores.HC1 || 0,  // v3.0 Helpful Completeness: LLM Haiku
+      S1:  clamp(simpleScores.S1  ?? ruleScores.S1,  'S1'),
+      S2:  clamp(simpleScores.S2  ?? 0,              'S2'),
+      S5:  clamp(simpleScores.S5  ?? 0,              'S5'),
+      P1:  clamp(simpleScores.P1  ?? 0,              'P1'),
+      R1:  clamp(simpleScores.R1  ?? 0,              'R1'),
+      R2:  clamp(complexScores.R2 ?? ruleScores.R2,  'R2'),
+      R3:  clamp(simpleScores.R3  ?? 0,              'R3'),
+      R4:  clamp(complexScores.R4 ?? 0,              'R4'),
+      R5:  clamp(simpleScores.R5  ?? ruleScores.R5,  'R5'),
+      I1:  clamp(complexScores.I1 ?? 0,              'I1'),
+      I2:  clamp(complexScores.I2 ?? 0,              'I2'),
+      I3:  ruleScores.I3 ?? 0,   // Rule heuristic (AI clichés)
+      I4:  clamp(complexScores.I4 ?? ruleScores.I4,  'I4'),
+      G1:  ruleScores.G1  ?? 0,  // v3.0: converted to rule-based (_scoreG1)
+      SI1: clamp(complexScores.SI1 ?? 0,             'SI1'),
+      HC1: clamp(simpleScores.HC1 ?? 0,              'HC1'),
     };
 
     // v3.0 tier breakdown — T1(27) + T2(22) + T3(24) + T4(27) = 100đ
