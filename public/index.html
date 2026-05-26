@@ -951,6 +951,10 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
         <textarea id="f-content" style="display:none"></textarea>
         <div class="word-counter"><span id="word-count">0</span> từ</div>
       </div>
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Ghi chú <span style="color:var(--ink3);font-weight:400">(tùy chọn)</span></label>
+        <textarea id="f-notes" class="form-input" rows="2" placeholder="Ghi chú về bài viết này (phiên bản, người viết, URL...)" style="resize:vertical;min-height:52px;font-size:13px"></textarea>
+      </div>
       <label class="force-llm-row">
         <input type="checkbox" id="force-llm">
         Chấm đầy đủ với AI (tốn lượt, chính xác hơn)
@@ -2388,6 +2392,7 @@ async function submitArticle() {
   const keyword = document.getElementById('f-keyword').value.trim();
   const entity = document.getElementById('f-entity').value.trim();
   const content = document.getElementById('f-content').value.trim();
+  const notes = (document.getElementById('f-notes')?.value || '').trim();
   _lastArticleText = content; // Store for AI auto-check (Mức 2)
   const apiCfg  = getApiConfig();
   const forceLLM = document.getElementById('force-llm')?.checked || false;
@@ -2517,7 +2522,8 @@ async function submitArticle() {
       llmUsed,
       llmErrors,
       tokens: { in: _tok.in, out: _tok.out, total: _tok.in + _tok.out },
-      submitter: currentUser.username
+      submitter: currentUser.username,
+      ...(notes && { notes }),
     };
     const subs = DB.get('submissions', []);
     subs.unshift(submission);
@@ -3072,9 +3078,10 @@ function renderHistory() {
       const tokLabel = tok > 0
         ? `<span class="mono" title="Input: ${(s.tokens?.in||0).toLocaleString()} · Output: ${(s.tokens?.out||0).toLocaleString()}" style="color:var(--ink2)">${tok.toLocaleString('vi-VN')}</span>`
         : `<span style="color:var(--ink3)">—</span>`;
+      const notesFrag = s.notes ? `<div style="font-size:11px;color:var(--ink3);margin-top:3px;white-space:pre-wrap">${s.notes.length > 80 ? s.notes.slice(0,80) + '…' : s.notes}</div>` : '';
       return `<tr>
         <td class="mono" style="color:var(--ink3)">${s.date.slice(0,10)}</td>
-        <td>${s.keyword}</td>
+        <td>${s.keyword}${notesFrag}</td>
         <td class="mono">${s.wordCount}</td>
         <td class="mono"><strong>${Math.round(s.total)}</strong></td>
         <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
