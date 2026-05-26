@@ -1779,7 +1779,11 @@ function parseArticle(raw) {
   const h2 = headings.filter(h => h.level === 2);
   const h3 = headings.filter(h => h.level === 3);
 
-  return { text: plainText, wordCount, headings, h1, h2, h3 };
+  // Structured content counts — for G2 (table/list detection for AI Overviews)
+  const tableRows = [...tmp.querySelectorAll('table')].filter(t => t.querySelectorAll('tr').length >= 2).length;
+  const orderedLists = [...tmp.querySelectorAll('ol')].filter(ol => ol.querySelectorAll('li').length >= 3).length;
+
+  return { text: plainText, wordCount, headings, h1, h2, h3, tables: tableRows, orderedLists };
 }
 
 // ============================================================
@@ -1987,7 +1991,7 @@ function _scoreS1_heuristic(parsed, meta) {
   const kwTokens = [...meta.keyword.split(/\s+/), ...meta.entity.split(/\s+/)]
     .map(t => t.toLowerCase()).filter(t => t.length >= 3);
   const matched = h2.filter(h => kwTokens.some(t => h.text.toLowerCase().includes(t))).length;
-  const score = h2.length > 0 ? Math.round(7 * (matched / h2.length) * 10) / 10 : 0;
+  const score = h2.length > 0 ? Math.round(5 * (matched / h2.length) * 10) / 10 : 0; // v3: max 5đ
   return { score, evidence: { matchedH2: matched, totalH2: h2.length } };
 }
 
@@ -2018,7 +2022,7 @@ function _fallbackHeuristic(parsed) {
     'theo savills','theo jll','cafef.vn','vnexpress','tpi land q'];
   const citeCount = citePatterns.filter(c => lText.includes(c)).length;
   return {
-    R2: Math.round(5 * r2Found / r2Attrs.length * 10) / 10,
+    R2: Math.round(4 * r2Found / r2Attrs.length * 10) / 10, // v3: max 4đ
     R5: ctaHits.some(p => tail25.includes(p)) ? 3 : 0,
     I3: aiCount === 0 ? 3 : aiCount <= 2 ? 2 : aiCount <= 4 ? 1 : 0, // v2: max 3đ
     I4: citeCount >= 3 ? 3 : citeCount >= 1 ? 1.5 : 0,
@@ -2059,13 +2063,65 @@ function _scoreSI2(parsed, meta) {
   return { score, evidence };
 }
 
+// ── v3.0 E-E-A-T & GEO Rule Scorers ──────────────────────────────────────────
+
+// E1: First-Hand Experience Signals (4đ) — tín hiệu thực địa / kinh nghiệm thực tế
+function _scoreE1(parsed) {
+  const ltext = parsed.text.toLowerCase();
+  const patterns = [
+    /khảo sát thực tế/i, /ghi nhận thực tế/i, /thực địa/i,
+    /đội ngũ tpi trực tiếp/i, /dữ liệu giao dịch/i, /khách hàng (tpi )?phản hồi/i,
+    /chuyên viên .{3,25} cho biết/i, /theo tpi/i, /tpi land q[1-4]/i,
+    /chúng tôi đã (khảo sát|ghi nhận|thực hiện|tư vấn)/i,
+  ];
+  const matched = patterns.filter(r => r.test(ltext)).length;
+  const score = matched >= 2 ? 4 : matched === 1 ? 2 : 0;
+  return { score, evidence: { matchedCount: matched } };
+}
+
+// E2: Staff Credential Attribution (2đ) — trích dẫn tên nhân viên/chuyên gia cụ thể
+function _scoreE2(parsed) {
+  const text = parsed.text;
+  const personRegex = /(chuyên viên|chuyên gia|anh|chị|ông|bà)\s+[A-ZĐÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂƠƯẠẶẦẨẪẬẮẰẲẴẶẸẼỀẾỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ][a-zA-ZÀ-ỹ\s]{2,20}(cho biết|nhận xét|đánh giá|chia sẻ|tư vấn)/i;
+  const found = personRegex.test(text);
+  return { score: found ? 2 : 0, evidence: { hasCredential: found } };
+}
+
+// E3: Freshness Date Signal (2đ) — bài có date stamp cho dữ liệu ≥2025
+function _scoreE3(parsed) {
+  const ltext = parsed.text.toLowerCase();
+  const freshnessRegex = /(cập nhật|cập nhật ngày|giá tháng|dữ liệu tháng|tháng\s+\d{1,2}\/202[5-9]|quý [1-4]\/202[5-9]|năm 202[5-9])/i;
+  const found = freshnessRegex.test(ltext);
+  return { score: found ? 2 : 0, evidence: { hasFreshness: found } };
+}
+
+// G2: Structured Table/Ordered List (3đ) — bảng/danh sách đánh số cho AI Overviews
+function _scoreG2(parsed) {
+  const hasTables = (parsed.tables || 0) > 0;
+  const hasLists  = (parsed.orderedLists || 0) > 0;
+  const score = (hasTables && hasLists) ? 3 : hasTables ? 2 : hasLists ? 1 : 0;
+  return { score, evidence: { tables: parsed.tables || 0, orderedLists: parsed.orderedLists || 0 } };
+}
+
+// G3: NAP Consistency — Name + Address + Phone trong 30% cuối bài (2đ)
+function _scoreG3(parsed) {
+  const tail = parsed.text.slice(-Math.floor(parsed.text.length * 0.30)).toLowerCase();
+  const hasName    = /tpi\s*(land)?/i.test(tail);
+  const hasAddress = /\d+\s+[a-zđàáâãèéêìíòóôõùúăơưạặầẩẫậắằẳẵặẹẽềếễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ][a-zA-ZÀ-ỹ\s]{5,30},/.test(tail);
+  const hasPhone   = /(0|\+84)[0-9\s.\-]{8,12}/.test(tail);
+  const count = [hasName, hasAddress, hasPhone].filter(Boolean).length;
+  return { score: count >= 3 ? 2 : count >= 2 ? 1 : 0, evidence: { hasName, hasAddress, hasPhone } };
+}
+
 // Deterministic rule scorers — criterion_id → scorer fn
 const RULE_SCORERS = {
-  S3: _scoreS3, S4: _scoreS4, S6: _scoreS6,
+  S3: _scoreS3, S4: _scoreS4,
   P2: _scoreP2, P3: _scoreP3, P4: _scoreP4,
   P5: _scoreP5, P6: _scoreP6,
   A1: _scoreA1, A2: _scoreA2, A3: _scoreA3, // v2 AEO/GEO rule criteria
   SI2: _scoreSI2,                             // v2.1 Search Intent Opening Signal
+  E1: _scoreE1, E2: _scoreE2, E3: _scoreE3,  // v3.0 E-E-A-T rule criteria
+  G2: _scoreG2, G3: _scoreG3,                // v3.0 GEO structured format + NAP
 };
 
 function scoreRules(parsed, meta) {
@@ -2085,7 +2141,7 @@ function scoreRules(parsed, meta) {
   const fb = _fallbackHeuristic(parsed);
   Object.assign(scores, { R2: fb.R2, R5: fb.R5, I3: fb.I3, I4: fb.I4 });
   // Zero-init LLM-only criteria (tránh NaN khi tính total)
-  ['S2','S5','P1','R1','R3','R4','R6','I1','I2','G1','SI1'].forEach(id => { scores[id] = scores[id] ?? 0; });
+  ['S2','S5','P1','R1','R3','R4','I1','I2','G1','SI1','HC1'].forEach(id => { scores[id] = scores[id] ?? 0; });
   const total = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) * 10) / 10;
   return { scores, total, evidence };
 }
@@ -2117,27 +2173,29 @@ async function callClaude(prompt, _apiKey, model, maxTokens = 1000) {
   return callAnthropic(prompt, null, model, maxTokens);
 }
 
-// Tên và max weight của từng tiêu chí — rubric.tpi-v2 (AEO/GEO Edition)
+// Tên và max weight của từng tiêu chí — rubric.tpi-v3 (E-E-A-T + HCU + GEO Edition)
 const CRITERION_NAMES = {
   S1:'Macro Context H1↔H2', S2:'9-10 Heading đầu chất lượng', S3:'Heading Hierarchy',
-  S4:'Contextual Coverage', S5:'Contextual Flow logic', S6:'Tỷ lệ Supplement Content',
+  S4:'Contextual Coverage', S5:'Contextual Flow logic',
   A3:'Definition Sentence ⚡AEO',
+  G3:'NAP Consistency ⚡GEO', E3:'Freshness Date Signal ⚡E-E-A-T',
   P1:'Early Query Answer', P2:'Be Certain', P3:'Cụ thể vs Chung chung',
   P4:'Số liệu cụ thể', P5:'Heading viết hoa', P6:'Internal link đúng vị trí',
   A1:'Answer-First Paragraph ⚡AEO/GEO', A2:'FAQ Schema-Ready ⚡AEO',
   SI2:'Search Intent Opening Signal ⚡SI',
   R1:'RPP — Relevance', R2:'RPP — Prominence', R3:'RPP — Popularity',
-  R4:'EAV Coverage', R5:'Central Entity Alignment', R6:'Heading đầu-cuối kết nối',
-  SI1:'Search Intent Format Match ⚡SI',
+  R4:'EAV Coverage', R5:'Central Entity Alignment',
+  SI1:'Search Intent Format Match ⚡SI', HC1:'Helpful Completeness ⚡HCU',
   I1:'Dữ liệu độc quyền TPI', I2:'Góc nhìn mới', I3:'Tránh văn phong AI',
-  I4:'Trích dẫn nguồn', G1:'GEO Citable Chunk ⚡GEO'
+  I4:'Trích dẫn nguồn', G1:'GEO Citable Chunk ⚡GEO',
+  G2:'Structured Table/List ⚡GEO', E1:'First-Hand Experience ⚡E-E-A-T', E2:'Staff Credential ⚡E-E-A-T'
 };
-// v2.1: T1(27) + T2(27) + T3(26) + T4(20) = 100đ  (+SI1/SI2, -P7/P8/S6½/P3½/R3½/R6½)
+// v3.0: T1(27) + T2(22) + T3(24) + T4(27) = 100đ  (+E-E-A-T/HCU signals, -S6/R6/rebalanced)
 const CRITERION_MAX = {
-  S1:7, S2:5, S3:4, S4:4, S5:4, S6:1, A3:2,
-  P1:5, P2:4, P3:2, P4:4, P5:2, P6:2, A1:4, A2:2, SI2:2,
-  R1:4, R2:5, R3:3, R4:6, R5:3, R6:1, SI1:4,
-  I1:7, I2:5, I3:3, I4:3, G1:2
+  S1:5, S2:4, S3:4, S4:4, S5:4, A3:2, G3:2, E3:2,
+  P1:4, P2:3, P3:1, P4:4, P5:2, P6:1, A1:4, A2:2, SI2:1,
+  R1:4, R2:4, R3:2, R4:5, R5:3, SI1:3, HC1:3,
+  I1:6, I2:4, I3:3, I4:3, G1:2, G2:3, E1:4, E2:2
 };
 
 // Rubric → Checklist mapping (Mức 1 — free, based on rubric scores)
@@ -2148,46 +2206,53 @@ const RUBRIC_CL_MAP = {
   'S3': { threshold: 0.70, items: ['ms3', 'ms4'] },   // Hierarchy → H3 đào sâu H2, heading gần nhau
   'S4': { threshold: 0.70, items: ['ms11'] },          // Contextual coverage → Macro Context chuyên sâu
   'S5': { threshold: 0.65, items: ['ms8', 'ms9'] },   // Contextual flow → mượt mà, quan trọng giảm dần
-  'S6': { threshold: 0.65, items: ['ms15'] },          // Supplement ≤25% → không đi quá sâu
   'P1': { threshold: 0.65, items: ['wc7', 'am5'] },   // Early answer → không delay, câu đầu trả lời
   'P2': { threshold: 0.70, items: ['wc1', 'wc19'] },  // Be certain → giọng chắc, không "có thể"
   'P4': { threshold: 0.70, items: ['wc21'] },          // Specific numbers → ưu tiên con số chi tiết
   'P5': { threshold: 0.75, items: ['wc5'] },           // Heading capitalize → viết hoa đầu từ
   'R1': { threshold: 0.65, items: ['am2'] },           // Relevance → đọc kỹ đối thủ, context
-  'R6': { threshold: 0.65, items: ['ms6', 'wc15'] },  // Head-tail → heading đầu-cuối kết nối
   'I3': { threshold: 0.65, items: ['wc17'] },          // No AI generic → không số liệu mâu thuẫn
   'SI2':{ threshold: 0.60, items: ['si2', 'si3'] },   // SI Opening Signal → Know/Do opening
   'SI1':{ threshold: 0.65, items: ['si4', 'si5'] },   // SI Format Match → bảng giá / combo
+  // v3.0 E-E-A-T & GEO mappings
+  'E1': { threshold: 0.50, items: ['ee1'] },           // First-hand experience → tín hiệu thực địa
+  'E2': { threshold: 1.00, items: ['ee2'] },           // Staff credential → trích dẫn tên nhân viên
+  'E3': { threshold: 1.00, items: ['ee3'] },           // Freshness → có date stamp dữ liệu
+  'G2': { threshold: 0.67, items: ['hc2'] },           // Structured table → bảng HTML đủ hàng
+  'G3': { threshold: 0.50, items: ['ge1'] },           // NAP → TPI Name+Address+Phone cuối bài
 };
 
 // Tooltip giải thích thuật ngữ — hiển thị khi hover vào criterion ID
 const CRITERION_TOOLTIPS = {
-  S1: `Macro Context Alignment (7đ)\nH1 và tất cả H2 phải cùng "câu chuyện" về một entity.\n\nTốt: H1 "Căn hộ Metropolis" → H2 có "Vị trí Metropolis", "Giá Metropolis"\nXấu: H2 toàn chủ đề chung như "Xu hướng BĐS 2024"`,
-  S2: `Heading chất lượng (6đ)\n9-10 heading đầu phải cụ thể, có từ khoá, gây tò mò.\n\nTốt: "3 Lý Do Chọn Tầng Cao Metropolis"\nXấu: "Giới Thiệu" hoặc "Thông Tin Thêm"`,
-  S3: `Heading Hierarchy (5đ)\nCấu trúc H1 > H2 > H3 không được nhảy cấp.\n\nLỗi phổ biến: Dùng H3 trong khi chưa có H2 trước đó`,
-  S4: `Contextual Coverage (5đ)\nH3 phải nằm chủ yếu trong Main Content (70% đầu bài).\n\nLỗi: Nhồi H3 vào phần CTA / danh sách cuối bài`,
+  S1: `Macro Context Alignment (5đ)\nH1 và tất cả H2 phải cùng "câu chuyện" về một entity.\n\nTốt: H1 "Căn hộ Metropolis" → H2 có "Vị trí Metropolis", "Giá Metropolis"\nXấu: H2 toàn chủ đề chung như "Xu hướng BĐS 2024"`,
+  S2: `Heading chất lượng (4đ)\n9-10 heading đầu phải cụ thể, có từ khoá, gây tò mò.\n\nTốt: "3 Lý Do Chọn Tầng Cao Metropolis"\nXấu: "Giới Thiệu" hoặc "Thông Tin Thêm"`,
+  S3: `Heading Hierarchy (4đ)\nCấu trúc H1 > H2 > H3 không được nhảy cấp.\n\nLỗi phổ biến: Dùng H3 trong khi chưa có H2 trước đó`,
+  S4: `Contextual Coverage (4đ)\nH3 phải nằm chủ yếu trong Main Content (70% đầu bài).\n\nLỗi: Nhồi H3 vào phần CTA / danh sách cuối bài`,
   S5: `Contextual Flow (4đ)\nCác section có logic dẫn dắt tự nhiên, bổ trợ nhau.\n\nVí dụ: Vị trí → Tiện ích → Pháp lý → Giá → CTA`,
-  S6: `Supplement ≤ 25% (3đ)\nNội dung mở rộng (FAQ, tips chung) tối đa 25% bài.\n\nBài 1000 từ → tối đa 250 từ là nội dung "phụ" không liên quan thẳng đến entity`,
-  P1: `Early Answer (6đ)\nCâu trả lời chính phải xuất hiện trong 150 từ đầu.\n\nQuery "giá Metropolis" → đoạn mở đầu phải có "từ X tỷ/căn"\nKhông được mở bài dông dài trước khi trả lời`,
-  P2: `Be Certain (5đ)\nTránh từ do dự: "có thể", "có lẽ", "tương đối", "dường như".\n\nTốt: "Giá 4,5 tỷ/căn 2PN"\nXấu: "Giá có thể khoảng 4-5 tỷ (tương đối)"`,
-  P3: `Cụ thể vs Chung chung (4đ)\nMỗi claim phải có số liệu hoặc ví dụ cụ thể đi kèm.\n\nXấu: "Tiện ích đẳng cấp, vị trí đắc địa"\nTốt: "Hồ bơi 1.500m², gym 500m², cách biển 300m"`,
+  G3: `NAP Consistency (2đ) ⚡GEO\nBài phải có đủ Name+Address+Phone của TPI Land trong 30% cuối.\n\nGoogle dùng NAP để xây dựng Knowledge Panel và xếp hạng Local SEO.\nVí dụ: "TPI Land — 123 Trần Phú, TP. Vũng Tàu. Hotline: 0909-123-456"`,
+  E3: `Freshness Date Signal (2đ) ⚡E-E-A-T\nBài phải có ít nhất 1 date stamp cho dữ liệu (≥2025).\n\nGoogle xếp hạng thấp bài BĐS có giá/pháp lý không ghi ngày cập nhật.\nVí dụ: "Bảng giá cập nhật tháng 5/2026:" hoặc "Dữ liệu Q1/2026"`,
+  P1: `Early Answer (4đ)\nCâu trả lời chính phải xuất hiện trong 150 từ đầu.\n\nQuery "giá Metropolis" → đoạn mở đầu phải có "từ X tỷ/căn"\nKhông được mở bài dông dài trước khi trả lời`,
+  P2: `Be Certain (3đ)\nTránh từ do dự: "có thể", "có lẽ", "tương đối", "dường như".\n\nTốt: "Giá 4,5 tỷ/căn 2PN"\nXấu: "Giá có thể khoảng 4-5 tỷ (tương đối)"`,
+  P3: `Cụ thể vs Chung chung (1đ)\nMỗi claim phải có số liệu hoặc ví dụ cụ thể đi kèm.\n\nXấu: "Tiện ích đẳng cấp, vị trí đắc địa"\nTốt: "Hồ bơi 1.500m², gym 500m², cách biển 300m"`,
   P4: `Số liệu cụ thể (4đ)\n≥ 1 con số/300 từ: m², tỷ đồng, %, tầng, căn...\n\nVí dụ: "33 tầng, 500 căn, pháp lý sổ hồng lâu dài, giá từ 3,8 tỷ"`,
   P5: `Heading viết hoa (2đ)\nChữ đầu mỗi từ chính trong heading phải viết hoa.\n\nTốt: "Tiện Ích Đẳng Cấp Tại Metropolis"\nXấu: "tiện ích đẳng cấp tại metropolis"`,
-  P6: `Internal Link đúng vị trí (2đ)\nLink nội bộ nằm trong main content, không nhồi ở footer.\n\nLỗi: Liệt kê 5 link cùng lúc ở đoạn cuối bài`,
-  P7: `Không đánh số lồng nhau (1đ)\nTránh hệ thống số kiểu 1.1.2, 2.3.1.\n\nXấu: "2.3.1 Tiện ích nội khu"\nTốt: H3 với tên rõ ràng "Tiện Ích Nội Khu"`,
-  P8: `Câu đầy đủ chủ vị (1đ)\nKhông dùng câu cụt kiểu gạch đầu dòng.\n\nXấu: "• Vị trí trung tâm. • Pháp lý rõ ràng."\nTốt: "Dự án tọa lạc ngay trung tâm Bãi Sau, Vũng Tàu."`,
-  R1: `RPP — Relevance (5đ)\nBài liên quan trực tiếp đến bán/tư vấn BĐS của TPI.\n\nLỗi: Bài "lịch sử Vũng Tàu" không dẫn đến hành động mua bán`,
-  R2: `RPP — Prominence (5đ)\nBài phải nêu đủ 5 thuộc tính thiết yếu của loại BĐS:\n① Vị trí  ② Tiện ích  ③ Pháp lý  ④ Giá  ⑤ Chủ đầu tư`,
-  R3: `RPP — Popularity (3đ)\nNội dung khớp đúng Search Intent phổ biến của keyword.\n\nQuery "mua căn hộ Vũng Tàu" → bài tư vấn mua\nKhông phải bài lịch sử hay tổng quan chung\n(Xem SI1 để check sâu hơn về format)`,
-  R4: `EAV Coverage (6đ)\nEntity-Attribute-Value: mỗi thuộc tính phải kèm giá trị cụ thể.\n\nXấu: "Giá hợp lý, tiện ích đầy đủ"\nTốt: "Từ 3,8 tỷ/căn 2PN · hồ bơi 1.500m² · sổ hồng lâu dài"`,
+  P6: `Internal Link đúng vị trí (1đ)\nLink nội bộ nằm trong main content, không nhồi ở footer.\n\nLỗi: Liệt kê 5 link cùng lúc ở đoạn cuối bài`,
+  R1: `RPP — Relevance (4đ)\nBài liên quan trực tiếp đến bán/tư vấn BĐS của TPI.\n\nLỗi: Bài "lịch sử Vũng Tàu" không dẫn đến hành động mua bán`,
+  R2: `RPP — Prominence (4đ)\nBài phải nêu đủ 5 thuộc tính thiết yếu của loại BĐS:\n① Vị trí  ② Tiện ích  ③ Pháp lý  ④ Giá  ⑤ Chủ đầu tư`,
+  R3: `RPP — Popularity (2đ)\nNội dung khớp đúng Search Intent phổ biến của keyword.\n\nQuery "mua căn hộ Vũng Tàu" → bài tư vấn mua\nKhông phải bài lịch sử hay tổng quan chung\n(Xem SI1 để check sâu hơn về format)`,
+  R4: `EAV Coverage (5đ)\nEntity-Attribute-Value: mỗi thuộc tính phải kèm giá trị cụ thể.\n\nXấu: "Giá hợp lý, tiện ích đầy đủ"\nTốt: "Từ 3,8 tỷ/căn 2PN · hồ bơi 1.500m² · sổ hồng lâu dài"`,
   R5: `Central Entity & CTA (3đ)\n25% cuối bài phải có CTA liên kết về TPI Land.\n\nVí dụ: "Liên hệ TPI Land để nhận báo giá mới nhất: 0909..."`,
-  R6: `Heading đầu-cuối kết nối (2đ)\nH2 cuối bài gợi nhớ keyword/entity từ H1 — tạo vòng tròn.\n\nH1 "Metropolis Vũng Tàu" → H2 cuối "Sở Hữu Metropolis Qua TPI Land"`,
-  I1: `Data độc quyền TPI (7đ)\nBài có case study / số liệu riêng của TPI không có trên mạng.\n\nVí dụ: "TPI đã hỗ trợ 47 khách mua Metropolis trong Q1/2024, giá TB 4,2 tỷ"`,
-  I2: `Góc nhìn riêng (5đ)\nBài có nhận định / phân tích của chính TPI, không phải copy.\n\nXấu: Copy info từ website chủ đầu tư\nTốt: "Theo kinh nghiệm TPI, tầng 15-20 có view biển tốt nhất"`,
-  I3: `Tránh văn phong AI (5đ)\nKhông dùng cụm sáo rỗng thường thấy trong bài AI.\n\nCần tránh: "không thể phủ nhận", "đóng vai trò quan trọng",\n"giải pháp toàn diện", "đáp ứng mọi nhu cầu"`,
-  I4: `Trích dẫn nguồn uy tín (3đ)\nCó ≥ 1 nguồn: CBRE, Savills, JLL, VnExpress, báo cáo thị trường...\n\nVí dụ: "(Theo CBRE Q1/2024, BĐS Vũng Tàu tăng 8% so với cùng kỳ)"`,
-  SI1:`Search Intent Format Match (4đ) ⚡SI\nBài có ĐỊNH DẠNG phù hợp với Search Intent đã khai báo không?\n\nKnow → cấu trúc giáo dục: định nghĩa rõ, FAQ/hỏi-đáp, headings mô tả kiến thức\nDo → bảng giá/so sánh, số liệu thương mại, CTA mua/đặt lịch rõ ràng\nHybrid → CẢ HAI: phần giáo dục + phần thương mại tách biệt\nGo → thông tin liên hệ/thương hiệu/địa chỉ nổi bật`,
-  SI2:`Search Intent Opening Signal (2đ) ⚡SI\n250 từ đầu bài phải chứa tín hiệu khớp với Search Intent.\n\nKnow → có câu định nghĩa: "X là...", "được hiểu là", "có nghĩa là"\nDo → có giá/số liệu thương mại: "từ X tỷ", bảng giá, CTA, hotline\nHybrid → có CẢ 2 loại tín hiệu trên\nGo → có địa chỉ, hotline, showroom trong mở đầu`,
+  HC1:`Helpful Completeness (3đ) ⚡HCU\nBài có đề cập và giải đáp ít nhất 1 lo ngại thực tế của người mua không?\n\nGoogle HCU phạt bài thuần PR, không có phần trung thực về rủi ro.\n3đ=giải đáp rõ | 1.5đ=đề cập mơ hồ | 0đ=không đề cập\nVí dụ: "Rủi ro pháp lý: Dự án chưa có GPXD — dự kiến Q3/2026..."`,
+  I1: `Data độc quyền TPI (6đ)\nBài có case study / số liệu riêng của TPI không có trên mạng.\n\nVí dụ: "TPI đã hỗ trợ 47 khách mua Metropolis trong Q1/2025, giá TB 4,2 tỷ"`,
+  I2: `Góc nhìn riêng (4đ)\nBài có nhận định / phân tích của chính TPI, không phải copy.\n\nXấu: Copy info từ website chủ đầu tư\nTốt: "Theo kinh nghiệm TPI, tầng 15-20 có view biển tốt nhất"`,
+  I3: `Tránh văn phong AI (3đ)\nKhông dùng cụm sáo rỗng thường thấy trong bài AI.\n\nCần tránh: "không thể phủ nhận", "đóng vai trò quan trọng",\n"giải pháp toàn diện", "đáp ứng mọi nhu cầu"`,
+  I4: `Trích dẫn nguồn uy tín (3đ)\nCó ≥ 1 nguồn: CBRE, Savills, JLL, VnExpress, báo cáo thị trường...\n\nVí dụ: "(Theo CBRE Q1/2025, BĐS Vũng Tàu tăng 8% so với cùng kỳ)"`,
+  G1: `GEO Citable Chunk (2đ) ⚡GEO\nBài có ≥1 đoạn ≤200 từ tự đứng được với Entity+Attribute+Value đầy đủ.\n\nAI Search trích nguyên đoạn này khi trả lời người dùng.\nVí dụ: Vị trí + diện tích + kiến trúc + khoảng cách Metro trong 1 đoạn`,
+  G2: `Structured Table/List (3đ) ⚡GEO\nBài có bảng HTML (bảng giá/diện tích) và/hoặc danh sách đánh số ≥3 items.\n\nGoogle AI Overviews ưu tiên trích dẫn nội dung có cấu trúc máy đọc được.\n3đ=có cả bảng+danh sách | 2đ=chỉ có bảng | 1đ=chỉ có danh sách | 0đ=không có`,
+  E1: `First-Hand Experience (4đ) ⚡E-E-A-T\nBài thể hiện kinh nghiệm thực địa của TPI (≥2 tín hiệu cụ thể).\n\nGoogle E-E-A-T đặc biệt coi trọng "Experience" — nội dung từ người thực sự có kinh nghiệm.\n4đ=≥2 tín hiệu | 2đ=1 tín hiệu | 0đ=không có\nVí dụ: "Khảo sát thực địa của TPI ngày 15/05 cho thấy..."`,
+  E2: `Staff Credential (2đ) ⚡E-E-A-T\nBài trích dẫn tên nhân viên/chuyên viên TPI cụ thể kèm nhận xét chuyên môn.\n\nTên người thật gắn với nhận định = tín hiệu authoritativeness cho Google.\nVí dụ: "Chuyên viên Nguyễn Minh Tuấn (5 năm TPI) đánh giá..."`,
+  SI1:`Search Intent Format Match (3đ) ⚡SI\nBài có ĐỊNH DẠNG phù hợp với Search Intent đã khai báo không?\n\nKnow → cấu trúc giáo dục: định nghĩa rõ, FAQ/hỏi-đáp, headings mô tả kiến thức\nDo → bảng giá/so sánh, số liệu thương mại, CTA mua/đặt lịch rõ ràng\nHybrid → CẢ HAI: phần giáo dục + phần thương mại tách biệt\nGo → thông tin liên hệ/thương hiệu/địa chỉ nổi bật`,
+  SI2:`Search Intent Opening Signal (1đ) ⚡SI\n250 từ đầu bài phải chứa tín hiệu khớp với Search Intent.\n\nKnow → có câu định nghĩa: "X là...", "được hiểu là", "có nghĩa là"\nDo → có giá/số liệu thương mại: "từ X tỷ", bảng giá, CTA, hotline\nHybrid → có CẢ 2 loại tín hiệu trên\nGo → có địa chỉ, hotline, showroom trong mở đầu`,
 };
 
 // Tooltip cho thuật ngữ chuyên ngành ngoài criterion IDs
@@ -2333,15 +2398,16 @@ ${headingList}
 Nội dung (đầu+cuối bài):
 ${preview}
 
-Chấm JSON (số thực, v2 weights):
-{"S1":<0-7>,"S2":<0-5>,"S5":<0-4>,"P1":<0-5>,"R1":<0-4>,"R3":<0-3>,"R5":<0-3>,"R6":<0-1>,
-"reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","R6":"..."}}
+Chấm JSON (số thực, v3.0 weights):
+{"S1":<0-5>,"S2":<0-4>,"S5":<0-4>,"P1":<0-4>,"R1":<0-4>,"R3":<0-2>,"R5":<0-3>,"HC1":<0|1.5|3>,
+"reasons":{"S1":"...","S2":"...","S5":"...","P1":"...","R1":"...","R3":"...","R5":"...","HC1":"..."}}
 
 Hướng dẫn ngắn:
-S1: H2 có đúng chủ đề H1 không | S2(max5): 9-10 heading đầu có cụ thể/liên quan không
-S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1(max5): câu đầu sau heading trả lời thẳng không
-R1(max4): heading liên quan agency BĐS TPI | R3(max3): topic khớp search intent keyword
-R5: cuối bài có CTA/heading dẫn về TPI không | R6(max1): heading đầu-cuối kết nối nghĩa`;
+S1(max5): H2 có đúng chủ đề H1 không | S2(max4): 9-10 heading đầu có cụ thể/liên quan không
+S5: flow heading logic định nghĩa→đặc điểm→lợi ích→hành động | P1(max4): câu đầu sau heading trả lời thẳng không
+R1(max4): heading liên quan agency BĐS TPI | R3(max2): topic khớp search intent keyword
+R5(max3): cuối bài có CTA/heading dẫn về TPI không
+HC1(max3): bài đề cập và giải đáp ít nhất 1 lo ngại thực tế không (pháp lý, rủi ro, developer uy tín, thanh khoản)? 3=giải đáp rõ, 1.5=đề cập mơ hồ, 0=không đề cập`;
 
   const apicfg = getApiConfig();
   const model = apicfg.provider === 'custom' ? apicfg.custom_model_simple : apicfg.model_simple;
@@ -2365,7 +2431,7 @@ ${preview}
 
 Chấm 7 tiêu chí (v2.1) + tạo top5_fixes. Quy tắc fixes: location=tên heading cụ thể; issue=1 câu; fix=giải pháp + "VD:" nếu thiếu nội dung.
 
-{"R2":<0-5>,"R4":<0-6>,"I1":<0|3|7>,"I2":<0-5>,"I4":<0|1.5|3>,"G1":<0|2>,"SI1":<0-4>,
+{"R2":<0-4>,"R4":<0-5>,"I1":<0|3|6>,"I2":<0-4>,"I4":<0|1.5|3>,"G1":<0|2>,"SI1":<0-3>,
 "reasons":{"R2":"...","R4":"...","I1":"...","I2":"...","I4":"...","G1":"...","SI1":"..."},
 "top5_fixes":[
   {"priority":1,"criterion_id":"XX","location":"heading cụ thể","issue":"mô tả lỗi","fix":"giải pháp"},
@@ -2375,9 +2441,9 @@ Chấm 7 tiêu chí (v2.1) + tạo top5_fixes. Quy tắc fixes: location=tên he
   {"priority":5,"criterion_id":"XX","location":"...","issue":"...","fix":"..."}
 ]}
 
-Hướng dẫn: R2=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4=EAV có số liệu cụ thể hay mơ hồ; I1=data độc quyền TPI; I2=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín
+Hướng dẫn: R2(max4)=đủ 5 attr(vị trí/tiện ích/pháp lý/giá/CĐT); R4(max5)=EAV có số liệu cụ thể hay mơ hồ; I1(max6)=data độc quyền TPI; I2(max4)=góc nhìn riêng TPI; I4=trích dẫn nguồn uy tín
 G1(GEO, 2đ): có ít nhất 1 đoạn ≤200 từ tự đứng được với đủ Entity+Attribute+Value để AI Search trích nguyên đoạn? 2=có, 0=không
-SI1(Search Intent Format Match,4đ): định dạng bài khớp intent "${meta.intent}"? Know=giáo dục/FAQ/định nghĩa rõ; Do=bảng giá/so sánh/CTA mua; Hybrid=cả 2 tách biệt; Go=liên hệ/thương hiệu nổi bật. 4=hoàn hảo,2=một phần,0=sai hoàn toàn`;
+SI1(Search Intent Format Match,3đ): định dạng bài khớp intent "${meta.intent}"? Know=giáo dục/FAQ/định nghĩa rõ; Do=bảng giá/so sánh/CTA mua; Hybrid=cả 2 tách biệt; Go=liên hệ/thương hiệu nổi bật. 3=hoàn hảo,1.5=một phần,0=sai hoàn toàn`;
 
   const apicfg2 = getApiConfig();
   const model2 = apicfg2.provider === 'custom' ? apicfg2.custom_model_complex : apicfg2.model_complex;
@@ -2477,30 +2543,30 @@ async function submitArticle() {
     // Aggregate scores — LLM overrides rule; nếu LLM không chạy thì giữ heuristic rule
     const allScores = {
       ...ruleScores,
-      S1: simpleScores.S1  ?? ruleScores.S1  ?? 0,
-      S2: simpleScores.S2  || 0,
-      S5: simpleScores.S5  || 0,
-      P1: simpleScores.P1  || 0,
-      R1: simpleScores.R1  || 0,
-      R2: complexScores.R2 ?? ruleScores.R2  ?? 0,
-      R3: simpleScores.R3  || 0,
-      R4: complexScores.R4 || 0,
-      R5: simpleScores.R5  ?? ruleScores.R5  ?? 0,
-      R6: simpleScores.R6  || 0,
-      I1: complexScores.I1 || 0,
-      I2: complexScores.I2 || 0,
-      I3: ruleScores.I3 ?? 0,  // Rule heuristic (AI clichés) — không dùng LLM cho I3
-      I4: complexScores.I4 ?? ruleScores.I4  ?? 0,
-      G1: complexScores.G1 || 0, // v2 GEO: LLM only
+      S1:  simpleScores.S1  ?? ruleScores.S1  ?? 0,
+      S2:  simpleScores.S2  || 0,
+      S5:  simpleScores.S5  || 0,
+      P1:  simpleScores.P1  || 0,
+      R1:  simpleScores.R1  || 0,
+      R2:  complexScores.R2 ?? ruleScores.R2  ?? 0,
+      R3:  simpleScores.R3  || 0,
+      R4:  complexScores.R4 || 0,
+      R5:  simpleScores.R5  ?? ruleScores.R5  ?? 0,
+      I1:  complexScores.I1 || 0,
+      I2:  complexScores.I2 || 0,
+      I3:  ruleScores.I3 ?? 0,   // Rule heuristic (AI clichés) — không dùng LLM cho I3
+      I4:  complexScores.I4 ?? ruleScores.I4  ?? 0,
+      G1:  complexScores.G1 || 0,  // v2 GEO: LLM only
       SI1: complexScores.SI1 || 0, // v2.1 Search Intent Format: LLM only
+      HC1: simpleScores.HC1 || 0,  // v3.0 Helpful Completeness: LLM Haiku
     };
 
-    // v2.1 tier breakdown — T1(27) + T2(27) + T3(26) + T4(20) = 100đ
+    // v3.0 tier breakdown — T1(27) + T2(22) + T3(24) + T4(27) = 100đ
     const tierBreakdown = [
-      { name: 'Cấu trúc & Ngữ cảnh', max: 27, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+allScores.S6+(allScores.A3||0) },
-      { name: 'Chất lượng đoạn & AEO+SI', max: 27, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+(allScores.A1||0)+(allScores.A2||0)+(allScores.SI2||0) },
-      { name: 'RPP & Entity & SI', max: 26, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+allScores.R6+(allScores.SI1||0) },
-      { name: 'Information Gain & GEO', max: 20, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4+(allScores.G1||0) }
+      { name: 'Cấu trúc & Ngữ cảnh', max: 27, score: allScores.S1+allScores.S2+allScores.S3+allScores.S4+allScores.S5+(allScores.A3||0)+(allScores.G3||0)+(allScores.E3||0) },
+      { name: 'Chất lượng đoạn & AEO+SI', max: 22, score: allScores.P1+allScores.P2+allScores.P3+allScores.P4+allScores.P5+allScores.P6+(allScores.A1||0)+(allScores.A2||0)+(allScores.SI2||0) },
+      { name: 'RPP & Entity & SI & HCU', max: 24, score: allScores.R1+allScores.R2+allScores.R3+allScores.R4+allScores.R5+(allScores.SI1||0)+(allScores.HC1||0) },
+      { name: 'Information Gain & GEO & E-E-A-T', max: 27, score: allScores.I1+allScores.I2+allScores.I3+allScores.I4+(allScores.G1||0)+(allScores.G2||0)+(allScores.E1||0)+(allScores.E2||0) }
     ];
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
@@ -2523,6 +2589,7 @@ async function submitArticle() {
       llmErrors,
       tokens: { in: _tok.in, out: _tok.out, total: _tok.in + _tok.out },
       submitter: currentUser.username,
+      rubric_version: 'v3.0',
       ...(notes && { notes }),
     };
     const subs = DB.get('submissions', []);
@@ -2682,12 +2749,12 @@ function switchResultTab(tabId, btn) {
 
 // Render tab Chi tiết — điểm từng tiêu chí theo tầng
 function renderDetailTab(allScores, reasons) {
-  // v2.1: T1(27) + T2(27) + T3(26) + T4(20) = 100đ
+  // v3.0: T1(27) + T2(22) + T3(24) + T4(27) = 100đ
   const tiers = [
-    { label: 'T1 — Cấu trúc & Ngữ cảnh',       ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 27 },
-    { label: 'T2 — Chất lượng đoạn & AEO+SI',   ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 27 },
-    { label: 'T3 — RPP & Entity & SI',           ids: ['R1','R2','R3','R4','R5','R6','SI1'], max: 26 },
-    { label: 'T4 — Information Gain & GEO',      ids: ['I1','I2','I3','I4','G1'], max: 20 },
+    { label: 'T1 — Cấu trúc & Ngữ cảnh',              ids: ['S1','S2','S3','S4','S5','A3','G3','E3'], max: 27 },
+    { label: 'T2 — Chất lượng đoạn & AEO+SI',          ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 22 },
+    { label: 'T3 — RPP & Entity & SI & HCU',            ids: ['R1','R2','R3','R4','R5','SI1','HC1'], max: 24 },
+    { label: 'T4 — Information Gain & GEO & E-E-A-T',  ids: ['I1','I2','I3','I4','G1','G2','E1','E2'], max: 27 },
   ];
   return tiers.map(tier => {
     const tierScore = tier.ids.reduce((s, id) => s + (allScores?.[id] ?? 0), 0);
@@ -3070,7 +3137,7 @@ function renderHistory() {
     ${currentUser.role === 'admin' ? `<div style="font-size:13px;color:var(--ink3);margin-bottom:12px;">Tổng token đã dùng: <strong style="color:var(--ink)">${totalTok.toLocaleString('vi-VN')}</strong> (${subs.length} bài)</div>` : ''}
     <table class="history-table">
     <thead><tr>
-      <th>Ngày</th><th>Keyword</th><th>Từ</th><th>Điểm</th><th>Kết quả</th><th>Token</th>${currentUser.role === 'admin' ? '<th>User</th>' : ''}
+      <th>Ngày</th><th>Keyword</th><th>Từ</th><th>Điểm</th><th>Kết quả</th><th>Rubric</th><th>Token</th>${currentUser.role === 'admin' ? '<th>User</th>' : ''}
     </tr></thead>
     <tbody>${subs.map(s => {
       const cls = s.total >= 80 ? 'pass' : s.total >= 60 ? 'mid' : 'fail';
@@ -3085,6 +3152,7 @@ function renderHistory() {
         <td class="mono">${s.wordCount}</td>
         <td class="mono"><strong>${Math.round(s.total)}</strong></td>
         <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
+        <td class="mono" style="color:var(--ink3);font-size:11px">${s.rubric_version || 'v2.1'}</td>
         <td>${tokLabel}</td>
         ${currentUser.role === 'admin' ? `<td class="mono" style="color:var(--ink3)">${s.submitter}</td>` : ''}
       </tr>`;
@@ -4370,6 +4438,66 @@ const clData = {
             tip: { m: 'Bài Go (người đã biết, muốn liên hệ) phải có đủ: địa chỉ showroom, hotline, giờ làm việc',
                    g: '"Showroom TPI Land: 123 Trần Phú, Vũng Tàu. Hotline: 0909-xxx-xxx. T2-T7: 8h-18h"',
                    b: 'Chỉ có "liên hệ TPI Land" mà không có địa chỉ hay số điện thoại cụ thể' } },
+        ]
+      }
+    ]
+  },
+  'eeat-hcu': {
+    label: '🧠 E-E-A-T & HCU',
+    groups: [
+      {
+        name: 'Kinh Nghiệm Thực Tế (E-E-A-T)',
+        items: [
+          { id: 'ee1', checkMode: 'auto',
+            text: 'Bài có ≥2 tín hiệu thực địa: "khảo sát thực tế", "đội ngũ TPI trực tiếp", "dữ liệu giao dịch TPI Q..."',
+            tip: { m: 'Google E-E-A-T đòi hỏi Experience — content từ người có kinh nghiệm thực sự',
+                   g: '"Khảo sát thực địa của đội ngũ TPI ngày 15/05 cho thấy tầng 18 có view sông trọn vẹn."',
+                   b: '"Theo nhiều chuyên gia, dự án này rất tiềm năng." (mơ hồ, không ai cụ thể)' } },
+          { id: 'ee2', checkMode: 'auto',
+            text: 'Có trích dẫn tên nhân viên/chuyên viên TPI cụ thể kèm nhận xét chuyên môn',
+            tip: { m: 'Tên người thật = tín hiệu Authoritativeness cho Google — ai nói điều này?',
+                   g: '"Chuyên viên Nguyễn Minh Tuấn (5 năm TPI) nhận xét: tầng 15-20 có view biển tốt nhất."',
+                   b: '"Đội ngũ TPI cho biết..." (không có tên cụ thể)' } },
+          { id: 'ee3', checkMode: 'auto',
+            text: 'Có ít nhất 1 date stamp cho dữ liệu (VD: "Giá cập nhật tháng 5/2026", "Dữ liệu Q1/2026")',
+            tip: { m: 'Google xếp thấp bài BĐS không ghi ngày cập nhật giá/pháp lý — dữ liệu có thể đã lỗi thời',
+                   g: '"Bảng giá cập nhật tháng 5/2026:" hoặc "Theo dữ liệu giao dịch TPI Q1/2026"',
+                   b: 'Cả bài nói giá nhưng không ghi ngày nào — user và Google không biết có còn đúng không' } },
+        ]
+      },
+      {
+        name: 'Hữu Ích Toàn Diện (HCU)',
+        items: [
+          { id: 'hc1', checkMode: 'ai',
+            text: 'Bài đề cập và giải đáp ít nhất 1 mối lo ngại thực tế của người mua (pháp lý, rủi ro, thanh khoản)',
+            tip: { m: 'HCU phạt bài thuần PR, không có phần trung thực — user phải tìm thêm ở nơi khác',
+                   g: '"Rủi ro cần biết: Dự án chưa có GPXD, dự kiến Q3/2026. TPI khuyến nghị đặt cọc có điều khoản hoàn trả."',
+                   b: 'Bài 10 section đều tích cực, không đề cập bất kỳ rủi ro hay hạn chế nào' } },
+          { id: 'hc2', checkMode: 'auto',
+            text: 'Có ít nhất 1 bảng HTML (bảng giá, mặt bằng, tiến độ) với ≥2 hàng dữ liệu',
+            tip: { m: 'Google AI Overviews ưu tiên trích dẫn content có cấu trúc bảng — máy đọc được ngay',
+                   g: 'Bảng "Loại căn | Diện tích | Giá | Tầng" với 4 hàng dữ liệu',
+                   b: '"Căn 2PN giá từ 3,8 tỷ, căn 3PN từ 5,5 tỷ" — viết liền trong đoạn văn' } },
+          { id: 'hc3', checkMode: 'manual',
+            text: 'Bài trả lời đủ câu hỏi chính và câu hỏi phụ — user không cần click đi tìm thêm',
+            tip: { m: '"Pogo-sticking" (user click back ngay) = tín hiệu xấu HCU. Bài phải tự đủ.',
+                   g: 'Keyword "mua căn hộ Vũng Tàu" → bài cover: giá, pháp lý, thủ tục, CĐT, timeline',
+                   b: 'Bài chỉ nói về tiện ích nhưng không đề cập giá, pháp lý — user phải tìm thêm' } },
+        ]
+      },
+      {
+        name: 'Schema & Entity (GEO)',
+        items: [
+          { id: 'ge1', checkMode: 'auto',
+            text: 'Phần CTA cuối bài có đủ NAP: Tên "TPI Land" + Địa chỉ cụ thể + Hotline',
+            tip: { m: 'NAP consistency = tín hiệu Local SEO và Knowledge Panel — Google dùng để xây entity profile',
+                   g: '"TPI Land — 123 Trần Phú, TP. Vũng Tàu. Hotline: 0909-123-456. T2-T7: 8h-18h"',
+                   b: '"Liên hệ TPI để biết thêm." — không có địa chỉ, không có số điện thoại' } },
+          { id: 'ge2', checkMode: 'manual',
+            text: 'Đã thêm FAQ Schema markup trong CMS/WordPress (nếu bài có section FAQ)',
+            tip: { m: 'FAQ Schema markup giúp Google hiển thị rich snippet FAQ trực tiếp trên kết quả tìm kiếm',
+                   g: 'FAQ block trong WordPress với plugin schema đã kích hoạt — Google Search Console xác nhận',
+                   b: 'Có section FAQ trong bài nhưng chưa thêm structured data markup' } },
         ]
       }
     ]

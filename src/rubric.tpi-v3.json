@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "rubric_id": "tpi-v3",
+    "version": "3.0.0",
+    "name": "TPI Content Rubric v3 — E-E-A-T + HCU + GEO Edition",
+    "based_on": "tpi-v2.1",
+    "max_score": 100,
+    "pass_score": 70,
+    "author": "Jimmy T7",
+    "organization": "TPI Land",
+    "language": "vi-VN",
+    "industry": "real_estate_brokerage",
+    "created": "2026-05-26",
+    "google_updates_addressed": [
+      "E-E-A-T Experience (Dec 2022 onward) — first-hand field experience signals",
+      "Helpful Content System / HCU (March 2024 core merge) — objection handling, completeness",
+      "AI Overviews / GEO (2024 mainstream) — structured table/list formats for AI citation",
+      "Passage Ranking — self-sufficient paragraph blocks",
+      "Knowledge Graph / Local SEO — NAP consistency for entity profile"
+    ],
+    "changes_from_v2_1": [
+      "REMOVE S6 (Supplement ratio 1đ) — low diagnostic value; convert to preflight advisory",
+      "REMOVE R6 (Head-tail heading connection 1đ) — LLM scoring inconsistency, overlap with R5",
+      "S1: 7→5đ (overlap with S2/S5)",
+      "S2: 5→4đ (overlap with S1/S5)",
+      "P1: 5→4đ (A1 already covers compact opening signal)",
+      "P2: 4→3đ",
+      "P3: 2→1đ (P4 covers positive version of specificity signal)",
+      "P6: 2→1đ",
+      "R2: 5→4đ (G3+G2 cover complementary prominence signals)",
+      "R3: 3→2đ (SI1 covers intent match more precisely)",
+      "R4: 6→5đ (G2 incentivizes machine-readable EAV format)",
+      "SI1: 4→3đ (HC1 now covers depth of helpfulness)",
+      "SI2: 2→1đ",
+      "I1: 7→6đ (E1+E2 provide complementary originality signals)",
+      "I2: 5→4đ (HC1 rewards analytical depth)",
+      "ADD E1 (4đ, Rule): First-hand experience signals — E-E-A-T",
+      "ADD E2 (2đ, Rule): Staff/author credential attribution — E-E-A-T",
+      "ADD E3 (2đ, Rule): Data freshness date stamp — E-E-A-T Trustworthiness",
+      "ADD G2 (3đ, Rule): Structured HTML table + ordered list — AI Overviews / Passage Ranking",
+      "ADD G3 (2đ, Rule): NAP consistency in CTA — Knowledge Graph / Local SEO",
+      "ADD HC1 (3đ, LLM-Haiku): Helpful completeness / objection handling — HCU"
+    ]
+  },
+  "tiers": {
+    "tier_1_structure": {
+      "name": "Cấu trúc & Ngữ cảnh",
+      "max": 27,
+      "criteria": ["S1","S2","S3","S4","S5","A3","G3","E3"]
+    },
+    "tier_2_paragraph": {
+      "name": "Chất lượng đoạn & AEO+SI",
+      "max": 22,
+      "criteria": ["P1","P2","P3","P4","P5","P6","A1","A2","SI2"]
+    },
+    "tier_3_rpp": {
+      "name": "RPP & Entity & SI & HCU",
+      "max": 24,
+      "criteria": ["R1","R2","R3","R4","R5","SI1","HC1"]
+    },
+    "tier_4_info_geo": {
+      "name": "Information Gain & GEO & E-E-A-T",
+      "max": 27,
+      "criteria": ["I1","I2","I3","I4","G1","G2","E1","E2"]
+    }
+  },
+  "criteria": {
+    "S1": { "name": "Macro Context H1↔H2",              "max": 5, "method": "llm_simple"  },
+    "S2": { "name": "9-10 Heading đầu chất lượng",      "max": 4, "method": "llm_simple"  },
+    "S3": { "name": "Heading Hierarchy",                 "max": 4, "method": "rule"        },
+    "S4": { "name": "Contextual Coverage",               "max": 4, "method": "rule"        },
+    "S5": { "name": "Contextual Flow logic",             "max": 4, "method": "llm_simple"  },
+    "A3": { "name": "Definition Sentence",               "max": 2, "method": "rule"        },
+    "G3": { "name": "NAP Consistency",                   "max": 2, "method": "rule"        },
+    "E3": { "name": "Freshness Date Signal",             "max": 2, "method": "rule"        },
+    "P1": { "name": "Early Query Answer",                "max": 4, "method": "llm_simple"  },
+    "P2": { "name": "Be Certain",                        "max": 3, "method": "rule"        },
+    "P3": { "name": "Cụ thể vs Chung chung",             "max": 1, "method": "rule"        },
+    "P4": { "name": "Số liệu cụ thể",                   "max": 4, "method": "rule"        },
+    "P5": { "name": "Heading viết hoa",                  "max": 2, "method": "rule"        },
+    "P6": { "name": "Internal link đúng vị trí",         "max": 1, "method": "rule"        },
+    "A1": { "name": "Answer-First Paragraph",            "max": 4, "method": "rule"        },
+    "A2": { "name": "FAQ Schema-Ready",                  "max": 2, "method": "rule"        },
+    "SI2":{ "name": "Search Intent Opening Signal",      "max": 1, "method": "rule"        },
+    "R1": { "name": "RPP — Relevance",                   "max": 4, "method": "llm_simple"  },
+    "R2": { "name": "RPP — Prominence",                  "max": 4, "method": "llm_complex" },
+    "R3": { "name": "RPP — Popularity",                  "max": 2, "method": "llm_simple"  },
+    "R4": { "name": "EAV Coverage",                      "max": 5, "method": "llm_complex" },
+    "R5": { "name": "Central Entity Alignment",          "max": 3, "method": "llm_simple"  },
+    "SI1":{ "name": "Search Intent Format Match",        "max": 3, "method": "llm_complex" },
+    "HC1":{ "name": "Helpful Completeness",              "max": 3, "method": "llm_simple"  },
+    "I1": { "name": "Dữ liệu độc quyền TPI",            "max": 6, "method": "llm_complex" },
+    "I2": { "name": "Góc nhìn mới",                     "max": 4, "method": "llm_complex" },
+    "I3": { "name": "Tránh văn phong AI",                "max": 3, "method": "rule"        },
+    "I4": { "name": "Trích dẫn nguồn",                  "max": 3, "method": "llm_complex" },
+    "G1": { "name": "GEO Citable Chunk",                 "max": 2, "method": "llm_complex" },
+    "G2": { "name": "Structured Table/List",             "max": 3, "method": "rule"        },
+    "E1": { "name": "First-Hand Experience",             "max": 4, "method": "rule"        },
+    "E2": { "name": "Staff Credential Attribution",      "max": 2, "method": "rule"        }
+  },
+  "preflight_checks": [
+    { "id": "has_h1",            "description": "Bài phải có ít nhất 1 H1"                         },
+    { "id": "has_h2",            "description": "Bài phải có ít nhất 3 H2"                         },
+    { "id": "min_word_count",    "description": "word_count ≥ 800"                                  },
+    { "id": "max_word_count",    "description": "word_count ≤ 10000"                                },
+    { "id": "main_entity_in_h1", "description": "H1 phải chứa keyword hoặc main entity"            }
+  ],
+  "scoring_notes": {
+    "llm_simple_model": "claude-haiku-4-5",
+    "llm_complex_model": "claude-sonnet-4-6",
+    "llm_temperature": 0.2,
+    "skip_llm_threshold": 30,
+    "impl_notes": {
+      "E1": "_scoreE1(parsed) — regex on parsed.text, 10 first-hand experience phrase patterns",
+      "E2": "_scoreE2(parsed) — regex for named Vietnamese person + attributed expertise statement",
+      "E3": "_scoreE3(parsed) — regex for date patterns with year ≥2025",
+      "G2": "_scoreG2(parsed) — uses parsed.tables and parsed.orderedLists counts from parseArticle DOM query",
+      "G3": "_scoreG3(parsed) — NAP check in last 30% of text: Name + Address + Phone regexes",
+      "HC1": "added to scoreLLMSimple (Haiku) JSON schema as HC1:<0|1.5|3>"
+    }
+  }
+}
