@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>TPI Content Scorer — Tài liệu Hệ thống Chấm Điểm v3.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+    font-size: 11pt;
+    color: #1a1a2e;
+    background: #fff;
+    line-height: 1.6;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    page-break-after: always;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    text-align: center;
+    padding: 60px 40px;
+  }
+  .cover-logo {
+    font-size: 48pt;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #e94560;
+    margin-bottom: 8px;
+  }
+  .cover-logo span { color: #fff; }
+  .cover-subtitle {
+    font-size: 14pt;
+    color: #a8b2d8;
+    margin-bottom: 48px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .cover-title {
+    font-size: 28pt;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .cover-desc {
+    font-size: 13pt;
+    color: #a8b2d8;
+    max-width: 520px;
+    margin-bottom: 48px;
+    line-height: 1.7;
+  }
+  .cover-badges {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 60px;
+  }
+  .badge {
+    background: rgba(233,69,96,0.15);
+    border: 1px solid rgba(233,69,96,0.5);
+    color: #e94560;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge.blue {
+    background: rgba(99,179,237,0.15);
+    border-color: rgba(99,179,237,0.5);
+    color: #63b3ed;
+  }
+  .badge.green {
+    background: rgba(72,187,120,0.15);
+    border-color: rgba(72,187,120,0.5);
+    color: #48bb78;
+  }
+  .cover-meta {
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 24px;
+    color: #a8b2d8;
+    font-size: 9pt;
+    display: flex;
+    gap: 40px;
+  }
+  .cover-meta div { text-align: center; }
+  .cover-meta strong { display: block; font-size: 14pt; color: white; font-weight: 700; }
+
+  /* ── LAYOUT ── */
+  .page { padding: 28px 44px 24px; }
+  .page-break { page-break-before: always; }
+
+  /* ── TYPOGRAPHY ── */
+  h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #e94560;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 24px 0 10px;
+    padding-left: 12px;
+    border-left: 4px solid #e94560;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 16px 0 6px;
+  }
+  p { margin-bottom: 8px; color: #2d3748; }
+  ul, ol { padding-left: 20px; margin-bottom: 8px; }
+  li { margin-bottom: 3px; color: #2d3748; }
+  code {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 9pt;
+    color: #c53030;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .section-header h1 {
+    color: white;
+    border-bottom: none;
+    padding-bottom: 0;
+    font-size: 16pt;
+    margin-bottom: 2px;
+  }
+  .section-header p { color: #a8b2d8; font-size: 10pt; margin: 0; }
+
+  /* ── TIER CARDS ── */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .tier-card {
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+  }
+  .tier-card.t1 { background: #fff5f5; border-left: 4px solid #fc8181; }
+  .tier-card.t2 { background: #fffaf0; border-left: 4px solid #f6ad55; }
+  .tier-card.t3 { background: #f0fff4; border-left: 4px solid #68d391; }
+  .tier-card.t4 { background: #ebf8ff; border-left: 4px solid #63b3ed; }
+  .tier-card .tier-title {
+    font-weight: 700;
+    font-size: 11pt;
+    margin-bottom: 4px;
+  }
+  .tier-card .tier-score {
+    font-size: 22pt;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .tier-card.t1 .tier-score { color: #fc8181; }
+  .tier-card.t2 .tier-score { color: #ed8936; }
+  .tier-card.t3 .tier-score { color: #38a169; }
+  .tier-card.t4 .tier-score { color: #3182ce; }
+  .tier-card .tier-ids {
+    font-size: 8.5pt;
+    color: #718096;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ── CRITERIA TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #2d3748;
+    color: white;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+  }
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f7fafc; }
+  tr:hover td { background: #edf2f7; }
+
+  .method-rule {
+    display: inline-block;
+    background: #c6f6d5;
+    color: #276749;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .method-llm-s {
+    display: inline-block;
+    background: #bee3f8;
+    color: #2b6cb0;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .method-llm-c {
+    display: inline-block;
+    background: #e9d8fd;
+    color: #553c9a;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+
+  .score-pill {
+    display: inline-block;
+    background: #1a1a2e;
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  .info-box.blue { background: #ebf8ff; border-left: 4px solid #3182ce; }
+  .info-box.green { background: #f0fff4; border-left: 4px solid #38a169; }
+  .info-box.yellow { background: #fffff0; border-left: 4px solid #d69e2e; }
+  .info-box.red { background: #fff5f5; border-left: 4px solid #e53e3e; }
+  .info-box.purple { background: #faf5ff; border-left: 4px solid #805ad5; }
+  .info-box strong { display: block; margin-bottom: 4px; font-size: 10.5pt; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  .flow-step:after {
+    content: '▼';
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #718096;
+    font-size: 9pt;
+    z-index: 10;
+  }
+  .flow-step:last-child:after { display: none; }
+  .flow-step .step-num {
+    background: #1a1a2e;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 9pt;
+    flex-shrink: 0;
+  }
+  .flow-step .step-content { flex: 1; }
+  .flow-step .step-label { font-weight: 700; font-size: 10pt; }
+  .flow-step .step-detail { font-size: 9pt; color: #718096; }
+  .flow-step .step-tag {
+    font-size: 8pt;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag-free { background: #c6f6d5; color: #276749; }
+  .tag-llm  { background: #e9d8fd; color: #553c9a; }
+  .tag-crit  { background: #fed7d7; color: #c53030; }
+  .tag-save  { background: #feebc8; color: #c05621; }
+
+  /* ── SCORING DETAIL ── */
+  .criterion-block {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .criterion-block .crit-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .crit-id {
+    background: #1a1a2e;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 10pt;
+    font-family: 'Courier New', monospace;
+    min-width: 40px;
+    text-align: center;
+  }
+  .crit-name { font-weight: 700; font-size: 10.5pt; flex: 1; }
+  .crit-max { font-size: 16pt; font-weight: 700; color: #e94560; }
+
+  .scale-table { margin: 6px 0; }
+  .scale-table td { padding: 3px 8px; font-size: 9pt; }
+  .scale-table td:first-child { font-weight: 700; color: #1a1a2e; width: 80px; }
+
+  /* ── SCORE BAND ── */
+  .score-bands {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 12px 0;
+    height: 32px;
+  }
+  .band {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    font-weight: 700;
+    color: white;
+  }
+  .band.fail { background: #e53e3e; flex: 69; }
+  .band.pass { background: #38a169; flex: 20; }
+  .band.good { background: #3182ce; flex: 11; }
+
+  /* ── TOC ── */
+  .toc { margin: 16px 0; }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted #e2e8f0;
+    font-size: 10pt;
+  }
+  .toc-num { color: #e94560; font-weight: 700; width: 28px; }
+  .toc-title { flex: 1; }
+  .toc-page { color: #718096; font-size: 9pt; }
+
+  /* ── FOOTER ── */
+  @page {
+    margin: 0;
+    @bottom-center {
+      content: "TPI Content Scorer v3.0 — TPI Land | Trang " counter(page);
+      font-size: 8pt;
+      color: #718096;
+    }
+  }
+
+  .footer-note {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8.5pt;
+    color: #a0aec0;
+    text-align: center;
+  }
+
+  /* ── HIGHLIGHT ── */
+  .highlight { background: #fefcbf; padding: 1px 3px; border-radius: 2px; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 10px 0;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 10pt;
+  }
+  .stat-row:last-child { border: none; }
+  .stat-val { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG BÌA
+══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">TPI<span>.</span></div>
+  <div class="cover-subtitle">Land • Vũng Tàu</div>
+
+  <div class="cover-title">Tài liệu Hệ thống<br>Chấm Điểm Nội dung</div>
+  <div class="cover-desc">
+    Rubric v3.0 — E-E-A-T + HCU + GEO Edition<br>
+    Quy chuẩn đánh giá bài viết SEO/GEO cho đội ngũ content<br>
+    bất động sản TPI Land, Vũng Tàu
+  </div>
+
+  <div class="cover-badges">
+    <div class="badge">Rubric v3.0</div>
+    <div class="badge blue">100 điểm</div>
+    <div class="badge green">32 tiêu chí</div>
+    <div class="badge">E-E-A-T</div>
+    <div class="badge blue">HCU 2024</div>
+    <div class="badge green">AI Overviews</div>
+  </div>
+
+  <div class="cover-meta">
+    <div><strong>100</strong>Tổng điểm</div>
+    <div><strong>70</strong>Điểm đạt (Pass)</div>
+    <div><strong>4</strong>Tầng đánh giá</div>
+    <div><strong>32</strong>Tiêu chí</div>
+    <div><strong>v3.0</strong>Phiên bản</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 2 — MỤC LỤC
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <h1>Mục lục</h1>
+    <p>TPI Content Scorer — Tài liệu kỹ thuật và quy chuẩn chấm điểm</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-item"><span class="toc-num">1.</span><span class="toc-title">Tổng quan hệ thống</span><span class="toc-page">Trang 3</span></div>
+    <div class="toc-item"><span class="toc-num">2.</span><span class="toc-title">Quy trình chấm bài (Data Flow)</span><span class="toc-page">Trang 3</span></div>
+    <div class="toc-item"><span class="toc-num">3.</span><span class="toc-title">Điều kiện tiên quyết (Preflight Checks)</span><span class="toc-page">Trang 4</span></div>
+    <div class="toc-item"><span class="toc-num">4.</span><span class="toc-title">Bảng tổng hợp 32 tiêu chí</span><span class="toc-page">Trang 4</span></div>
+    <div class="toc-item"><span class="toc-num">5.</span><span class="toc-title">Tầng 1 — Cấu trúc &amp; Ngữ cảnh (27đ)</span><span class="toc-page">Trang 5</span></div>
+    <div class="toc-item"><span class="toc-num">6.</span><span class="toc-title">Tầng 2 — Chất lượng đoạn &amp; AEO+SI (22đ)</span><span class="toc-page">Trang 6</span></div>
+    <div class="toc-item"><span class="toc-num">7.</span><span class="toc-title">Tầng 3 — RPP &amp; Entity &amp; SI &amp; HCU (24đ)</span><span class="toc-page">Trang 8</span></div>
+    <div class="toc-item"><span class="toc-num">8.</span><span class="toc-title">Tầng 4 — Information Gain &amp; GEO &amp; E-E-A-T (27đ)</span><span class="toc-page">Trang 9</span></div>
+    <div class="toc-item"><span class="toc-num">9.</span><span class="toc-title">Thang điểm &amp; Phân loại kết quả</span><span class="toc-page">Trang 11</span></div>
+    <div class="toc-item"><span class="toc-num">10.</span><span class="toc-title">Thay đổi so với v2.1</span><span class="toc-page">Trang 11</span></div>
+    <div class="toc-item"><span class="toc-num">11.</span><span class="toc-title">Checklist thực hành nhanh</span><span class="toc-page">Trang 12</span></div>
+  </div>
+
+  <div class="info-box blue">
+    <strong>Cách đọc tài liệu này</strong>
+    Tài liệu dành cho 2 đối tượng: (1) <strong>Content writer</strong> — đọc phần tiêu chí chi tiết (mục 5-8) và checklist (mục 11) để viết bài đạt chuẩn;
+    (2) <strong>Developer / Admin</strong> — đọc thêm mục 2 (data flow), phương pháp chấm (Rule / LLM-Haiku / LLM-Sonnet), và cấu trúc hệ thống.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 3 — TỔNG QUAN + DATA FLOW
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>1. Tổng quan hệ thống</h1>
+    <p>TPI Content Scorer — công cụ chấm điểm bài viết SEO/GEO tự động cho TPI Land</p>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3>Mục tiêu</h3>
+      <p>Đánh giá khách quan chất lượng bài viết BĐS theo tiêu chuẩn Google 2024-2026: E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness), Helpful Content System (HCU), và AI Overviews (GEO). Kết quả chấm cho thấy điểm số, các vấn đề cụ thể, và gợi ý sửa có thứ tự ưu tiên.</p>
+
+      <h3 style="margin-top:12px">Công nghệ sử dụng</h3>
+      <div class="stat-row"><span>Giao diện</span><span class="stat-val">HTML/CSS/JS thuần</span></div>
+      <div class="stat-row"><span>AI chấm đơn giản</span><span class="stat-val">Claude Haiku 4.5</span></div>
+      <div class="stat-row"><span>AI chấm phức tạp</span><span class="stat-val">Claude Sonnet 4.6</span></div>
+      <div class="stat-row"><span>Lưu trữ</span><span class="stat-val">localStorage (browser)</span></div>
+      <div class="stat-row"><span>Proxy API</span><span class="stat-val">Netlify Functions</span></div>
+    </div>
+    <div>
+      <h3>Thống số kỹ thuật</h3>
+      <div class="stat-row"><span>Tổng điểm</span><span class="stat-val">100 đ</span></div>
+      <div class="stat-row"><span>Điểm pass</span><span class="stat-val">≥ 70 đ</span></div>
+      <div class="stat-row"><span>Số tiêu chí</span><span class="stat-val">32 tiêu chí</span></div>
+      <div class="stat-row"><span>Rule-based (free)</span><span class="stat-val">18 tiêu chí</span></div>
+      <div class="stat-row"><span>LLM Haiku</span><span class="stat-val">8 tiêu chí</span></div>
+      <div class="stat-row"><span>LLM Sonnet</span><span class="stat-val">6 tiêu chí</span></div>
+      <div class="stat-row"><span>Skip LLM threshold</span><span class="stat-val">&lt; 30đ rule</span></div>
+      <div class="stat-row"><span>Chi phí ước tính</span><span class="stat-val">~530đ/bài</span></div>
+      <div class="stat-row"><span>Thời gian chấm</span><span class="stat-val">~5-8 giây</span></div>
+    </div>
+  </div>
+
+  <h2>2. Quy trình chấm bài (Data Flow)</h2>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-label">Nhập bài &amp; Metadata</div>
+        <div class="step-detail">User dán bài viết + điền: Từ khóa, Main Entity, Search Intent (Know/Do/Hybrid/Go)</div>
+      </div>
+      <span class="step-tag tag-free">Free</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-label">parseArticle() — Phân tích cấu trúc</div>
+        <div class="step-detail">Extract: từ, heading H1/H2/H3, vị trí ký tự, bảng HTML, danh sách có thứ tự</div>
+      </div>
+      <span class="step-tag tag-free">Instant</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-label">runPreflight() — 5 kiểm tra tiên quyết</div>
+        <div class="step-detail">Fail bất kỳ 1 → dừng ngay, không tính điểm, không gọi AI</div>
+      </div>
+      <span class="step-tag tag-crit">Critical</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-label">scoreRules() — 18 tiêu chí Rule</div>
+        <div class="step-detail">Chạy regex + logic JS, trả kết quả tức thì. Tổng rule &lt; 30đ → bỏ qua bước 5+6</div>
+      </div>
+      <span class="step-tag tag-free">Free</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-label">scoreLLMSimple() — Claude Haiku (song song)</div>
+        <div class="step-detail">8 tiêu chí: S1, S2, S5, P1, R1, R3, R5, HC1 — ~3 giây, ~$0.002/bài</div>
+      </div>
+      <span class="step-tag tag-llm">Haiku AI</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <div class="step-label">scoreLLMComplex() — Claude Sonnet (song song)</div>
+        <div class="step-detail">6 tiêu chí: R2, R4, I1, I2, I4, SI1 + Top 5 gợi ý sửa — ~5 giây, ~$0.015/bài</div>
+      </div>
+      <span class="step-tag tag-llm">Sonnet AI</span>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <div class="step-label">renderResult() — Hiển thị kết quả</div>
+        <div class="step-detail">Điểm 4 tầng, Top 5 gợi ý sửa, Checklist, Chi tiết từng tiêu chí</div>
+      </div>
+      <span class="step-tag tag-free">Output</span>
+    </div>
+  </div>
+
+  <div class="info-box yellow">
+    <strong>Cơ chế tiết kiệm chi phí</strong>
+    Nếu tổng điểm Rule &lt; 30đ: bài viết có vấn đề cơ bản nghiêm trọng — hệ thống bỏ qua bước gọi AI và chỉ tạo gợi ý sửa từ rule scores. Tiết kiệm ~100% chi phí AI cho bài kém chất lượng.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 4 — PREFLIGHT + BẢNG TỔNG HỢP
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>3. Điều kiện tiên quyết — Preflight Checks</h1>
+    <p>5 điều kiện bắt buộc — fail bất kỳ 1 điều kiện → không chấm điểm</p>
+  </div>
+
+  <table>
+    <tr>
+      <th style="width:28px">#</th>
+      <th style="width:180px">Tên kiểm tra</th>
+      <th>Điều kiện</th>
+      <th style="width:120px">Lý do quan trọng</th>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#e53e3e">PF1</td>
+      <td>Có H1</td>
+      <td>Bài phải có ít nhất <strong>1 heading H1</strong></td>
+      <td>Google cần H1 để xác định chủ đề chính</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#e53e3e">PF2</td>
+      <td>Đủ H2</td>
+      <td>Bài phải có ít nhất <strong>3 heading H2</strong></td>
+      <td>Cấu trúc tối thiểu để phân mục nội dung</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#e53e3e">PF3</td>
+      <td>Độ dài tối thiểu</td>
+      <td><strong>Số từ ≥ 800</strong></td>
+      <td>Bài quá ngắn không đủ thông tin độ sâu</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#e53e3e">PF4</td>
+      <td>Độ dài tối đa</td>
+      <td><strong>Số từ ≤ 10.000</strong></td>
+      <td>Bài quá dài khó đọc, nguy cơ nhồi nhét keyword</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:#e53e3e">PF5</td>
+      <td>Entity trong H1</td>
+      <td>H1 phải chứa <strong>keyword hoặc main entity</strong> đã khai báo</td>
+      <td>Tín hiệu relevance quan trọng nhất với Google</td>
+    </tr>
+  </table>
+
+  <div class="section-header" style="margin-top:24px">
+    <h1>4. Bảng tổng hợp 32 tiêu chí</h1>
+    <p>Phân theo 4 tầng — tổng 100 điểm</p>
+  </div>
+
+  <div class="tier-grid">
+    <div class="tier-card t1">
+      <div class="tier-title">Tầng 1 — Cấu trúc &amp; Ngữ cảnh</div>
+      <div class="tier-score">27đ</div>
+      <div class="tier-ids">S1 S2 S3 S4 S5 A3 G3 E3</div>
+    </div>
+    <div class="tier-card t2">
+      <div class="tier-title">Tầng 2 — Chất lượng đoạn &amp; AEO+SI</div>
+      <div class="tier-score">22đ</div>
+      <div class="tier-ids">P1 P2 P3 P4 P5 P6 A1 A2 SI2</div>
+    </div>
+    <div class="tier-card t3">
+      <div class="tier-title">Tầng 3 — RPP &amp; Entity &amp; SI &amp; HCU</div>
+      <div class="tier-score">24đ</div>
+      <div class="tier-ids">R1 R2 R3 R4 R5 SI1 HC1</div>
+    </div>
+    <div class="tier-card t4">
+      <div class="tier-title">Tầng 4 — Information Gain &amp; GEO &amp; E-E-A-T</div>
+      <div class="tier-score">27đ</div>
+      <div class="tier-ids">I1 I2 I3 I4 G1 G2 E1 E2</div>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>ID</th><th>Tên tiêu chí</th><th style="width:40px;text-align:center">Max</th><th style="width:100px">Phương pháp</th><th>Mô tả ngắn</th>
+    </tr>
+    <!-- T1 -->
+    <tr><td style="font-weight:700">S1</td><td>Macro Context H1↔H2</td><td style="text-align:center"><strong>5</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>% H2 chứa keyword/entity từ H1</td></tr>
+    <tr><td style="font-weight:700">S2</td><td>9-10 Heading đầu chất lượng</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>Heading cụ thể vs generic</td></tr>
+    <tr><td style="font-weight:700">S3</td><td>Heading Hierarchy</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-rule">Rule</span></td><td>H1→H2→H3 đúng thứ bậc</td></tr>
+    <tr><td style="font-weight:700">S4</td><td>Contextual Coverage</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-rule">Rule</span></td><td>Bao phủ đủ 5 chủ đề BĐS cốt lõi</td></tr>
+    <tr><td style="font-weight:700">S5</td><td>Contextual Flow logic</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>4 pha: Định nghĩa→Đặc điểm→Lợi ích→CTA</td></tr>
+    <tr><td style="font-weight:700">A3</td><td>Definition Sentence</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>"{Entity} là …" trong 1.500 ký tự đầu</td></tr>
+    <tr><td style="font-weight:700">G3</td><td>NAP Consistency</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>Tên + Địa chỉ + SĐT trong 30% cuối bài</td></tr>
+    <tr><td style="font-weight:700">E3</td><td>Freshness Date Signal</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>Ngày/tháng/quý/năm ≥ 2025 trong bài</td></tr>
+    <!-- T2 -->
+    <tr style="background:#fffaf0"><td style="font-weight:700">P1</td><td>Early Query Answer</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>150 từ đầu trả lời thẳng câu hỏi chính</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">P2</td><td>Be Certain</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-rule">Rule</span></td><td>Không dùng từ do dự: "có thể", "nên", "nếu"</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">P3</td><td>Cụ thể vs Chung chung</td><td style="text-align:center"><strong>1</strong></td><td><span class="method-rule">Rule</span></td><td>Tỷ lệ từ chung chung &lt; 5%</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">P4</td><td>Số liệu cụ thể</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-rule">Rule</span></td><td>≥ 1 con số/300 từ (m², tỷ, km, %...)</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">P5</td><td>Heading viết hoa</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>≥ 80% heading viết hoa chữ đầu mỗi từ</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">P6</td><td>Internal link đúng vị trí</td><td style="text-align:center"><strong>1</strong></td><td><span class="method-rule">Rule</span></td><td>Link nội bộ không nằm ngay heading</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">A1</td><td>Answer-First Paragraph</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-rule">Rule</span></td><td>Đoạn đầu sau H1: 40-70 từ (compact answer)</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">A2</td><td>FAQ Schema-Ready</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>H3 dạng câu hỏi "?" + trả lời ≤ 100 từ</td></tr>
+    <tr style="background:#fffaf0"><td style="font-weight:700">SI2</td><td>Search Intent Opening Signal</td><td style="text-align:center"><strong>1</strong></td><td><span class="method-rule">Rule</span></td><td>250 từ đầu phải khớp tín hiệu intent đã chọn</td></tr>
+    <!-- T3 -->
+    <tr><td style="font-weight:700">R1</td><td>RPP — Relevance</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>Bài dẫn đến TPI action (tư vấn, xem nhà)</td></tr>
+    <tr><td style="font-weight:700">R2</td><td>RPP — Prominence</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>Đủ 5 attr thiết yếu: vị trí/tiện ích/pháp lý/giá/CĐT</td></tr>
+    <tr><td style="font-weight:700">R3</td><td>RPP — Popularity</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>Nội dung khớp đúng mục đích tìm kiếm</td></tr>
+    <tr><td style="font-weight:700">R4</td><td>EAV Coverage</td><td style="text-align:center"><strong>5</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>Entity-Attribute-Value: có con số cụ thể mỗi attr</td></tr>
+    <tr><td style="font-weight:700">R5</td><td>Central Entity Alignment</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>CTA TPI trong 25% cuối bài</td></tr>
+    <tr><td style="font-weight:700">SI1</td><td>Search Intent Format Match</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>Format bài khớp intent: Know/Do/Hybrid/Go</td></tr>
+    <tr><td style="font-weight:700">HC1</td><td>Helpful Completeness</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-llm-s">Haiku AI</span></td><td>Đề cập rủi ro/lo ngại thực tế của người mua</td></tr>
+    <!-- T4 -->
+    <tr style="background:#ebf8ff"><td style="font-weight:700">I1</td><td>Dữ liệu độc quyền TPI</td><td style="text-align:center"><strong>6</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>Có data TPI thực: số khách, giá Q/năm, giao dịch</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">I2</td><td>Góc nhìn mới</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>TPI-voice: "Theo TPI…" + nhận định cụ thể</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">I3</td><td>Tránh văn phong AI</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-rule">Rule</span></td><td>Không dùng cliché AI (regex 14 mẫu câu)</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">I4</td><td>Trích dẫn nguồn</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-llm-c">Sonnet AI</span></td><td>Nguồn uy tín: CBRE/Savills/JLL/báo cáo thị trường</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">G1</td><td>GEO Citable Chunk</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>Đoạn 30-200 từ có Entity+Số liệu+Thuộc tính</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">G2</td><td>Structured Table/List</td><td style="text-align:center"><strong>3</strong></td><td><span class="method-rule">Rule</span></td><td>Có bảng HTML + danh sách đánh số (OL)</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">E1</td><td>First-Hand Experience</td><td style="text-align:center"><strong>4</strong></td><td><span class="method-rule">Rule</span></td><td>Tín hiệu thực địa TPI (10 mẫu câu)</td></tr>
+    <tr style="background:#ebf8ff"><td style="font-weight:700">E2</td><td>Staff Credential Attribution</td><td style="text-align:center"><strong>2</strong></td><td><span class="method-rule">Rule</span></td><td>Trích dẫn tên chuyên viên TPI cụ thể</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 5 — TẦNG 1 CHI TIẾT
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>5. Tầng 1 — Cấu trúc &amp; Ngữ cảnh <span style="float:right;font-size:20pt">27 điểm</span></h1>
+    <p>Đánh giá bộ khung bài viết: thứ bậc heading, độ phủ chủ đề, tín hiệu E-E-A-T và GEO cơ bản</p>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">S1</span>
+      <span class="crit-name">Macro Context Alignment H1↔H2</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">5đ</span>
+    </div>
+    <p><strong>Đo lường:</strong> Tỷ lệ % H2 chứa ít nhất 1 từ khóa từ H1 hoặc Entity.</p>
+    <table class="scale-table"><tr><td>5đ</td><td>≥ 80% H2 liên quan đến chủ đề H1</td></tr><tr><td>4đ</td><td>60–79%</td></tr><tr><td>3đ</td><td>40–59%</td></tr><tr><td>2đ</td><td>20–39%</td></tr><tr><td>1đ</td><td>&lt; 20%</td></tr><tr><td>0đ</td><td>H2 hoàn toàn lạc đề, không liên quan H1</td></tr></table>
+    <div class="info-box green"><strong>Ví dụ tốt (H1 = "Metropolis Vũng Tàu"):</strong> H2: "Vị Trí Metropolis Gần Biển", "Tiện Ích Metropolis Đẳng Cấp", "Giá Metropolis 2025" → 3/3 = 100% → 5đ</div>
+    <div class="info-box red"><strong>Ví dụ kém:</strong> H2: "Giới Thiệu", "Thông Tin Chung", "Liên Hệ" → 0% → 0đ</div>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">S2</span>
+      <span class="crit-name">9-10 Heading đầu chất lượng</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p><strong>Đo lường:</strong> AI đọc 9-10 heading đầu tiên và đánh giá mức độ cụ thể, hấp dẫn.</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Tất cả heading cụ thể, gây tò mò, chứa số liệu/địa điểm</td></tr><tr><td>2-3đ</td><td>Một số heading vẫn còn generic</td></tr><tr><td>0-1đ</td><td>Đa số heading chung chung: "Giới Thiệu", "Kết Luận"</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">S3</span>
+      <span class="crit-name">Heading Hierarchy</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p><strong>Đo lường:</strong> Kiểm tra tự động thứ bậc H1→H2→H3 không nhảy cấp.</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Thứ bậc đúng hoàn toàn, không có H3 trước H2</td></tr><tr><td>2đ</td><td>1-2 lỗi nhảy cấp</td></tr><tr><td>0đ</td><td>Nhiều lỗi thứ bậc hoặc không có H2</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">S4</span>
+      <span class="crit-name">Contextual Coverage</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p><strong>Đo lường:</strong> Bài có đề cập đủ 5 chủ đề cốt lõi BĐS không (trong heading hoặc nội dung).</p>
+    <p><strong>5 chủ đề:</strong> (1) Vị trí/địa điểm · (2) Tiện ích · (3) Pháp lý · (4) Giá/tài chính · (5) Chủ đầu tư</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Đủ 5/5 chủ đề</td></tr><tr><td>3đ</td><td>4/5 chủ đề</td></tr><tr><td>2đ</td><td>3/5 chủ đề</td></tr><tr><td>1đ</td><td>2/5 chủ đề</td></tr><tr><td>0đ</td><td>≤ 1 chủ đề</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">S5</span>
+      <span class="crit-name">Contextual Flow Logic</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p><strong>Đo lường:</strong> Heading có đủ 4 phase đúng thứ tự không.</p>
+    <table class="scale-table"><tr><td>4đ</td><td>(1) Định nghĩa/Vị trí → (2) Đặc điểm/Tiện ích → (3) Lợi ích/Giá trị → (4) Hành động/CTA — đủ và đúng thứ tự</td></tr><tr><td>3đ</td><td>3 phase</td></tr><tr><td>2đ</td><td>2 phase</td></tr><tr><td>1đ</td><td>Có logic nhưng lộn xộn thứ tự</td></tr><tr><td>0đ</td><td>Ngẫu nhiên, không có dòng chảy</td></tr></table>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">A3</span>
+        <span class="crit-name">Definition Sentence</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">2đ</span>
+      </div>
+      <p>Trong 1.500 ký tự đầu phải có câu: <code>{Entity} là …</code> (hoặc dùng dấu – : —)</p>
+      <table class="scale-table"><tr><td>2đ</td><td>Tìm thấy câu định nghĩa</td></tr><tr><td>0đ</td><td>Không có</td></tr></table>
+    </div>
+    <div>
+      <div class="criterion-block">
+        <div class="crit-header">
+          <span class="crit-id">G3</span>
+          <span class="crit-name">NAP Consistency</span>
+          <span class="method-rule">Rule</span>
+          <span class="crit-max">2đ</span>
+        </div>
+        <p>Trong 30% cuối bài có đủ <strong>N</strong>ame (TPI Land) + <strong>A</strong>ddress (địa chỉ cụ thể) + <strong>P</strong>hone (SĐT).</p>
+        <table class="scale-table"><tr><td>2đ</td><td>Đủ cả 3</td></tr><tr><td>1đ</td><td>Có 2/3</td></tr><tr><td>0đ</td><td>≤ 1/3</td></tr></table>
+      </div>
+      <div class="criterion-block" style="margin-top:0">
+        <div class="crit-header">
+          <span class="crit-id">E3</span>
+          <span class="crit-name">Freshness Date Signal</span>
+          <span class="method-rule">Rule</span>
+          <span class="crit-max">2đ</span>
+        </div>
+        <p>Bài có nhắc đến: tháng/quý/năm ≥ 2025 ("giá tháng 5/2025", "Q1/2026").</p>
+        <table class="scale-table"><tr><td>2đ</td><td>Tìm thấy date stamp</td></tr><tr><td>0đ</td><td>Không có</td></tr></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 6 — TẦNG 2 CHI TIẾT
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>6. Tầng 2 — Chất lượng đoạn &amp; AEO+SI <span style="float:right;font-size:20pt">22 điểm</span></h1>
+    <p>Đánh giá chất lượng từng đoạn, format AEO (Answer Engine Optimization), tín hiệu Search Intent</p>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">P1</span>
+      <span class="crit-name">Early Query Answer</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>AI kiểm tra: câu đầu sau mỗi heading có trả lời thẳng câu hỏi của heading không. Đọc 150 từ đầu bài: có thấy thông tin chính ngay không?</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Trả lời thẳng, không mở đầu kiểu "Trong bài này chúng tôi sẽ..."</td></tr><tr><td>2đ</td><td>Có trả lời nhưng còn dài dòng, chậm</td></tr><tr><td>0đ</td><td>Mở đầu chung chung, người đọc phải cuộn xuống mới thấy nội dung</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">P2</span>
+      <span class="crit-name">Be Certain — Cấm từ do dự</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">3đ</span>
+    </div>
+    <p>Regex tự động đếm số lần dùng từ do dự/không chắc chắn trong toàn bài.</p>
+    <p><strong>Từ bị phát hiện:</strong> "có thể", "nên", "nếu", "tùy thuộc", "có lẽ", "dường như", "hình như", "không chắc", "khả năng"…</p>
+    <table class="scale-table"><tr><td>3đ</td><td>0 lần xuất hiện</td></tr><tr><td>2đ</td><td>1-2 lần</td></tr><tr><td>1đ</td><td>3-5 lần</td></tr><tr><td>0đ</td><td>&gt; 5 lần</td></tr></table>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">P3</span>
+        <span class="crit-name">Cụ thể vs Chung chung</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">1đ</span>
+      </div>
+      <p>Tỷ lệ từ/cụm từ chung chung (rất tốt, tuyệt vời, đẳng cấp, hoàn hảo…) &lt; 5% tổng từ.</p>
+      <table class="scale-table"><tr><td>1đ</td><td>Tỷ lệ &lt; 5%</td></tr><tr><td>0đ</td><td>≥ 5%</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">P4</span>
+        <span class="crit-name">Số liệu cụ thể</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">4đ</span>
+      </div>
+      <p>Mật độ con số có đơn vị đo lường trong bài (m², tỷ, triệu, km, tầng, căn, %, phút…).</p>
+      <table class="scale-table"><tr><td>4đ</td><td>≥ 1 số liệu / 200 từ</td></tr><tr><td>3đ</td><td>1 số / 300 từ</td></tr><tr><td>2đ</td><td>1 số / 500 từ</td></tr><tr><td>1đ</td><td>1 số / 800 từ</td></tr><tr><td>0đ</td><td>Rất ít hoặc không có số liệu</td></tr></table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">P5</span>
+        <span class="crit-name">Heading viết hoa</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">2đ</span>
+      </div>
+      <p>≥ 80% heading viết hoa chữ đầu mỗi từ (Title Case theo chuẩn TPI).</p>
+      <table class="scale-table"><tr><td>2đ</td><td>≥ 80% đúng</td></tr><tr><td>1đ</td><td>50-79%</td></tr><tr><td>0đ</td><td>&lt; 50%</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">P6</span>
+        <span class="crit-name">Internal Link đúng vị trí</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">1đ</span>
+      </div>
+      <p>Link nội bộ không được đặt ngay sau heading (ảnh hưởng UX và đọc máy).</p>
+      <table class="scale-table"><tr><td>1đ</td><td>Không có link ngay sau heading</td></tr><tr><td>0đ</td><td>Có link ngay sau heading</td></tr></table>
+    </div>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">A1</span>
+      <span class="crit-name">Answer-First Paragraph ⚡AEO/GEO</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>Đoạn văn ngay sau H1: phải compact (40-70 từ) để tối ưu Featured Snippet và AI Overview extraction.</p>
+    <table class="scale-table"><tr><td>4đ</td><td>40–70 từ (compact, đủ thông tin)</td></tr><tr><td>2đ</td><td>71–100 từ (hơi dài nhưng chấp nhận)</td></tr><tr><td>0đ</td><td>&gt; 100 từ hoặc &lt; 40 từ</td></tr></table>
+    <div class="info-box green"><strong>Lý do quan trọng:</strong> Google thường trích đoạn này làm Featured Snippet. AI Overview cũng ưu tiên đoạn mở đầu ngắn gọn, tự đứng được. Quá dài → bị cắt. Quá ngắn → thiếu thông tin.</div>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">A2</span>
+        <span class="crit-name">FAQ Schema-Ready ⚡AEO</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">2đ</span>
+      </div>
+      <p>Có H3 dạng câu hỏi kết thúc "?" + phần trả lời ≤ 100 từ (chuẩn FAQ Schema markup).</p>
+      <table class="scale-table"><tr><td>2đ</td><td>≥ 70% cặp FAQ đạt chuẩn</td></tr><tr><td>1đ</td><td>30-69%</td></tr><tr><td>0đ</td><td>&lt; 30% hoặc không có FAQ H3</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">SI2</span>
+        <span class="crit-name">Search Intent Opening Signal ⚡SI</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">1đ</span>
+      </div>
+      <p>250 từ đầu phải có tín hiệu khớp Search Intent đã khai báo.</p>
+      <table class="scale-table"><tr><td style="font-size:8pt"><strong>Know:</strong></td><td style="font-size:8pt">Câu định nghĩa "{Entity} là…" hoặc "là gì"</td></tr><tr><td style="font-size:8pt"><strong>Do:</strong></td><td style="font-size:8pt">Giá tiền, hotline, CTA mua/đặt lịch</td></tr><tr><td style="font-size:8pt"><strong>Go:</strong></td><td style="font-size:8pt">Số điện thoại, địa chỉ, showroom</td></tr><tr><td style="font-size:8pt"><strong>Hybrid:</strong></td><td style="font-size:8pt">Có cả Know + Do signal</td></tr></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 7 — TẦNG 3 CHI TIẾT
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>7. Tầng 3 — RPP &amp; Entity &amp; SI &amp; HCU <span style="float:right;font-size:20pt">24 điểm</span></h1>
+    <p>Relevance-Prominence-Popularity, Entity-Attribute-Value, Search Intent Format, Helpful Content</p>
+  </div>
+
+  <div class="info-box purple">
+    <strong>RPP Framework — Nền tảng Entity SEO</strong>
+    RPP là mô hình đánh giá entity trong Knowledge Graph của Google: (R) Bài có liên quan đến mục tiêu business không? (P) Bài có đề cập đủ thuộc tính quan trọng của entity không? (P) Nội dung có khớp với mục đích tìm kiếm phổ biến không?
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">R1</span>
+      <span class="crit-name">RPP — Relevance</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>Bài có ít nhất 1 heading/đoạn dẫn đến <strong>TPI action</strong> (liên hệ TPI, xem nhà, nhận tư vấn)?</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Nhiều điểm TPI connection (đa dạng CTA, heading R5 rõ ràng)</td></tr><tr><td>2-3đ</td><td>Có 1-2 điểm liên quan TPI</td></tr><tr><td>0-1đ</td><td>Bài thông tin thuần túy, không có TPI connection nào</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">R2</span>
+      <span class="crit-name">RPP — Prominence</span>
+      <span class="method-llm-c">Sonnet AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>Đếm số thuộc tính thiết yếu BĐS có mặt trong bài (dù trong heading hay nội dung).</p>
+    <p><strong>5 thuộc tính cần có:</strong> vị trí · tiện ích · pháp lý · giá · chủ đầu tư</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Đủ 5/5 thuộc tính</td></tr><tr><td>3đ</td><td>4/5</td></tr><tr><td>2đ</td><td>3/5</td></tr><tr><td>1đ</td><td>2/5</td></tr><tr><td>0đ</td><td>≤ 1/5</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">R4</span>
+      <span class="crit-name">EAV Coverage — Entity-Attribute-Value</span>
+      <span class="method-llm-c">Sonnet AI</span>
+      <span class="crit-max">5đ</span>
+    </div>
+    <p>Không chỉ đề cập thuộc tính — mỗi thuộc tính phải có <strong>VALUE cụ thể bằng số</strong>.</p>
+    <div class="two-col">
+      <div class="info-box red"><strong>❌ Kém (không có value):</strong><br>"Hồ bơi cao cấp"<br>"Vị trí đắc địa"<br>"Pháp lý rõ ràng"</div>
+      <div class="info-box green"><strong>✅ Tốt (có value cụ thể):</strong><br>"Hồ bơi 1.500m²"<br>"Cách biển 500m"<br>"Sổ hồng lâu dài 50 năm"</div>
+    </div>
+    <table class="scale-table"><tr><td>5đ</td><td>≥ 4 thuộc tính có số liệu cụ thể</td></tr><tr><td>3đ</td><td>2-3 thuộc tính có số cụ thể</td></tr><tr><td>1đ</td><td>Chỉ 1 thuộc tính</td></tr><tr><td>0đ</td><td>Toàn mô tả mơ hồ</td></tr></table>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">R3</span>
+        <span class="crit-name">RPP — Popularity</span>
+        <span class="method-llm-s">Haiku AI</span>
+        <span class="crit-max">2đ</span>
+      </div>
+      <p>Nội dung bài có khớp đúng mục đích tìm kiếm của keyword đã khai báo không?</p>
+      <table class="scale-table"><tr><td>2đ</td><td>Khớp chính xác — VD: keyword "mua Metropolis" → có bảng giá + CTA</td></tr><tr><td>1đ</td><td>Khớp một phần</td></tr><tr><td>0đ</td><td>Lạc hướng hoàn toàn</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">R5</span>
+        <span class="crit-name">Central Entity Alignment</span>
+        <span class="method-llm-s">Haiku AI</span>
+        <span class="crit-max">3đ</span>
+      </div>
+      <p>25% cuối bài phải có CTA hoặc heading dẫn về TPI (tư vấn, liên hệ, đặt lịch xem nhà).</p>
+      <table class="scale-table"><tr><td>3đ</td><td>CTA TPI rõ ràng trong phần kết</td></tr><tr><td>1-2đ</td><td>Có đề cập nhưng không nổi bật</td></tr><tr><td>0đ</td><td>Kết bài không có TPI action nào</td></tr></table>
+    </div>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">SI1</span>
+      <span class="crit-name">Search Intent Format Match ⚡SI</span>
+      <span class="method-llm-c">Sonnet AI</span>
+      <span class="crit-max">3đ</span>
+    </div>
+    <p>AI kiểm tra FORMAT toàn bài có khớp với intent đã khai báo không.</p>
+    <table>
+      <tr><th>Intent</th><th>Checklist 3 điều kiện</th></tr>
+      <tr><td><strong>Know</strong></td><td>(1) Có định nghĩa rõ ràng · (2) Có FAQ/H3 dạng câu hỏi · (3) Không bán hàng trực tiếp</td></tr>
+      <tr><td><strong>Do</strong></td><td>(1) Có bảng giá/so sánh · (2) Có CTA "liên hệ/đặt lịch" · (3) Có hotline/SĐT</td></tr>
+      <tr><td><strong>Hybrid</strong></td><td>Đủ cả Know + Do format tách biệt</td></tr>
+      <tr><td><strong>Go</strong></td><td>(1) Thương hiệu TPI nổi bật · (2) Địa chỉ cụ thể · (3) Hotline trong đầu bài</td></tr>
+    </table>
+    <table class="scale-table"><tr><td>3đ</td><td>Đáp ứng ≥ 3/3 điều kiện</td></tr><tr><td>1.5đ</td><td>Đáp ứng 2/3</td></tr><tr><td>0đ</td><td>≤ 1/3 điều kiện</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">HC1</span>
+      <span class="crit-name">Helpful Completeness ⚡HCU 2024</span>
+      <span class="method-llm-s">Haiku AI</span>
+      <span class="crit-max">3đ</span>
+    </div>
+    <p>Google Helpful Content Update đánh giá cao bài viết giải đáp <strong>lo ngại thực tế</strong> của người mua BĐS — không chỉ PR dự án.</p>
+    <p><strong>5 lo ngại cần đề cập ít nhất 1:</strong> rủi ro pháp lý cụ thể · tiến độ xây dựng · thanh khoản · năng lực chủ đầu tư · chính sách bảo lãnh ngân hàng</p>
+    <table class="scale-table"><tr><td>3đ</td><td>Có phần "Lưu ý / Rủi ro" riêng + giải thích cụ thể chi tiết</td></tr><tr><td>1.5đ</td><td>Đề cập thoáng qua nhưng không có chi tiết</td></tr><tr><td>0đ</td><td>Bài hoàn toàn PR tích cực, không có điểm bất lợi nào</td></tr></table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 8 — TẦNG 4 CHI TIẾT
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>8. Tầng 4 — Information Gain &amp; GEO &amp; E-E-A-T <span style="float:right;font-size:20pt">27 điểm</span></h1>
+    <p>Thông tin độc đáo, tối ưu AI Overviews, tín hiệu Kinh nghiệm-Chuyên môn-Uy tín-Tin cậy</p>
+  </div>
+
+  <h2>Information Gain</h2>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">I1</span>
+      <span class="crit-name">Dữ liệu độc quyền TPI</span>
+      <span class="method-llm-c">Sonnet AI</span>
+      <span class="crit-max">6đ</span>
+    </div>
+    <p>Bài có chứa data thực từ hoạt động kinh doanh TPI Land không? Chấm theo <strong>3 dấu hiệu</strong>:</p>
+    <table>
+      <tr><th style="width:30px">Dấu hiệu</th><th>Mô tả</th><th style="width:150px">Ví dụ</th></tr>
+      <tr><td><strong>[A]</strong></td><td>Số lượng khách TPI đã hỗ trợ/tư vấn + con số cụ thể</td><td>"TPI đã tư vấn hơn 350 khách tại Metropolis"</td></tr>
+      <tr><td><strong>[B]</strong></td><td>Giá trung bình TPI ghi nhận theo quý/năm cụ thể</td><td>"Giá TB Q1/2025: 4,2 tỷ/căn 2PN"</td></tr>
+      <tr><td><strong>[C]</strong></td><td>Tên dự án + kết quả giao dịch thực tế</td><td>"Metropolis Block A: 85% căn đã bàn giao"</td></tr>
+    </table>
+    <table class="scale-table"><tr><td>6đ</td><td>Có ≥ 2 trong 3 dấu hiệu A/B/C</td></tr><tr><td>3đ</td><td>Có đúng 1 dấu hiệu</td></tr><tr><td>0đ</td><td>Không có TPI data cụ thể nào</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">I2</span>
+      <span class="crit-name">Góc nhìn mới — TPI Voice</span>
+      <span class="method-llm-c">Sonnet AI</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>Tìm câu dạng <strong>TPI-voice</strong>: "Theo kinh nghiệm TPI…" / "Chúng tôi nhận thấy…" / "TPI Land đánh giá…" + kèm nhận định cụ thể (floor, view, giá, xu hướng thị trường).</p>
+    <table class="scale-table"><tr><td>4đ</td><td>≥ 2 câu TPI-voice + specific claim</td></tr><tr><td>2đ</td><td>1 câu TPI-voice hoặc "chúng tôi" + claim</td></tr><tr><td>0đ</td><td>Giọng văn thứ 3 generic hoàn toàn</td></tr></table>
+  </div>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">I3</span>
+        <span class="crit-name">Tránh văn phong AI</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">3đ</span>
+      </div>
+      <p>Regex tự động phát hiện 14 cụm từ AI cliché phổ biến:</p>
+      <p style="font-size:8.5pt;color:#718096">"không thể phủ nhận" · "trong bối cảnh" · "đóng vai trò quan trọng" · "nhìn chung" · "không kém phần" · "xứng đáng là" · "lựa chọn hoàn hảo" · "tiềm năng vượt trội" · "giải pháp toàn diện" · "đáp ứng mọi nhu cầu" · "không ngừng phát triển" · "có thể thấy rằng" · "rõ ràng là" · "điều này cho thấy"</p>
+      <table class="scale-table"><tr><td>3đ</td><td>0 cụm từ cliché</td></tr><tr><td>2đ</td><td>1-2 lần</td></tr><tr><td>1đ</td><td>3-4 lần</td></tr><tr><td>0đ</td><td>≥ 5 lần</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">I4</span>
+        <span class="crit-name">Trích dẫn nguồn uy tín</span>
+        <span class="method-llm-c">Sonnet AI</span>
+        <span class="crit-max">3đ</span>
+      </div>
+      <p>Trích dẫn từ nguồn uy tín trong ngành BĐS.</p>
+      <p><strong>Nguồn được công nhận:</strong> CBRE · Savills · JLL · VnExpress · Cafef.vn · Báo cáo thị trường · TPI Land Q/năm</p>
+      <table class="scale-table"><tr><td>3đ</td><td>≥ 3 nguồn khác nhau</td></tr><tr><td>1.5đ</td><td>1-2 nguồn</td></tr><tr><td>0đ</td><td>Không có trích dẫn</td></tr></table>
+    </div>
+  </div>
+
+  <h2>GEO — Generative Engine Optimization</h2>
+
+  <div class="two-col">
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">G1</span>
+        <span class="crit-name">GEO Citable Chunk ⚡GEO</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">2đ</span>
+      </div>
+      <p>Bài có ít nhất 1 đoạn <strong>"tự đứng được"</strong> — AI có thể trích dẫn trực tiếp mà không cần context xung quanh.</p>
+      <p><strong>Điều kiện:</strong> Đoạn 30–200 từ, chứa đồng thời: (1) tên Entity · (2) số liệu có đơn vị · (3) từ khóa thuộc tính BĐS</p>
+      <table class="scale-table"><tr><td>2đ</td><td>Tìm thấy ≥ 1 đoạn đạt cả 3 điều kiện</td></tr><tr><td>0đ</td><td>Không có đoạn nào đủ điều kiện</td></tr></table>
+    </div>
+    <div class="criterion-block">
+      <div class="crit-header">
+        <span class="crit-id">G2</span>
+        <span class="crit-name">Structured Table/List ⚡GEO</span>
+        <span class="method-rule">Rule</span>
+        <span class="crit-max">3đ</span>
+      </div>
+      <p>Có bảng HTML và/hoặc danh sách đánh số (OL) — format AI Overviews ưu tiên trích dẫn.</p>
+      <p><strong>Điều kiện:</strong> Bảng có ≥ 2 hàng, danh sách OL có ≥ 3 mục.</p>
+      <table class="scale-table"><tr><td>3đ</td><td>Có cả bảng HTML + danh sách OL</td></tr><tr><td>2đ</td><td>Chỉ có bảng HTML</td></tr><tr><td>1đ</td><td>Chỉ có danh sách OL</td></tr><tr><td>0đ</td><td>Không có cấu trúc máy đọc</td></tr></table>
+    </div>
+  </div>
+
+  <h2>E-E-A-T — Experience, Expertise, Authoritativeness, Trustworthiness</h2>
+
+  <div class="info-box blue">
+    <strong>E-E-A-T là gì?</strong>
+    Google đánh giá content theo 4 chiều: <strong>Experience</strong> (kinh nghiệm thực tế), <strong>Expertise</strong> (chuyên môn), <strong>Authoritativeness</strong> (uy tín), <strong>Trustworthiness</strong> (độ tin cậy). Bài BĐS thiếu E-E-A-T sẽ bị đánh giá thấp dù kỹ thuật SEO tốt. Rubric v3.0 thêm 3 tiêu chí đo E-E-A-T trực tiếp.
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">E1</span>
+      <span class="crit-name">First-Hand Experience Signals ⚡E-E-A-T</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">4đ</span>
+    </div>
+    <p>Phát hiện 10 mẫu câu tín hiệu "thực địa / kinh nghiệm thực tế" của đội ngũ TPI:</p>
+    <p style="font-size:8.5pt;color:#718096">"khảo sát thực tế" · "ghi nhận thực tế" · "thực địa" · "đội ngũ TPI trực tiếp" · "dữ liệu giao dịch" · "khách hàng TPI phản hồi" · "chuyên viên [tên] cho biết" · "theo TPI" · "TPI Land Q[1-4]" · "chúng tôi đã [khảo sát/ghi nhận/tư vấn]"</p>
+    <table class="scale-table"><tr><td>4đ</td><td>Tìm thấy ≥ 2 mẫu câu khác nhau</td></tr><tr><td>2đ</td><td>Tìm thấy đúng 1 mẫu câu</td></tr><tr><td>0đ</td><td>Không có tín hiệu thực địa nào</td></tr></table>
+  </div>
+
+  <div class="criterion-block">
+    <div class="crit-header">
+      <span class="crit-id">E2</span>
+      <span class="crit-name">Staff Credential Attribution ⚡E-E-A-T</span>
+      <span class="method-rule">Rule</span>
+      <span class="crit-max">2đ</span>
+    </div>
+    <p>Có trích dẫn tên chuyên viên/chuyên gia TPI cụ thể kèm nhận xét/tư vấn.</p>
+    <div class="info-box green"><strong>✅ Ví dụ đạt:</strong> "Chuyên viên Nguyễn Thị Mai cho biết: 'Căn góc tầng 15-20 tại Metropolis có view biển 180 độ — giá premium khoảng 15-20% so với căn thông thường.'"</div>
+    <table class="scale-table"><tr><td>2đ</td><td>Tìm thấy tên người + động từ chuyên môn (cho biết / nhận xét / đánh giá / chia sẻ / tư vấn)</td></tr><tr><td>0đ</td><td>Không có attribution cụ thể</td></tr></table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 9 — THANG ĐIỂM + THAY ĐỔI v3
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>9. Thang điểm &amp; Phân loại kết quả</h1>
+    <p>Cách đọc kết quả và hành động tiếp theo</p>
+  </div>
+
+  <div class="score-bands">
+    <div class="band fail">0 – 69đ · CHƯA ĐẠT (Fail)</div>
+    <div class="band pass">70 – 84đ · ĐẠT (Pass)</div>
+    <div class="band good">85 – 100đ · XUẤT SẮC</div>
+  </div>
+
+  <table>
+    <tr><th style="width:140px">Mức điểm</th><th>Đánh giá</th><th>Hành động đề xuất</th></tr>
+    <tr><td><strong style="color:#e53e3e">0 – 49đ</strong></td><td>Rất kém — Bài có vấn đề nghiêm trọng về cấu trúc và nội dung</td><td>Viết lại từ đầu theo rubric checklist</td></tr>
+    <tr><td><strong style="color:#ed8936">50 – 69đ</strong></td><td>Chưa đạt — Thiếu nhiều tiêu chí quan trọng</td><td>Sửa theo Top 5 gợi ý ưu tiên, nộp lại</td></tr>
+    <tr><td><strong style="color:#38a169">70 – 84đ</strong></td><td>Đạt chuẩn — Có thể đăng, nhưng còn cải thiện được</td><td>Sửa 1-2 tiêu chí Critical rồi publish</td></tr>
+    <tr><td><strong style="color:#3182ce">85 – 100đ</strong></td><td>Xuất sắc — Bài chuẩn GEO, có khả năng vào AI Overview</td><td>Publish ngay, đây là target lý tưởng</td></tr>
+  </table>
+
+  <h2>Mức độ nghiêm trọng của lỗi (Severity)</h2>
+  <table>
+    <tr><th>Mức</th><th>Điều kiện</th><th>Ý nghĩa</th></tr>
+    <tr><td><strong style="color:#e53e3e">CRITICAL</strong></td><td>Điểm thiếu hụt ≥ 5đ so với max của tiêu chí</td><td>Ảnh hưởng lớn nhất đến tổng điểm — ưu tiên sửa đầu tiên</td></tr>
+    <tr><td><strong style="color:#ed8936">MAJOR</strong></td><td>Thiếu hụt 3 – 4.99đ</td><td>Tác động đáng kể — sửa sau Critical</td></tr>
+    <tr><td><strong style="color:#38a169">MINOR</strong></td><td>Thiếu hụt &lt; 3đ</td><td>Cải thiện nhỏ — sửa sau khi có thời gian</td></tr>
+  </table>
+
+  <div class="section-header" style="margin-top:24px">
+    <h1>10. Thay đổi so với Rubric v2.1</h1>
+    <p>Lý do nâng cấp và những thay đổi cụ thể</p>
+  </div>
+
+  <h3>Tiêu chí đã xóa</h3>
+  <table>
+    <tr><th>ID</th><th>Tên</th><th>Lý do xóa</th></tr>
+    <tr><td><strong>S6</strong></td><td>Supplement ratio ≤25%</td><td>Giá trị diagnostic thấp; chuyển thành lời khuyên preflight</td></tr>
+    <tr><td><strong>R6</strong></td><td>Head-tail heading kết nối</td><td>LLM cho kết quả không nhất quán; overlap với R5</td></tr>
+  </table>
+
+  <h3>Tiêu chí mới thêm vào v3.0</h3>
+  <table>
+    <tr><th>ID</th><th>Tên</th><th>Điểm</th><th>Phương pháp</th><th>Mục tiêu Google</th></tr>
+    <tr><td><strong>E1</strong></td><td>First-Hand Experience</td><td>4đ</td><td>Rule</td><td>E-E-A-T — tín hiệu kinh nghiệm thực địa</td></tr>
+    <tr><td><strong>E2</strong></td><td>Staff Credential Attribution</td><td>2đ</td><td>Rule</td><td>E-E-A-T — chuyên môn có dẫn nguồn người thật</td></tr>
+    <tr><td><strong>E3</strong></td><td>Freshness Date Signal</td><td>2đ</td><td>Rule</td><td>E-E-A-T Trustworthiness — dữ liệu mới</td></tr>
+    <tr><td><strong>G2</strong></td><td>Structured Table/List</td><td>3đ</td><td>Rule</td><td>AI Overviews / Passage Ranking — format máy đọc</td></tr>
+    <tr><td><strong>G3</strong></td><td>NAP Consistency</td><td>2đ</td><td>Rule</td><td>Knowledge Graph / Local SEO</td></tr>
+    <tr><td><strong>HC1</strong></td><td>Helpful Completeness</td><td>3đ</td><td>Haiku AI</td><td>HCU 2024 — giải đáp lo ngại người mua</td></tr>
+  </table>
+
+  <h3>Điều chỉnh trọng số đáng chú ý</h3>
+  <table>
+    <tr><th>ID</th><th>v2.1</th><th>v3.0</th><th>Lý do</th></tr>
+    <tr><td>S1</td><td>7đ</td><td>5đ</td><td>Overlap với S2/S5; dùng công thức % thay vì mơ hồ</td></tr>
+    <tr><td>I1</td><td>7đ</td><td>6đ</td><td>E1+E2 bổ sung tín hiệu originality</td></tr>
+    <tr><td>I2</td><td>5đ</td><td>4đ</td><td>HC1 thưởng thêm cho độ sâu phân tích</td></tr>
+    <tr><td>SI1</td><td>4đ</td><td>3đ</td><td>HC1 cover phần depth of helpfulness</td></tr>
+    <tr><td>G1</td><td>LLM</td><td>Rule</td><td>Chuyển từ LLM → rule vì "tự đứng được" quá trừu tượng cho AI</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TRANG 10 — CHECKLIST THỰC HÀNH
+══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <h1>11. Checklist thực hành nhanh</h1>
+    <p>Danh sách kiểm tra trước khi nộp bài — in ra dùng như tờ checklist</p>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h2 style="margin-top:0">Preflight (Bắt buộc)</h2>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ Có ít nhất 1 H1</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ Có ít nhất 3 H2</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ Số từ 800 – 10.000</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ H1 chứa keyword hoặc main entity</li>
+      </ul>
+
+      <h2>Tầng 1 — Cấu trúc (27đ)</h2>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[S1]</strong> ≥ 80% H2 liên quan chủ đề H1</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[S2]</strong> Heading cụ thể, không generic</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[S3]</strong> H1 → H2 → H3 đúng thứ bậc</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[S4]</strong> Đề cập đủ 5 chủ đề: vị trí/tiện ích/pháp lý/giá/CĐT</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[S5]</strong> Cấu trúc 4 pha: Định nghĩa → Đặc điểm → Lợi ích → CTA</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[A3]</strong> Có câu "{Entity} là…" trong 1.500 ký tự đầu</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[G3]</strong> Cuối bài có TPI Land + địa chỉ + SĐT</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[E3]</strong> Đề cập tháng/quý/năm ≥ 2025</li>
+      </ul>
+
+      <h2>Tầng 2 — Đoạn văn (22đ)</h2>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[P1]</strong> 150 từ đầu trả lời thẳng câu hỏi chính</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[P2]</strong> Không dùng từ do dự (có thể, nên, có lẽ...)</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[P4]</strong> ≥ 1 số liệu có đơn vị / 300 từ</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[P5]</strong> Heading viết hoa chữ đầu mỗi từ</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[A1]</strong> Đoạn đầu sau H1: 40-70 từ</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[A2]</strong> Có H3 dạng câu hỏi "?" + trả lời ≤ 100 từ</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[SI2]</strong> 250 từ đầu có tín hiệu khớp intent (Know/Do/Go)</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 style="margin-top:0">Tầng 3 — RPP &amp; HCU (24đ)</h2>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[R1]</strong> Có heading/đoạn dẫn đến TPI action</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[R2]</strong> Đủ 5 thuộc tính: vị trí/tiện ích/pháp lý/giá/CĐT</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[R4]</strong> Mỗi thuộc tính có số liệu cụ thể (m², tỷ, km...)</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[R5]</strong> 25% cuối bài có CTA TPI rõ ràng</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[SI1]</strong> Format bài khớp với intent đã chọn</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[HC1]</strong> Đề cập ≥ 1 rủi ro/lo ngại thực tế (pháp lý, tiến độ, thanh khoản...)</li>
+      </ul>
+
+      <h2>Tầng 4 — Information Gain &amp; GEO &amp; E-E-A-T (27đ)</h2>
+      <ul style="list-style:none;padding:0">
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[I1]</strong> Có data thực TPI: số khách / giá Q / kết quả giao dịch</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[I2]</strong> Có ≥ 2 câu TPI-voice ("Theo kinh nghiệm TPI...")</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[I3]</strong> Không dùng cụm từ AI cliché</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[I4]</strong> Trích dẫn ≥ 3 nguồn uy tín (CBRE, Savills, JLL...)</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[G1]</strong> Có đoạn 30-200 từ: Entity + số liệu + thuộc tính</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[G2]</strong> Có bảng HTML hoặc danh sách đánh số (OL)</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[E1]</strong> Có ≥ 2 tín hiệu thực địa ("khảo sát thực tế", "theo TPI"...)</li>
+        <li style="padding:5px 0;border-bottom:1px solid #e2e8f0">☐ <strong>[E2]</strong> Trích dẫn tên chuyên viên TPI cụ thể + nhận xét</li>
+      </ul>
+
+      <div class="info-box yellow" style="margin-top:16px">
+        <strong>Mục tiêu điểm theo tầng để đạt 70đ+</strong>
+        T1: ≥ 18/27 · T2: ≥ 14/22 · T3: ≥ 16/24 · T4: ≥ 18/27
+      </div>
+
+      <div class="info-box purple" style="margin-top:12px">
+        <strong>Tip: Điểm dễ lấy nhất (Rule-based, không cần AI)</strong>
+        P5 (heading viết hoa, 2đ) · A3 (câu định nghĩa, 2đ) · E3 (date stamp, 2đ) · G3 (NAP cuối bài, 2đ) · P2 (không từ do dự, 3đ) → Tổng 11đ chỉ cần chú ý khi viết.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    TPI Content Scorer — Rubric v3.0 | E-E-A-T + HCU + GEO Edition | Tác giả: Jimmy T7 | TPI Land, Vũng Tàu | Tạo: 27/05/2026
+  </div>
+</div>
+
+</body>
+</html>
