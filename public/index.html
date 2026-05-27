@@ -877,6 +877,27 @@ body {
 .qf-golden-h2 { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .qf-golden-para { font-size: 13px; color: var(--ink); line-height: 1.7; font-style: italic; }
 
+/* QF Advanced Settings */
+.qf-advanced { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+.qf-advanced summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--ink3); list-style: none; display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+.qf-advanced summary::-webkit-details-marker { display: none; }
+.qf-advanced[open] summary { color: var(--ink); }
+.qf-advanced-body { margin-top: 14px; }
+.qf-adv-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+.qf-adv-field label { display: block; font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; }
+.qf-adv-field select { width: 100%; background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--ink); font-family: 'Be Vietnam Pro', sans-serif; outline: none; cursor: pointer; }
+.qf-adv-field select:focus { border-color: var(--accent); }
+.qf-adv-num-wrap { display: flex; align-items: center; gap: 6px; }
+.qf-adv-num-wrap input[type=number] { width: 64px; background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: 'DM Mono', monospace; color: var(--ink); text-align: center; outline: none; }
+.qf-adv-num-wrap input[type=number]:focus { border-color: var(--accent); }
+.qf-adv-unit { font-size: 11px; color: var(--ink3); }
+
+/* JSON Editor panel */
+.qf-json-panel { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+.qf-json-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--line2); }
+.qf-json-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.qf-json-textarea { width: 100%; min-height: 360px; background: var(--bg3); border: none; padding: 14px 16px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--ink2); line-height: 1.6; resize: vertical; outline: none; box-sizing: border-box; }
+
 /* QF API Config */
 .qf-api-config { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; padding: 0; margin-bottom: 16px; overflow: hidden; }
 .qf-api-config summary { cursor: pointer; padding: 10px 16px; font-size: 12px; font-weight: 700; color: var(--ink3); list-style: none; display: flex; align-items: center; gap: 8px; }
@@ -1373,12 +1394,56 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
         </div>
       </div>
 
+      <!-- Advanced Settings -->
+      <details class="qf-advanced" id="qf-advanced-panel">
+        <summary>⚙️ Tùy chỉnh nâng cao</summary>
+        <div class="qf-advanced-body">
+          <div class="qf-adv-row">
+            <div class="qf-adv-field">
+              <label>Search Intent</label>
+              <select id="qf-intent">
+                <option value="auto">🤖 Để AI tự nhận dạng</option>
+                <option value="Transactional/Commercial Investigation">💰 Transactional / Commercial</option>
+                <option value="Informational">📚 Informational</option>
+                <option value="Navigational">🧭 Navigational</option>
+                <option value="Consideration">🤔 Consideration (So sánh)</option>
+              </select>
+            </div>
+            <div class="qf-adv-field">
+              <label>Số nhánh fan-out</label>
+              <div class="qf-adv-num-wrap">
+                <input type="number" id="qf-branch-count" value="10" min="5" max="20" step="1" />
+                <span class="qf-adv-unit">nhánh</span>
+              </div>
+            </div>
+            <div class="qf-adv-field">
+              <label>Core Entities (min)</label>
+              <div class="qf-adv-num-wrap">
+                <input type="number" id="qf-kw-count" value="15" min="10" max="40" step="5" />
+                <span class="qf-adv-unit">từ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
       <button class="qf-run-btn" id="qf-run-btn" onclick="runQueryFanout()">
         🔍 Phân tích Query Fan-out
       </button>
     </div>
 
     <div id="qf-result" style="display:none">
+      <!-- Edit JSON panel (ẩn mặc định) -->
+      <div id="qf-json-editor" style="display:none" class="qf-json-panel">
+        <div class="qf-json-toolbar">
+          <span class="qf-json-title">🗒 Edit JSON</span>
+          <div style="display:flex;gap:8px">
+            <button class="qf-api-btn primary" onclick="applyQFJsonEdit()">✅ Apply & Re-render</button>
+            <button class="qf-api-btn" onclick="closeQFJsonEditor()">✖ Đóng</button>
+          </div>
+        </div>
+        <textarea id="qf-json-textarea" class="qf-json-textarea" spellcheck="false"></textarea>
+      </div>
       <div id="qf-result-inner"></div>
     </div>
   </div>
@@ -4953,9 +5018,12 @@ async function _callLLM_QF(prompt, maxTokens = 5000) {
 
 // ── Main orchestrator ──────────────────────────────────────────
 async function runQueryFanout() {
-  const seedQuery = document.getElementById('qf-seed').value.trim();
-  const entity    = document.getElementById('qf-entity').value.trim();
-  const context   = document.getElementById('qf-context').value.trim();
+  const seedQuery   = document.getElementById('qf-seed').value.trim();
+  const entity      = document.getElementById('qf-entity').value.trim();
+  const context     = document.getElementById('qf-context').value.trim();
+  const intentSel   = document.getElementById('qf-intent')?.value || 'auto';
+  const branchCount = parseInt(document.getElementById('qf-branch-count')?.value) || 10;
+  const kwCount     = parseInt(document.getElementById('qf-kw-count')?.value) || 15;
 
   if (!seedQuery) { _showToast('Vui lòng nhập Seed Query', 'error'); return; }
   if (!entity)    { _showToast('Vui lòng nhập Entity/Dự án', 'error'); return; }
@@ -4969,27 +5037,35 @@ async function runQueryFanout() {
 
   const btn = document.getElementById('qf-run-btn');
   btn.disabled = true;
-  btn.textContent = '⏳ Đang phân tích (≥10 nhánh + Semantic Keywords)...';
+  btn.textContent = `⏳ Đang phân tích (${branchCount} nhánh + ${kwCount} keywords)...`;
   document.getElementById('qf-result').style.display = 'none';
+  document.getElementById('qf-json-editor').style.display = 'none';
+
+  const currentYear  = new Date().getFullYear();
+  const intentLine   = intentSel === 'auto'
+    ? 'Search Intent: Tự nhận dạng dựa trên Seed Query'
+    : `Search Intent (đã xác định): ${intentSel} — tập trung sinh queries phù hợp intent này`;
 
   const prompt = `${_tpiBrandContext()}
 
 Bạn là chuyên gia AEO/GEO cấp cao định hướng dữ liệu cho TPI Land (Đơn vị phân phối BĐS chiến lược tại các tỉnh thành mục tiêu).
 
-Seed Query: "${_esc(seedQuery)}"
-Entity/Dự án: "${_esc(entity)}"
+Seed Query: "${seedQuery}"
+Entity/Dự án: "${entity}"
+Năm hiện tại: ${currentYear} — DÙNG NĂM NÀY trong mọi query có đề cập năm, TUYỆT ĐỐI không dùng ${currentYear - 1} hoặc ${currentYear - 2}.
+${intentLine}
 ${context ? `Market Context: ${context}` : ''}
 
 YÊU CẦU QUAN TRỌNG:
-- Trích xuất cấu trúc TỐI THIỂU 10 nhánh fan-out (fan_out_branches) bao phủ toàn bộ vòng đời mua khách hàng.
+- Trích xuất cấu trúc TỐI THIỂU ${branchCount} nhánh fan-out (fan_out_branches) bao phủ toàn bộ vòng đời mua khách hàng.
 - Mỗi nhánh chứa 3-5 sub-queries thực tế (cách người Việt Nam gõ tìm kiếm dạng hội thoại).
 - Semantic_keywords phải được tối ưu theo mô hình Đồ thị tri thức (Knowledge Graph), tập trung vào Entity thay vì chỉ LSI.
 
 ĐỊNH DẠNG ĐẦU RA BẮT BUỘC (Trích xuất 100% JSON hợp lệ, không Markdown dư thừa, không cắt cụt):
 {
   "seed_analysis": {
-    "intent_type": "Loại ý định cốt lõi",
-    "aeo_difficulty": "Mức độ cạnh tranh trên AI Overviews"
+    "intent_type": "${intentSel === 'auto' ? 'Nhận dạng tự động — điền đây' : intentSel}",
+    "aeo_difficulty": "Mức độ cạnh tranh trên AI Overviews — High/Medium/Low kèm lý do ngắn"
   },
   "fan_out_branches": [
     {
@@ -4999,37 +5075,43 @@ YÊU CẦU QUAN TRỌNG:
     }
   ],
   "semantic_keywords": {
-    "core_entities": ["≥15 Thực thể & LSI bắt buộc xuất hiện để định hình cụm chủ đề"],
-    "supporting_terms": ["≥10 Từ khóa bổ trợ/đồng nghĩa"],
-    "action_modifiers": ["Rẻ", "đáng đầu tư", "có nên", "tiến độ 2026", "lừa đảo"]
+    "core_entities": ["Điền ≥${kwCount} thực thể & LSI bắt buộc"],
+    "supporting_terms": ["≥10 từ khóa bổ trợ/đồng nghĩa"],
+    "action_modifiers": ["có nên", "đáng mua", "lừa đảo không", "tiến độ ${currentYear}", "giá mới nhất"]
   },
   "hub_spoke_architecture": {
-    "pillar_title": "Tiêu đề bài Hub (dạng đánh giá tổng quan, có năm hiện tại)",
+    "pillar_title": "Tiêu đề bài Hub (dạng đánh giá tổng quan, có năm ${currentYear})",
     "spoke_topics": ["Tiêu đề Spoke 1 — hyper long-tail", "Spoke 2", "Spoke 3"]
   },
   "golden_paragraphs": [
     {
       "target_query": "Truy vấn cụ thể nhắm tới",
-      "bite_sized_answer": "Đoạn văn trả lời trực diện, đúng trọng tâm, chứa Entity và Data, KHÔNG DÀI QUÁ 60 TỪ (Chuẩn bóc tách của AI)."
+      "bite_sized_answer": "Đoạn văn trả lời trực diện, đúng trọng tâm, chứa Entity và Data, KHÔNG DÀI QUÁ 60 TỪ."
     }
   ]
 }
 
 QUY TẮC NGHIÊM NGẶT:
-1. fan_out_branches: Khởi tạo ≥10 nhánh (KHÔNG dưới 10). priority_score là số nguyên 1-10.
-2. semantic_keywords.core_entities: Khởi tạo ≥15 từ khóa/thực thể trọng tâm.
-3. Góc nhìn chuyên gia: Nội dung trong golden_paragraphs phản ánh vị thế phân phối, tư vấn chuyên sâu và thông tin thị trường của TPI Land.
-4. Trả về JSON thuần — KHÔNG có markdown block, KHÔNG cắt cụt giữa chừng.`;
+1. fan_out_branches: Đúng ${branchCount} nhánh (KHÔNG ít hơn). priority_score là số nguyên 1-10.
+2. semantic_keywords.core_entities: Đúng ≥${kwCount} từ khóa/thực thể trọng tâm.
+3. Mọi query có đề cập năm: chỉ dùng ${currentYear}, không dùng ${currentYear-1} hoặc ${currentYear-2}.
+4. Góc nhìn TPI Land: golden_paragraphs phản ánh vị thế chuyên gia phân phối + dữ liệu thị trường thực chiến.
+5. Trả về JSON thuần — KHÔNG có markdown block, KHÔNG cắt cụt giữa chừng.`;
 
   try {
     const raw    = await _callLLM_QF(prompt, 5000);
     const result = safeParseJSON(raw);
     if (!result || !result.fan_out_branches) throw new Error('Phản hồi AI không đúng định dạng JSON');
+    // lưu result để Edit JSON dùng
+    window._qfLastResult = result;
+    window._qfLastSeed   = seedQuery;
+    window._qfLastEntity = entity;
     _renderQueryResult(result, seedQuery, entity);
     document.getElementById('qf-result').style.display = '';
     document.getElementById('qf-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    const branchCount = result.fan_out_branches.length;
-    if (branchCount < 10) _showToast(`⚠️ AI chỉ tạo ${branchCount}/10 nhánh — thử lại nếu cần đủ 10`, 'error');
+    const bc = result.fan_out_branches.length;
+    if (bc < branchCount) _showToast(`⚠️ AI tạo ${bc}/${branchCount} nhánh — có thể chạy lại`, 'error');
+    else _showToast(`✅ ${bc} nhánh · ${(result.semantic_keywords?.core_entities?.length || 0) + (result.semantic_keywords?.supporting_terms?.length || 0)} keywords`, 'success');
   } catch(e) {
     console.error('Query Fan-out error:', e);
     _showToast('Phân tích thất bại: ' + e.message, 'error');
@@ -5037,6 +5119,30 @@ QUY TẮC NGHIÊM NGẶT:
     btn.disabled = false;
     btn.textContent = '🔍 Phân tích Query Fan-out';
   }
+}
+
+// ── JSON Editor helpers ────────────────────────────────────────
+function openQFJsonEditor() {
+  const r = window._qfLastResult;
+  if (!r) return;
+  document.getElementById('qf-json-textarea').value = JSON.stringify(r, null, 2);
+  document.getElementById('qf-json-editor').style.display = '';
+  document.getElementById('qf-json-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeQFJsonEditor() {
+  document.getElementById('qf-json-editor').style.display = 'none';
+}
+
+function applyQFJsonEdit() {
+  const raw = document.getElementById('qf-json-textarea').value.trim();
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch(e) { _showToast('JSON không hợp lệ: ' + e.message, 'error'); return; }
+  if (!parsed.fan_out_branches) { _showToast('Thiếu fan_out_branches trong JSON', 'error'); return; }
+  window._qfLastResult = parsed;
+  _renderQueryResult(parsed, window._qfLastSeed || '', window._qfLastEntity || '');
+  closeQFJsonEditor();
+  _showToast('✅ Đã apply JSON mới', 'success');
 }
 
 function _renderQueryResult(r, seed, entity) {
@@ -5110,6 +5216,9 @@ function _renderQueryResult(r, seed, entity) {
       <div>
         <span class="qf-sum-label">Semantic keywords</span>
         <strong>${(sk.core_entities?.length || 0) + (sk.supporting_terms?.length || 0)} từ</strong>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center">
+        <button class="qf-api-btn" onclick="openQFJsonEditor()" style="white-space:nowrap">🗒 Edit JSON</button>
       </div>
     </div>
 
