@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiêu chuẩn viết bài TPI Land v3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e8e4dc;
+    --ink: #1a1814;
+    --ink2: #4a4640;
+    --ink3: #8a867e;
+    --green: #16a34a;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --yellow-bg: #fefce8;
+    --yellow-border: #fde047;
+    --green-bg: #f0fdf4;
+    --green-border: #86efac;
+    --red-bg: #fef2f2;
+    --red-border: #fca5a5;
+    --blue-bg: #eff6ff;
+    --blue-border: #93c5fd;
+    --t1: #0d9488;   /* teal — tier 1 */
+    --t2: #2563eb;   /* blue — tier 2 */
+    --t3: #7c3aed;   /* purple — tier 3 */
+    --t4: #ea580c;   /* orange — tier 4 */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0d4d3a 100%);
+    color: white;
+    padding: 56px 32px 48px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    padding: 4px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: rgba(255,255,255,0.85);
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 800;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    max-width: 560px;
+    margin: 0 auto 28px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+  }
+  .stat-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 16px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+  .toc-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--ink2);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .toc-item:hover { background: var(--bg); border-color: var(--border); }
+  .toc-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin: 48px 0 24px;
+  }
+  .section-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .section-meta h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800;
+    line-height: 1.2;
+  }
+  .section-meta p { font-size: 13px; color: var(--ink3); margin-top: 2px; }
+  .section-score-badge {
+    margin-left: auto;
+    background: var(--surface);
+    border: 2px solid currentColor;
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── CRITERION CARD ── */
+  .criterion-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .criterion-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 18px 20px 14px;
+  }
+  .crit-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .crit-info { flex: 1; }
+  .crit-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .crit-desc { font-size: 14px; color: var(--ink2); line-height: 1.55; }
+  .crit-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .crit-score small { font-size: 12px; font-weight: 400; color: var(--ink3); }
+
+  .crit-examples {
+    border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .ex-bad, .ex-good {
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .ex-bad { background: var(--red-bg); border-right: 1px solid var(--border); }
+  .ex-good { background: var(--green-bg); }
+  .ex-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .ex-bad .ex-label { color: var(--red); }
+  .ex-good .ex-label { color: var(--green); }
+  .ex-text { color: var(--ink2); }
+  .ex-text code {
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px; border-radius: 4px;
+    font-family: monospace; font-size: 12px;
+  }
+
+  .crit-note {
+    background: var(--yellow-bg);
+    border-top: 1px solid var(--yellow-border);
+    padding: 10px 18px;
+    font-size: 13px;
+    color: #78350f;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .crit-note-icon { flex-shrink: 0; }
+
+  /* ── METHOD BADGE ── */
+  .method-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 2px 8px; border-radius: 100px;
+    font-weight: 600; margin-left: 8px; vertical-align: middle;
+  }
+  .method-rule   { background: #e0f2fe; color: #0369a1; }
+  .method-ai     { background: #ede9fe; color: #6d28d9; }
+  .method-ai-fast{ background: #fce7f3; color: #be185d; }
+
+  /* ── PREFLIGHT ── */
+  .preflight-grid {
+    display: grid; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .preflight-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .preflight-num {
+    width: 28px; height: 28px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .preflight-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .preflight-desc { font-size: 13px; color: var(--ink2); }
+
+  /* ── SCORE OVERVIEW ── */
+  .score-overview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .score-overview h3 { font-size: 14px; color: var(--ink3); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .tier-bars { display: flex; flex-direction: column; gap: 10px; }
+  .tier-bar-row { display: flex; align-items: center; gap: 12px; }
+  .tier-bar-label { font-size: 13px; font-weight: 600; width: 220px; flex-shrink: 0; }
+  .tier-bar-track {
+    flex: 1; height: 8px; background: var(--bg);
+    border-radius: 100px; overflow: hidden;
+  }
+  .tier-bar-fill { height: 100%; border-radius: 100px; }
+  .tier-bar-score { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; flex-shrink: 0; width: 40px; text-align: right; }
+
+  /* ── PASS/FAIL ── */
+  .verdict-box {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 40px;
+  }
+  .verdict-pass, .verdict-fail {
+    border-radius: 12px; padding: 20px 24px;
+    border: 2px solid;
+  }
+  .verdict-pass { background: var(--green-bg); border-color: var(--green-border); }
+  .verdict-fail { background: var(--red-bg); border-color: var(--red-border); }
+  .verdict-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px; font-weight: 800;
+    line-height: 1;
+  }
+  .verdict-pass .verdict-score { color: var(--green); }
+  .verdict-fail .verdict-score { color: var(--red); }
+  .verdict-label { font-size: 14px; font-weight: 600; margin: 4px 0 6px; }
+  .verdict-desc { font-size: 13px; color: var(--ink2); }
+
+  /* ── TIP BOX ── */
+  .tip-box {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #1e40af;
+    margin: 24px 0;
+    display: flex; gap: 10px;
+  }
+  .tip-icon { flex-shrink: 0; font-size: 18px; }
+
+  /* ── CHECKLIST ── */
+  .quick-checklist {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 48px;
+  }
+  .quick-checklist h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; margin-bottom: 20px;
+  }
+  .cl-group { margin-bottom: 20px; }
+  .cl-group-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink3); margin-bottom: 8px; }
+  .cl-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--bg);
+    font-size: 14px;
+  }
+  .cl-item:last-child { border-bottom: none; }
+  .cl-check {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--ink3);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .crit-examples { grid-template-columns: 1fr; }
+    .ex-bad { border-right: none; border-bottom: 1px solid var(--border); }
+    .verdict-box { grid-template-columns: 1fr; }
+    .tier-bar-label { width: 160px; font-size: 12px; }
+    .hero { padding: 40px 20px 36px; }
+    .hero-stats { gap: 20px; }
+  }
+
+  /* Print */
+  @media print {
+    .hero { background: #0f172a !important; -webkit-print-color-adjust: exact; }
+    .criterion-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">TPI Land · Bộ tiêu chuẩn nội dung</div>
+  <h1>Tiêu chuẩn chấm bài viết<br>SEO / GEO / E-E-A-T v3.0</h1>
+  <p>Đọc kỹ trước khi viết bài. Đây là thước đo duy nhất để đánh giá chất lượng nội dung tại TPI Land.</p>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">100</span>
+      <div class="stat-label">Tổng điểm</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">70</span>
+      <div class="stat-label">Điểm đạt</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">28</span>
+      <div class="stat-label">Tiêu chí</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">4</span>
+      <div class="stat-label">Tầng chấm</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>Nội dung tài liệu</h2>
+    <div class="toc-grid">
+      <a href="#preflight" class="toc-item">
+        <span class="toc-dot" style="background:#ef4444"></span>5 Điều kiện tiên quyết
+      </a>
+      <a href="#tier1" class="toc-item">
+        <span class="toc-dot" style="background:var(--t1)"></span>Tầng 1 · Cấu trúc (27đ)
+      </a>
+      <a href="#tier2" class="toc-item">
+        <span class="toc-dot" style="background:var(--t2)"></span>Tầng 2 · Đoạn văn (22đ)
+      </a>
+      <a href="#tier3" class="toc-item">
+        <span class="toc-dot" style="background:var(--t3)"></span>Tầng 3 · Entity (24đ)
+      </a>
+      <a href="#tier4" class="toc-item">
+        <span class="toc-dot" style="background:var(--t4)"></span>Tầng 4 · Info Gain (27đ)
+      </a>
+      <a href="#checklist" class="toc-item">
+        <span class="toc-dot" style="background:#64748b"></span>Checklist nhanh trước khi nộp
+      </a>
+    </div>
+  </div>
+
+  <!-- SCORE OVERVIEW -->
+  <div class="score-overview">
+    <h3>Phân bổ điểm theo tầng</h3>
+    <div class="tier-bars">
+      <div class="tier-bar-row">
+        <div class="tier-bar-label" style="color:var(--t1)">Tầng 1 · Cấu trúc & Ngữ cảnh</div>
+        <div class="tier-bar-track"><div class="tier-bar-fill" style="width:27%;background:var(--t1)"></div></div>
+        <div class="tier-bar-score" style="color:var(--t1)">27đ</div>
+      </div>
+      <div class="tier-bar-row">
+        <div class="tier-bar-label" style="color:var(--t2)">Tầng 2 · Chất lượng đoạn văn</div>
+        <div class="tier-bar-track"><div class="tier-bar-fill" style="width:22%;background:var(--t2)"></div></div>
+        <div class="tier-bar-score" style="color:var(--t2)">22đ</div>
+      </div>
+      <div class="tier-bar-row">
+        <div class="tier-bar-label" style="color:var(--t3)">Tầng 3 · Entity & Ý định tìm kiếm</div>
+        <div class="tier-bar-track"><div class="tier-bar-fill" style="width:24%;background:var(--t3)"></div></div>
+        <div class="tier-bar-score" style="color:var(--t3)">24đ</div>
+      </div>
+      <div class="tier-bar-row">
+        <div class="tier-bar-label" style="color:var(--t4)">Tầng 4 · Thông tin độc quyền & E-E-A-T</div>
+        <div class="tier-bar-track"><div class="tier-bar-fill" style="width:27%;background:var(--t4)"></div></div>
+        <div class="tier-bar-score" style="color:var(--t4)">27đ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASS/FAIL -->
+  <div class="verdict-box">
+    <div class="verdict-pass">
+      <div class="verdict-score">≥ 70</div>
+      <div class="verdict-label">✅ Đạt — Xuất bản được</div>
+      <div class="verdict-desc">Bài đáp ứng tiêu chuẩn SEO/GEO của TPI Land. Có thể đăng lên website.</div>
+    </div>
+    <div class="verdict-fail">
+      <div class="verdict-score">&lt; 70</div>
+      <div class="verdict-label">❌ Chưa đạt — Cần chỉnh sửa</div>
+      <div class="verdict-desc">Hệ thống gợi ý top 5 điểm cần sửa. Chỉnh xong nộp lại để chấm điểm mới.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- PREFLIGHT CHECKS -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="preflight"></div>
+  <div class="section-header">
+    <div class="section-icon" style="background:#fee2e2">🚫</div>
+    <div class="section-meta">
+      <h2>5 Điều kiện tiên quyết</h2>
+      <p>Vi phạm 1 trong 5 điều này → bài bị từ chối ngay, chấm điểm = 0</p>
+    </div>
+  </div>
+
+  <div class="preflight-grid">
+    <div class="preflight-item">
+      <div class="preflight-num">1</div>
+      <div>
+        <div class="preflight-title">Phải có H1</div>
+        <div class="preflight-desc">Bài viết bắt buộc có ít nhất 1 tiêu đề H1. H1 là tên bài — không có H1 thì Google không biết bài viết về chủ đề gì.</div>
+      </div>
+    </div>
+    <div class="preflight-item">
+      <div class="preflight-num">2</div>
+      <div>
+        <div class="preflight-title">Phải có ít nhất 3 H2</div>
+        <div class="preflight-desc">Cần tối thiểu 3 tiêu đề H2 để tạo cấu trúc bài đủ rõ. Bài có ít hơn 3 H2 thường là bài thiếu chiều sâu.</div>
+      </div>
+    </div>
+    <div class="preflight-item">
+      <div class="preflight-num">3</div>
+      <div>
+        <div class="preflight-title">Độ dài: 800 – 10.000 từ</div>
+        <div class="preflight-desc">Dưới 800 từ: bài quá ngắn, thiếu thông tin. Trên 10.000 từ: bài quá dài, cần tách ra. Bài tiêu chuẩn: 1.200 – 3.000 từ.</div>
+      </div>
+    </div>
+    <div class="preflight-item">
+      <div class="preflight-num">4</div>
+      <div>
+        <div class="preflight-title">H1 phải chứa keyword hoặc main entity</div>
+        <div class="preflight-desc">Nếu keyword là <em>"chung cư Vũng Tàu"</em> thì H1 phải chứa cụm đó. H1 như <em>"Tổng hợp thông tin"</em> là sai.</div>
+      </div>
+    </div>
+    <div class="preflight-item">
+      <div class="preflight-num">5</div>
+      <div>
+        <div class="preflight-title">Không spam heading</div>
+        <div class="preflight-desc">Tỷ lệ supplement content (sidebar, menu, footer…) không được vượt 25% tổng nội dung. Paste đúng phần thân bài, không paste cả trang web.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TIER 1 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="tier1"></div>
+  <div class="section-header">
+    <div class="section-icon" style="background:#ccfbf1">🏗</div>
+    <div class="section-meta">
+      <h2>Tầng 1 · Cấu trúc & Ngữ cảnh</h2>
+      <p>Google đọc heading để hiểu bài nói về gì. Cấu trúc xấu → điểm thấp dù nội dung tốt.</p>
+    </div>
+    <div class="section-score-badge" style="color:var(--t1)">27 điểm</div>
+  </div>
+
+  <!-- S1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">S1</span>
+      <div class="crit-info">
+        <div class="crit-name">H1 thống nhất với các H2 <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">H1 đặt ra chủ đề bao trùm. Các H2 phải là các nhánh con triển khai chủ đề đó — không được lạc chủ đề hoặc mâu thuẫn với H1.</div>
+      </div>
+      <div class="crit-score">5 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Sai</div>
+        <div class="ex-text">H1: <code>Căn hộ Vũng Tàu giá tốt</code><br>H2: <code>Cách đầu tư vàng sinh lời</code><br>→ H2 hoàn toàn không liên quan H1</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Đúng</div>
+        <div class="ex-text">H1: <code>Căn hộ Vũng Tàu giá tốt</code><br>H2: <code>Bảng giá căn hộ Vũng Tàu 2025</code><br>H2: <code>Vị trí các dự án căn hộ Vũng Tàu</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">S2</span>
+      <div class="crit-info">
+        <div class="crit-name">Chất lượng 9–10 heading đầu tiên <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">9–10 heading đầu là "mục lục" mà người đọc thấy đầu tiên. Heading phải cụ thể, có giá trị thông tin — không chung chung kiểu <em>"Giới thiệu"</em> hay <em>"Kết luận"</em>.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Heading mờ nhạt</div>
+        <div class="ex-text"><code>Giới thiệu chung</code><br><code>Một số thông tin</code><br><code>Những điều cần biết</code></div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Heading có giá trị</div>
+        <div class="ex-text"><code>Giá căn hộ Vũng Tàu mặt biển tháng 5/2025</code><br><code>4 dự án căn hộ đang mở bán tại Vũng Tàu</code><br><code>Pháp lý sổ hồng riêng từng căn — cách kiểm tra</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">S3</span>
+      <div class="crit-info">
+        <div class="crit-name">Phân cấp heading đúng thứ bậc <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">H1 → H2 → H3 theo thứ tự. Không được nhảy cấp (ví dụ: H2 xong nhảy thẳng H4) và không có 2 H1 trong cùng bài.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Nhảy cấp</div>
+        <div class="ex-text">H1 → H2 → H4 (bỏ qua H3)<br>Hoặc dùng 2 thẻ H1 trong bài</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Đúng thứ bậc</div>
+        <div class="ex-text">H1 (1 cái) → H2 → H3 → H4<br>Mỗi H3 phải nằm trong một H2</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">S4</span>
+      <div class="crit-info">
+        <div class="crit-name">Độ bao phủ chủ đề (Coverage) <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Bài phải đề cập đủ các khía cạnh quan trọng của chủ đề. Ví dụ bài về "mua nhà" cần có: giá, pháp lý, vị trí, thanh toán — không được bỏ sót phần lớn.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Bao phủ hẹp</div>
+        <div class="ex-text">Bài về "đầu tư BĐS nghỉ dưỡng" chỉ nói về lợi nhuận, bỏ qua rủi ro và pháp lý.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Bao phủ đủ</div>
+        <div class="ex-text">Đề cập: lợi nhuận, rủi ro, pháp lý, vị trí, chính sách thuê lại, so sánh dự án.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">S5</span>
+      <div class="crit-info">
+        <div class="crit-name">Luồng logic (Flow) <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Thứ tự các phần trong bài phải có logic dẫn dắt người đọc: từ tổng quan → chi tiết → kết luận hành động. Không được xáo trộn ngẫu nhiên.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Lộn xộn</div>
+        <div class="ex-text">H2: Cách mua → H2: Tổng quan dự án → H2: Giá cả → H2: Lý do nên mua (đảo ngược logic)</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Dẫn dắt rõ ràng</div>
+        <div class="ex-text">H2: Tổng quan → H2: Giá & Thanh toán → H2: Pháp lý → H2: So sánh → H2: Hành động mua</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A3 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">A3</span>
+      <div class="crit-info">
+        <div class="crit-name">Câu định nghĩa main entity <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Trong 1.500 ký tự đầu bài, phải có câu định nghĩa dạng <em>"[Entity] là…"</em> hoặc <em>"[Entity] được hiểu là…"</em>. Google cần câu này để hiểu entity của bài.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Không định nghĩa</div>
+        <div class="ex-text">Bài viết về "Serenity Sky Villas" nhưng không có câu nào giải thích đây là dự án gì, ở đâu, do ai phát triển.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Có định nghĩa</div>
+        <div class="ex-text"><em>"Serenity Sky Villas là dự án biệt thự nghỉ dưỡng tọa lạc tại Long Hải, Vũng Tàu, do TPI Land phân phối độc quyền."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- G3 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">G3</span>
+      <div class="crit-info">
+        <div class="crit-name">Thông tin NAP ở cuối bài <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc"><strong>NAP = Name + Address + Phone</strong> của TPI Land phải xuất hiện trong 30% cuối bài. Google dùng thông tin này để xây dựng Knowledge Graph (hồ sơ doanh nghiệp).</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">💡</span>
+      <span>Ví dụ: <em>"Liên hệ TPI Land: 123 Đường ABC, Phường XYZ, Quận 1, TP.HCM — Hotline: 0909 xxx xxx"</em> — phải có đủ cả 3 yếu tố: tên, địa chỉ, số điện thoại.</span>
+    </div>
+  </div>
+
+  <!-- E3 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ccfbf1;color:var(--t1)">E3</span>
+      <div class="crit-info">
+        <div class="crit-name">Gắn ngày tháng vào dữ liệu <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Dữ liệu số liệu phải được gắn năm cụ thể từ 2025 trở đi. Google đánh giá cao bài có dữ liệu fresh — bài cũ không có năm sẽ bị xem là lỗi thời.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Không có ngày tháng</div>
+        <div class="ex-text"><em>"Giá căn hộ Vũng Tàu hiện tại khoảng 45 triệu/m²"</em> — "hiện tại" là khi nào?</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Gắn ngày cụ thể</div>
+        <div class="ex-text"><em>"Tháng 5/2025, giá căn hộ Vũng Tàu dao động từ 42–50 triệu/m² (nguồn: khảo sát TPI Land Q2/2025)"</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TIER 2 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="tier2"></div>
+  <div class="section-header">
+    <div class="section-icon" style="background:#dbeafe">✍️</div>
+    <div class="section-meta">
+      <h2>Tầng 2 · Chất lượng đoạn văn & AEO</h2>
+      <p>Từng đoạn văn phải viết đúng chuẩn: trả lời nhanh, dùng số liệu, không do dự, cấu trúc hỗ trợ AI.</p>
+    </div>
+    <div class="section-score-badge" style="color:var(--t2)">22 điểm</div>
+  </div>
+
+  <!-- A1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">A1</span>
+      <div class="crit-info">
+        <div class="crit-name">Đoạn đầu trả lời trực tiếp (Answer-First) <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Đoạn văn ngay sau H1 phải dài <strong>40–70 từ</strong> và trả lời thẳng vào câu hỏi của người tìm kiếm. Không được mở đầu bằng câu giới thiệu vô nghĩa.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Mở đầu vô nghĩa</div>
+        <div class="ex-text"><em>"Trong cuộc sống hiện đại, việc tìm mua nhà đất là điều mà nhiều người quan tâm. TPI Land hân hạnh được giới thiệu đến quý khách hàng…"</em> — không trả lời gì cả.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Trả lời ngay</div>
+        <div class="ex-text"><em>"Giá căn hộ Vũng Tàu tháng 5/2025 dao động từ 35–65 triệu/m² tùy vị trí và dự án. Các dự án view biển thuộc bán đảo Vũng Tàu có giá cao hơn 20–30% so với khu nội đô."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">P1</span>
+      <div class="crit-info">
+        <div class="crit-name">Không trì hoãn câu trả lời <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Bài không được vòng vo trước khi vào nội dung chính. Mỗi H2 cũng phải mở đầu bằng ý chính — không phải câu dẫn nhập chung chung.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Trì hoãn</div>
+        <div class="ex-text">H2: <em>Giá đất Hồ Tràm</em> → <em>"Như chúng ta đã biết, thị trường bất động sản luôn biến động. Vì vậy, việc nắm rõ giá đất…"</em> → chưa nói giá</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Đi thẳng vào</div>
+        <div class="ex-text">H2: <em>Giá đất Hồ Tràm</em> → <em>"Giá đất Hồ Tràm 2025 từ 8–25 triệu/m² tùy vị trí. Đất mặt đường lớn cao hơn đất trong hẻm khoảng 40%."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">P2</span>
+      <div class="crit-info">
+        <div class="crit-name">Viết chắc — cấm từ do dự <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Bài BĐS cần thể hiện chuyên môn và sự tự tin. Từ do dự làm giảm uy tín và SEO. Tỷ lệ vi phạm &gt;3% tổng số câu sẽ bị trừ điểm nặng.</div>
+      </div>
+      <div class="crit-score">3 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">🚫</span>
+      <span><strong>Từ bị cấm:</strong> "có thể", "thường thường", "đôi khi", "tùy thuộc vào", "không chắc", "có lẽ", "khó có thể nói", "nói chung là"… Thay bằng con số cụ thể hoặc điều kiện rõ ràng.</span>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Do dự</div>
+        <div class="ex-text"><em>"Giá có thể tăng, thường dao động và đôi khi khó dự đoán được."</em></div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Chắc chắn</div>
+        <div class="ex-text"><em>"Giá tăng 12% trong Q1/2025 so với cùng kỳ năm trước, theo dữ liệu giao dịch của TPI Land."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P4 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">P4</span>
+      <div class="crit-info">
+        <div class="crit-name">Dùng số liệu cụ thể <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Phải có ít nhất <strong>1 con số cụ thể mỗi 300 từ</strong>. Số liệu BĐS (giá, diện tích, tỷ lệ, năm, tầng…) là tín hiệu uy tín quan trọng nhất.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Mơ hồ</div>
+        <div class="ex-text"><em>"Dự án có nhiều căn hộ với diện tích đa dạng và mức giá hợp lý cho nhiều đối tượng khách hàng."</em></div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Có số liệu</div>
+        <div class="ex-text"><em>"Dự án có 320 căn, diện tích từ 45–120m², giá từ 2,1 tỷ/căn. Tầng 15–20 view biển có giá cao hơn 8% so với tầng thấp."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">A2</span>
+      <div class="crit-info">
+        <div class="crit-name">FAQ trả lời ngắn gọn (≤100 từ) <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Nếu bài có phần FAQ (H3 dạng câu hỏi "?"), mỗi câu trả lời phải ≤100 từ. Câu trả lời quá dài sẽ bị AI Overview bỏ qua.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">💡</span>
+      <span>FAQ là phần "ăn điểm" dễ nhất với AI Overview. Mỗi H3 câu hỏi + 50–80 từ trả lời thẳng vào vấn đề = Google có thể trích dẫn trực tiếp.</span>
+    </div>
+  </div>
+
+  <!-- P5 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">P5</span>
+      <div class="crit-info">
+        <div class="crit-name">Heading viết hoa đúng chuẩn <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Heading tiếng Việt: chỉ viết hoa chữ đầu tiên và danh từ riêng. Không viết hoa toàn bộ heading (ALL CAPS) hoặc viết hoa kiểu tiếng Anh.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Sai chuẩn</div>
+        <div class="ex-text"><code>CĂN HỘ VŨNG TÀU GIÁ TỐT 2025</code><br><code>Bảng Giá Dự Án Mới Nhất</code></div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Đúng chuẩn</div>
+        <div class="ex-text"><code>Căn hộ Vũng Tàu giá tốt 2025</code><br><code>Bảng giá dự án mới nhất</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SI2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#dbeafe;color:var(--t2)">SI2</span>
+      <div class="crit-info">
+        <div class="crit-name">Tín hiệu ý định tìm kiếm ở đầu bài <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">250 từ đầu bài phải cho thấy rõ bài thuộc loại gì: <strong>Know</strong> (giải thích), <strong>Do</strong> (hướng dẫn), <strong>Go</strong> (điều hướng địa điểm) hay <strong>Hybrid</strong>.</div>
+      </div>
+      <div class="crit-score">1 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Không rõ loại</div>
+        <div class="ex-text">Bài "Cách mua nhà Vũng Tàu" nhưng mở đầu giới thiệu lịch sử thành phố — không có dấu hiệu hướng dẫn hành động.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Tín hiệu rõ (Do)</div>
+        <div class="ex-text"><em>"Hướng dẫn mua nhà Vũng Tàu 2025 gồm 5 bước: (1) xác định ngân sách, (2) chọn khu vực…"</em> — rõ ràng là bài hướng dẫn.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TIER 3 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="tier3"></div>
+  <div class="section-header">
+    <div class="section-icon" style="background:#ede9fe">🎯</div>
+    <div class="section-meta">
+      <h2>Tầng 3 · Entity, RPP & Ý định tìm kiếm</h2>
+      <p>Google xếp hạng dựa trên entity (thực thể). Bài phải xây dựng entity profile đầy đủ cho TPI Land và dự án.</p>
+    </div>
+    <div class="section-score-badge" style="color:var(--t3)">24 điểm</div>
+  </div>
+
+  <div class="tip-box">
+    <span class="tip-icon">📌</span>
+    <div><strong>RPP là gì?</strong> Relevance (liên quan) + Prominence (nổi bật) + Popularity (phổ biến). Đây là 3 yếu tố Google dùng để xếp hạng entity trong Knowledge Graph. Bài viết của bạn phải trả lời được cả 3.</div>
+  </div>
+
+  <!-- R1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ede9fe;color:var(--t3)">R1</span>
+      <div class="crit-info">
+        <div class="crit-name">Liên quan đến nghiệp vụ TPI (Relevance) <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Nội dung phải liên quan rõ ràng đến hoạt động kinh doanh của TPI Land: phân phối dự án, tư vấn pháp lý, đầu tư BĐS, thị trường Vũng Tàu/Hồ Tràm/HCM.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+  </div>
+
+  <!-- R2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ede9fe;color:var(--t3)">R2</span>
+      <div class="crit-info">
+        <div class="crit-name">Định nghĩa entity đầy đủ (Prominence) <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Main entity (dự án / loại hình BĐS / địa điểm) phải được định nghĩa đầy đủ: tên chính xác, thuộc tính cơ bản, mối quan hệ với TPI Land.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Entity mờ nhạt</div>
+        <div class="ex-text">Bài về "Grand Marina Saigon" nhưng không nêu: đây là dự án gì, tọa lạc đâu, quy mô, chủ đầu tư.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Entity rõ ràng</div>
+        <div class="ex-text">Nêu đủ: tên, vị trí (Quận 1, TP.HCM), loại hình (siêu sang), CĐT (Masterise Homes), TPI là đơn vị phân phối độc quyền khu vực nào.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- R4 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ede9fe;color:var(--t3)">R4</span>
+      <div class="crit-info">
+        <div class="crit-name">Đủ thuộc tính entity (EAV Coverage) <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc"><strong>EAV = Entity – Attribute – Value</strong>. Mỗi entity cần đủ bộ thuộc tính + giá trị cụ thể. Bài càng nhiều EAV rõ ràng, Google càng dễ đưa vào Knowledge Graph.</div>
+      </div>
+      <div class="crit-score">5 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">💡</span>
+      <span><strong>EAV mẫu cho dự án:</strong> Tên = "Pear Garden" · Loại = "biệt thự" · Vị trí = "Long Hải, Vũng Tàu" · Diện tích = "200–350m²" · Giá từ = "8 tỷ" · Pháp lý = "sổ hồng riêng" · CĐT = "TPI Land" · Tình trạng = "đang mở bán Q3/2025"</span>
+    </div>
+  </div>
+
+  <!-- SI1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ede9fe;color:var(--t3)">SI1</span>
+      <div class="crit-info">
+        <div class="crit-name">Định dạng bài khớp ý định tìm kiếm <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Keyword "là gì" → bài giải thích dạng định nghĩa. Keyword "cách/hướng dẫn" → bài hướng dẫn có bước số. Keyword "tốt nhất/top" → bài so sánh có bảng. Viết sai dạng = mất điểm.</div>
+      </div>
+      <div class="crit-score">3 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Sai dạng</div>
+        <div class="ex-text">Keyword: "cách mua nhà lần đầu" → nhưng bài viết dạng giới thiệu dự án, không có bước hướng dẫn cụ thể.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Đúng dạng</div>
+        <div class="ex-text">Keyword: "cách mua nhà lần đầu" → Bài có H2 "Bước 1 / Bước 2 / Bước 3…" với quy trình cụ thể từng bước.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HC1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ede9fe;color:var(--t3)">HC1</span>
+      <div class="crit-info">
+        <div class="crit-name">Bài trả lời đủ — không bỏ sót câu hỏi thực tế <span class="method-badge method-ai-fast">⚡ AI Haiku</span></div>
+        <div class="crit-desc">Google HCU phạt bài <em>"mỏng"</em> — nói nhiều nhưng không giải đáp thực sự. Bài tốt phải xử lý được các <strong>objections</strong> thực tế: rủi ro, câu hỏi thường gặp, trường hợp đặc biệt.</div>
+      </div>
+      <div class="crit-score">3 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Bài mỏng</div>
+        <div class="ex-text">Bài "đầu tư BĐS nghỉ dưỡng" chỉ nói về ưu điểm, không đề cập rủi ro thanh khoản, vấn đề pháp lý condotel.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Bài đầy đủ</div>
+        <div class="ex-text">Có H3: "Rủi ro khi mua condotel cần biết", H3: "Pháp lý condotel và sổ đỏ khác nhau thế nào?", H3: "Kinh nghiệm chọn chủ đầu tư uy tín".</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TIER 4 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="tier4"></div>
+  <div class="section-header">
+    <div class="section-icon" style="background:#ffedd5">🏆</div>
+    <div class="section-meta">
+      <h2>Tầng 4 · Information Gain, GEO & E-E-A-T</h2>
+      <p>Tầng này phân biệt bài viết đẳng cấp vs bài AI thông thường. Đây là lợi thế cạnh tranh dài hạn của TPI Land.</p>
+    </div>
+    <div class="section-score-badge" style="color:var(--t4)">27 điểm</div>
+  </div>
+
+  <div class="tip-box">
+    <span class="tip-icon">🌟</span>
+    <div><strong>E-E-A-T là gì?</strong> Experience (kinh nghiệm thực chiến) + Expertise (chuyên môn) + Authoritativeness (uy tín) + Trustworthiness (độ tin cậy). Google ưu tiên bài có tín hiệu E-E-A-T rõ ràng — đặc biệt trong ngành BĐS (Your Money, Your Life).</div>
+  </div>
+
+  <!-- I1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">I1</span>
+      <div class="crit-info">
+        <div class="crit-name">Dữ liệu độc quyền của TPI Land <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Bài phải có ít nhất 1 thông tin mà chỉ TPI Land biết: dữ liệu giao dịch nội bộ, case study khách hàng thực, nhận xét từ kinh nghiệm bán hàng. Đây là điểm tạo khác biệt lớn nhất.</div>
+      </div>
+      <div class="crit-score">6 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Thông tin công khai</div>
+        <div class="ex-text"><em>"Theo báo cáo thị trường Q1/2025, giá BĐS tăng 8%…"</em> — thông tin này ai cũng có thể tìm được.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Dữ liệu TPI độc quyền</div>
+        <div class="ex-text"><em>"Từ 120 giao dịch TPI Land Q1/2025, 73% khách mua BĐS nghỉ dưỡng Vũng Tàu đến từ HCM, và 41% thanh toán trong vòng 3 tháng từ mở bán."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">E1</span>
+      <div class="crit-info">
+        <div class="crit-name">Tín hiệu kinh nghiệm thực địa (E-E-A-T) <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Bài phải có ít nhất 2 tín hiệu cho thấy tác giả / TPI Land đã <em>thực sự trải nghiệm</em>, không phải chỉ tổng hợp thông tin từ internet.</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">💡</span>
+      <span><strong>Cụm từ tín hiệu E-E-A-T:</strong> "Tôi đã khảo sát thực địa…", "Khách hàng của TPI phản hồi…", "Nhân viên tư vấn TPI chia sẻ…", "Qua kinh nghiệm 10 năm phân phối…", "Chúng tôi ghi nhận tại hiện trường…"</span>
+    </div>
+  </div>
+
+  <!-- E2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">E2</span>
+      <div class="crit-info">
+        <div class="crit-name">Trích dẫn tên nhân viên / chuyên gia <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Ít nhất 1 trích dẫn có <strong>tên người thật + chức vụ/chuyên môn</strong>. Google dùng tín hiệu này để xác định bài có người thật đứng sau, không phải AI tạo ra toàn bộ.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Trích dẫn vô danh</div>
+        <div class="ex-text"><em>"Theo chuyên gia, thị trường BĐS đang tăng trưởng tốt."</em></div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Trích dẫn có tên</div>
+        <div class="ex-text"><em>"Anh Nguyễn Minh Trí, Trưởng phòng Kinh doanh TPI Land Vũng Tàu, cho biết: 'Lượng khách hỏi mua căn hộ view biển tăng 35% so với tháng trước.'"</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- G2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">G2</span>
+      <div class="crit-info">
+        <div class="crit-name">Bảng HTML và danh sách có thứ tự <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Bài phải có ít nhất <strong>1 bảng HTML</strong> (so sánh, bảng giá…) và <strong>1 danh sách &lt;ol&gt;</strong> (các bước, top X). Google AI Overview ưu tiên trích dẫn nội dung có cấu trúc.</div>
+      </div>
+      <div class="crit-score">3 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">📊</span>
+      <span><strong>Gợi ý:</strong> Mọi bài BĐS đều có thể thêm: Bảng so sánh dự án, Bảng giá theo loại căn, Danh sách "5 lý do nên đầu tư", Danh sách "Quy trình mua 6 bước". Vừa hữu ích cho người đọc, vừa ăn điểm GEO.</span>
+    </div>
+  </div>
+
+  <!-- G1 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">G1</span>
+      <div class="crit-info">
+        <div class="crit-name">Đoạn văn tự đủ nghĩa (GEO Citable Chunk) <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Phải có ít nhất 1 đoạn văn 50–120 từ, <strong>hoàn chỉnh ý nghĩa khi đứng một mình</strong>. AI Overview trích dẫn đoạn văn — không trích dẫn cả bài. Đoạn đó phải tự giải thích được.</div>
+      </div>
+      <div class="crit-score">2 <small>điểm</small></div>
+    </div>
+    <div class="crit-examples">
+      <div class="ex-bad">
+        <div class="ex-label">✗ Phụ thuộc ngữ cảnh</div>
+        <div class="ex-text"><em>"Như đã đề cập ở trên, điều này rất quan trọng với nhà đầu tư."</em> — không thể hiểu nếu trích riêng.</div>
+      </div>
+      <div class="ex-good">
+        <div class="ex-label">✓ Tự đủ nghĩa</div>
+        <div class="ex-text"><em>"Căn hộ condotel tại Vũng Tàu không được cấp sổ hồng vĩnh viễn mà chỉ có sổ đỏ 50 năm. Điều này khác biệt so với căn hộ chung cư thông thường và ảnh hưởng đến khả năng thế chấp vay ngân hàng."</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- I2 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">I2</span>
+      <div class="crit-info">
+        <div class="crit-name">Góc nhìn phân tích riêng <span class="method-badge method-ai">🤖 AI chấm</span></div>
+        <div class="crit-desc">Bài phải có quan điểm / phân tích do TPI Land tự đưa ra — không chỉ tổng hợp lại thông tin từ các nguồn khác. Điều gì TPI thấy khác biệt ở thị trường này?</div>
+      </div>
+      <div class="crit-score">4 <small>điểm</small></div>
+    </div>
+  </div>
+
+  <!-- I3 -->
+  <div class="criterion-card">
+    <div class="criterion-header">
+      <span class="crit-badge" style="background:#ffedd5;color:var(--t4)">I3</span>
+      <div class="crit-info">
+        <div class="crit-name">Tránh văn phong AI sáo rỗng <span class="method-badge method-rule">⚙ Tự động</span></div>
+        <div class="crit-desc">Google phát hiện và hạ điểm bài có văn phong AI: câu mở đầu khuôn mẫu, kết luận trống rỗng, liệt kê không có thông tin mới, phân tích thiếu chiều sâu.</div>
+      </div>
+      <div class="crit-score">3 <small>điểm</small></div>
+    </div>
+    <div class="crit-note">
+      <span class="crit-note-icon">🚫</span>
+      <span><strong>Cụm từ AI điển hình cần tránh:</strong> "Trong bối cảnh hiện nay…", "Như vậy, có thể thấy rằng…", "Tóm lại, việc đầu tư BĐS là…", "Với những thông tin trên, hy vọng bạn đã…", "Bài viết này sẽ giúp bạn hiểu rõ hơn về…"</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- QUICK CHECKLIST -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="checklist"></div>
+  <div class="quick-checklist">
+    <h2>✅ Checklist nhanh trước khi nộp bài</h2>
+    <p style="font-size:14px;color:var(--ink3);margin-bottom:20px">Tick hết ô này trước khi bấm nút chấm. Tỷ lệ qua 70+ điểm sẽ cao hơn nhiều.</p>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🔴 Bắt buộc (điều kiện tiên quyết)</div>
+      <div class="cl-item"><div class="cl-check"></div>Có đúng 1 thẻ H1 chứa keyword chính</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 3 thẻ H2</div>
+      <div class="cl-item"><div class="cl-check"></div>Từ 800 đến 10.000 từ</div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title" style="color:var(--t1)">🏗 Cấu trúc</div>
+      <div class="cl-item"><div class="cl-check"></div>H2 đều liên quan đến chủ đề H1, không lạc đề</div>
+      <div class="cl-item"><div class="cl-check"></div>Có câu định nghĩa "[Entity] là…" trong phần đầu bài</div>
+      <div class="cl-item"><div class="cl-check"></div>Heading viết hoa chữ đầu, không ALL CAPS</div>
+      <div class="cl-item"><div class="cl-check"></div>Cuối bài có đủ Tên TPI + Địa chỉ + Số điện thoại</div>
+      <div class="cl-item"><div class="cl-check"></div>Dữ liệu số liệu được gắn năm (2025 trở đi)</div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title" style="color:var(--t2)">✍️ Nội dung</div>
+      <div class="cl-item"><div class="cl-check"></div>Đoạn đầu sau H1 dài 40–70 từ, trả lời thẳng vào keyword</div>
+      <div class="cl-item"><div class="cl-check"></div>Không dùng từ: "có thể", "thường", "đôi khi", "có lẽ"</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 1 con số cụ thể mỗi 300 từ</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 1 bảng HTML so sánh hoặc bảng giá</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 1 danh sách &lt;ol&gt; (bước/top)</div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title" style="color:var(--t4)">🏆 E-E-A-T</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 1 câu trích dẫn tên nhân viên TPI + chức vụ</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 1 dữ liệu nội bộ TPI mà nguồn khác không có</div>
+      <div class="cl-item"><div class="cl-check"></div>Có ít nhất 2 cụm từ kinh nghiệm thực địa</div>
+      <div class="cl-item"><div class="cl-check"></div>Không có câu văn kiểu AI ("Trong bối cảnh hiện nay…")</div>
+      <div class="cl-item"><div class="cl-check"></div>Bài đề cập ít nhất 1 rủi ro hoặc objection thực tế</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <strong>TPI Land</strong> · Bộ tiêu chuẩn nội dung v3.0 · Cập nhật 05/2025<br>
+  <span style="font-size:12px">E-E-A-T + HCU + GEO Edition · 28 tiêu chí · 100 điểm · Pass ≥ 70</span>
+</div>
+
+</body>
+</html>
