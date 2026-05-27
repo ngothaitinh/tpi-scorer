@@ -2272,7 +2272,7 @@ function _scoreG1(parsed, meta) {
   const attrRx   = /(vị trí|tiện ích|pháp lý|giá|chủ đầu tư|diện tích|view|hướng|thiết kế)/i;
   const paras = parsed.text.split(/\n{2,}/);
   const hasChunk = paras.some(p => {
-    const words = p.split(/\s+/).length;
+    const words = p.split(/\s+/).filter(Boolean).length;
     return words >= 30 && words <= 200 && entityRx.test(p) && numberRx.test(p) && attrRx.test(p);
   });
   return { score: hasChunk ? 2 : 0, evidence: { hasChunk } };
@@ -2686,8 +2686,10 @@ async function submitArticle() {
 
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
     let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {}, llmErrors = [];
+    // forceLLM = checkbox "Bật AI" — hoặc rule đủ điểm threshold
+    const skipLLM = !forceLLM && ruleTotal < cfg.skip_llm_threshold;
 
-    if (forceLLM) {
+    if (!skipLLM) {
       // Chạy 2 LLM call song song — giảm latency ~50% so với tuần tự
       setLoaderTxt('Đang phân tích AI song song (' + apiCfg.provider + ')...');
       const [simpleResult, complexResult] = await Promise.allSettled([
@@ -2700,7 +2702,7 @@ async function submitArticle() {
       } else {
         const m = simpleResult.reason?.message || 'lỗi không xác định';
         console.warn('[TPI] LLM Simple failed:', m);
-        llmErrors.push('Nhóm tiêu chí nhanh (S1/S2/S5/P1/R1/R3/R5/R6): ' + m);
+        llmErrors.push('Nhóm tiêu chí nhanh (S1/S2/S5/P1/R1/R3/R5/HC1): ' + m);
       }
       if (complexResult.status === 'fulfilled') {
         complexScores = complexResult.value || {};
@@ -2752,9 +2754,8 @@ async function submitArticle() {
     const total = tierBreakdown.reduce((a, t) => a + t.score, 0);
     const cfg2 = DB.get('config', { pass_score: 70 });
     const passed = total >= cfg2.pass_score;
-    // llmUsed = true CHỈ khi forceLLM và ít nhất 1 call AI thành công
-    // (cả 2 fail → coi như chấm Rule, scorecard hiện thang /55)
-    const llmUsed = forceLLM && llmErrors.length < 2;
+    // llmUsed = true khi AI được gọi (không bị skip) và ít nhất 1 call thành công
+    const llmUsed = !skipLLM && llmErrors.length < 2;
 
     // Save submission
     const submission = {
@@ -2858,19 +2859,13 @@ function generateRuleFixes(ruleScores, parsed, evidence) {
       fix: 'Thêm H3 vào 9–10 heading đầu để đào sâu attribute chính. VD: H2 "Tiện Ích" → H3 "Hồ Bơi Vô Cực", H3 "Gym & Spa".',
     },
     {
-      id: 'S6', max: 3,
-      issue: `Phần Supplement chiếm ~${suppPct}% bài (giới hạn 25%)`,
-      location: suppBoundary ? `Từ heading: "${trunc(suppBoundary, 40)}" trở xuống` : 'Phần cuối bài (25% cuối)',
-      fix: 'Rút ngắn phần cuối bài (FAQ, liên kết liên quan). Supplement không quá 25% tổng số từ.',
-    },
-    {
-      id: 'P2', max: 5,
+      id: 'P2', max: CRITERION_MAX['P2'],
       issue: `Từ do dự: ${hesitantFound.length ? hesitantFound.map(w=>`"${w}"`).join(', ') : 'tìm thấy trong bài'}`,
       location: `Ctrl+F: ${hesitantFound.slice(0,3).map(w=>`"${w}"`).join(' · ') || '"có thể", "dường như"'}`,
       fix: 'Xóa từ do dự khi nói về fact/tính năng. Khẳng định trực tiếp: "Metropolis có hồ bơi tầng 30." thay vì "có thể có hồ bơi".',
     },
     {
-      id: 'P3', max: 4,
+      id: 'P3', max: CRITERION_MAX['P3'],
       issue: `Cụm từ chung chung: ${vagueFound.length ? vagueFound.map(w=>`"${w}"`).join(', ') : 'không có số liệu cụ thể'}`,
       location: `Ctrl+F: ${vagueFound.slice(0,3).map(w=>`"${w}"`).join(' · ') || '"đa dạng", "rất nhiều"'}`,
       fix: 'Thay "nhiều loại", "đa dạng", "phong phú" bằng con số hoặc liệt kê cụ thể. VD: "5 loại căn: studio, 1PN, 2PN, 3PN, penthouse".',
@@ -3015,8 +3010,8 @@ function renderResult(wrap, sub, reasons, allScores) {
         <div class="fixes-group-title"${critical.length > 0 ? ' style="margin-top:20px;"' : ''}>🟡🟢 Major & Minor — Polish khi có thời gian (${others.length})</div>
         ${others.map(renderFixCard).join('')}` : ''}`;
 
-  // Rule-only constants (Track B): T1=S1h+S3+S4+S6=20, T2=P2-P8=19, T3=R2h+R5h=8, T4=I3h+I4h=8
-  const RULE_MAX = 55, RULE_MAX_T1 = 20, RULE_MAX_T2 = 19, RULE_MAX_T3 = 8, RULE_MAX_T4 = 8;
+  // Rule-only constants (Track B, v3.0): T1=S1h+S3+S4+A3+G3+E3=19, T2=P2-P6+A1+A2+SI2=15, T3=R2h+R5h=7, T4=I3h+I4h+G1+G2+E1+E2=17
+  const RULE_MAX = 58, RULE_MAX_T1 = 19, RULE_MAX_T2 = 15, RULE_MAX_T3 = 7, RULE_MAX_T4 = 17;
   const ruleT1 = sub.tierBreakdown[0].score;
   const ruleT2 = sub.tierBreakdown[1].score;
   const ruleT3 = sub.tierBreakdown[2].score;
@@ -3186,10 +3181,10 @@ function exportMarkdown() {
 
   // Tầng
   const tiers = [
-    { label: 'T1 — Cấu trúc & Ngữ cảnh',     ids: ['S1','S2','S3','S4','S5','S6','A3'], max: 27 },
-    { label: 'T2 — Chất lượng đoạn & AEO+SI', ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 27 },
-    { label: 'T3 — RPP & Entity & SI',         ids: ['R1','R2','R3','R4','R5','R6','SI1'], max: 26 },
-    { label: 'T4 — Information Gain & GEO',    ids: ['I1','I2','I3','I4','G1'], max: 20 },
+    { label: 'T1 — Cấu trúc & Ngữ cảnh',          ids: ['S1','S2','S3','S4','S5','A3','G3','E3'], max: 27 },
+    { label: 'T2 — Chất lượng đoạn & AEO+SI',      ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'], max: 22 },
+    { label: 'T3 — RPP & Entity & SI & HCU',        ids: ['R1','R2','R3','R4','R5','SI1','HC1'], max: 24 },
+    { label: 'T4 — Information Gain & GEO & E-E-A-T', ids: ['I1','I2','I3','I4','G1','G2','E1','E2'], max: 27 },
   ];
 
   const tierRows = tiers.map((t, i) => {
@@ -3304,6 +3299,11 @@ _Báo cáo tạo bởi [TPI Content Scorer](https://aeotpi.netlify.app/) · Rubr
 
 // ============================================================
 // HISTORY
+// HTML-escape utility — dùng mọi nơi interpolate user data vào innerHTML
+function _esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // ============================================================
 function renderHistory() {
   const subs = DB.get('submissions', [])
@@ -3326,10 +3326,10 @@ function renderHistory() {
       const tokLabel = tok > 0
         ? `<span class="mono" title="Input: ${(s.tokens?.in||0).toLocaleString()} · Output: ${(s.tokens?.out||0).toLocaleString()}" style="color:var(--ink2)">${tok.toLocaleString('vi-VN')}</span>`
         : `<span style="color:var(--ink3)">—</span>`;
-      const notesFrag = s.notes ? `<div style="font-size:11px;color:var(--ink3);margin-top:3px;white-space:pre-wrap">${s.notes.length > 80 ? s.notes.slice(0,80) + '…' : s.notes}</div>` : '';
+      const notesFrag = s.notes ? `<div style="font-size:11px;color:var(--ink3);margin-top:3px;white-space:pre-wrap">${_esc(s.notes.length > 80 ? s.notes.slice(0,80) + '…' : s.notes)}</div>` : '';
       return `<tr>
-        <td class="mono" style="color:var(--ink3)">${s.date.slice(0,10)}</td>
-        <td>${s.keyword}${notesFrag}</td>
+        <td class="mono" style="color:var(--ink3)">${_esc(s.date.slice(0,10))}</td>
+        <td>${_esc(s.keyword)}${notesFrag}</td>
         <td class="mono">${s.wordCount}</td>
         <td class="mono"><strong>${Math.round(s.total)}</strong></td>
         <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
@@ -4966,7 +4966,7 @@ function _renderQueryResult(r, seed, entity, queryType) {
     <div class="qf-summary-bar">
       <div>
         <span class="qf-sum-label">Seed Query</span>
-        <strong style="font-size:13px">"${seed}"</strong>
+        <strong style="font-size:13px">"${_esc(seed)}"</strong>
       </div>
       <div>
         <span class="qf-sum-label">Loại</span>
