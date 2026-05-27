@@ -888,6 +888,13 @@ body {
 .qf-golden-h2 { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .qf-golden-para { font-size: 13px; color: var(--ink); line-height: 1.7; font-style: italic; }
 
+/* QF History chips */
+.qf-history-wrap { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+.qf-hist-label { font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.qf-hist-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.qf-hist-chip { background: var(--bg3); border: 1px solid var(--line); color: var(--ink2); padding: 5px 12px; border-radius: 14px; font-size: 11.5px; cursor: pointer; transition: all .15s; font-family: 'Be Vietnam Pro', sans-serif; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qf-hist-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
 /* QF Advanced Settings */
 .qf-advanced { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
 .qf-advanced summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--ink3); list-style: none; display: inline-flex; align-items: center; gap: 6px; user-select: none; }
@@ -1388,10 +1395,13 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
       </div>
     </details>
 
+    <!-- QF History chips (hiện khi có lịch sử) -->
+    <div id="qf-history-wrap" class="qf-history-wrap" style="display:none"></div>
+
     <div class="qf-form-card">
       <div class="qf-form-grid">
         <div class="qf-field">
-          <label>Seed Query (Truy vấn gốc) *</label>
+          <label>Seed Query (Truy vấn gốc) * <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink3)">— Ctrl+Enter để chạy</span></label>
           <input type="text" id="qf-seed" placeholder='VD: "Có nên mua Aqua City thời điểm này?"' />
         </div>
         <div class="qf-field">
@@ -1675,7 +1685,7 @@ function _injectHashImport(mdText) {
   _showImportToast();
 }
 
-// Toast dùng chung — type: 'success' (xanh) | 'warn' (cam) | 'error' (đỏ)
+// Toast dùng chung — type: 'success' (xanh) | 'warn' (cam) | 'error' (đỏ) | 'info' (xanh dương)
 function _showToast(msg, type) {
   let toast = document.getElementById('tpi-toast');
   if (!toast) {
@@ -1683,7 +1693,7 @@ function _showToast(msg, type) {
     toast.id = 'tpi-toast';
     document.body.appendChild(toast);
   }
-  const bg = type === 'warn' ? '#c47f1a' : type === 'error' ? 'var(--red)' : 'var(--green)';
+  const bg = type === 'warn' ? '#c47f1a' : type === 'error' ? 'var(--red)' : type === 'info' ? '#3b82f6' : 'var(--green)';
   toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:' + bg
     + ';color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;z-index:9999;'
     + 'box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:90vw;text-align:center;line-height:1.5';
@@ -4926,6 +4936,31 @@ function initCLChecklist() {
 
 function renderQueryPage() {
   _updateQFApiStatus();
+  _renderQFHistoryChips();
+  // Ctrl+Enter shortcut to submit
+  ['qf-seed', 'qf-entity', 'qf-context'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset._kbBound) {
+      el.dataset._kbBound = '1';
+      el.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runQueryFanout(); }
+      });
+    }
+  });
+}
+
+function _renderQFHistoryChips() {
+  const list = DB.get(_qfHistKey(), []);
+  const wrap = document.getElementById('qf-history-wrap');
+  if (!wrap) return;
+  if (!list.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  wrap.innerHTML = '<div class="qf-hist-label">📜 Lịch sử gần đây</div>' +
+    '<div class="qf-hist-chips">' +
+    list.slice(0, 5).map(it =>
+      `<button class="qf-hist-chip" onclick="loadQFHistory(${it.id})" title="${_esc(it.entity)} · ${new Date(it.date).toLocaleString('vi-VN')}">${_esc((it.seed || '').slice(0, 35))}${it.seed?.length > 35 ? '…' : ''}</button>`
+    ).join('') +
+    '</div>';
 }
 
 // ── QF Custom API Config ───────────────────────────────────────
@@ -4967,12 +5002,17 @@ function saveQFApiConfig() {
 async function testQFApiConfig() {
   const cfg = loadQFApiConfig();
   if (!cfg.api_key || !cfg.model) { _showToast('Lưu cấu hình trước', 'error'); return; }
+  const btn = event?.target;
+  const orig = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang test...'; }
   _showToast('Đang test kết nối...', 'info');
   try {
     await _callLLM_QF('Trả lời đúng 1 từ tiếng Việt: "xin chào"', 20);
     _showToast('Kết nối thành công ✅ AI phản hồi OK', 'success');
   } catch(e) {
     _showToast('Lỗi: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
   }
 }
 
@@ -5175,6 +5215,7 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
     window._qfLastSeed   = seedQuery;
     window._qfLastEntity = entity;
     _renderQueryResult(result, seedQuery, entity);
+    _saveQFHistory(result, seedQuery, entity);
     document.getElementById('qf-result').style.display = '';
     document.getElementById('qf-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
     const bc = result.fan_out_branches.length;
@@ -5187,6 +5228,97 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
     btn.disabled = false;
     btn.textContent = '🔍 Phân tích Query Fan-out';
   }
+}
+
+// ── QF History (last 10 runs per user) ─────────────────────────
+function _qfHistKey() {
+  const u = DB.get('session', 'anon');
+  return `qf_hist_${u}`;
+}
+function _saveQFHistory(result, seed, entity) {
+  const list = DB.get(_qfHistKey(), []);
+  list.unshift({
+    id: Date.now(),
+    date: new Date().toISOString(),
+    seed, entity,
+    result,
+  });
+  // keep last 10
+  DB.set(_qfHistKey(), list.slice(0, 10));
+}
+function loadQFHistory(id) {
+  const list = DB.get(_qfHistKey(), []);
+  const item = list.find(x => x.id === id);
+  if (!item) { _showToast('Không tìm thấy lịch sử', 'error'); return; }
+  window._qfLastResult = item.result;
+  window._qfLastSeed   = item.seed;
+  window._qfLastEntity = item.entity;
+  document.getElementById('qf-seed').value   = item.seed;
+  document.getElementById('qf-entity').value = item.entity;
+  _renderQueryResult(item.result, item.seed, item.entity);
+  document.getElementById('qf-result').style.display = '';
+  document.getElementById('qf-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  _showToast(`✅ Đã load lịch sử: "${item.seed.slice(0, 30)}..."`, 'success');
+}
+
+// ── QF Export to Markdown ──────────────────────────────────────
+function exportQFMarkdown() {
+  const r = window._qfLastResult;
+  const seed = window._qfLastSeed || '';
+  const entity = window._qfLastEntity || '';
+  if (!r) { _showToast('Chưa có kết quả để export', 'warn'); return; }
+
+  const sa = r.seed_analysis || {};
+  const sk = r.semantic_keywords || {};
+  const hs = r.hub_spoke_architecture || r.hub_spoke || {};
+  let md = `# Query Fan-out: ${seed}\n\n`;
+  md += `**Entity:** ${entity}\n`;
+  md += `**Intent:** ${sa.intent_type || '—'}\n`;
+  md += `**AEO Difficulty:** ${sa.aeo_difficulty || '—'}\n`;
+  md += `**Generated:** ${new Date().toLocaleString('vi-VN')}\n\n`;
+  md += `---\n\n## Fan-out Branches (${(r.fan_out_branches || []).length})\n\n`;
+
+  (r.fan_out_branches || []).forEach((b, i) => {
+    md += `### ${i+1}. ${b.branch_name || 'Nhánh ' + (i+1)} (${b.priority_score || '?'}/10)\n\n`;
+    const fanQ  = b.fan_out_queries || b.queries || [];
+    const userQ = b.user_questions || [];
+    if (fanQ.length) {
+      md += `**🔍 Query Fan-out (SEO):**\n`;
+      fanQ.forEach(q => md += `- ${q}\n`);
+      md += `\n`;
+    }
+    if (userQ.length) {
+      md += `**💬 Câu hỏi người dùng (NLP):**\n`;
+      userQ.forEach(q => md += `- ${q}\n`);
+      md += `\n`;
+    }
+  });
+
+  md += `---\n\n## Semantic Keywords\n\n`;
+  if ((sk.core_entities || []).length) md += `**Core Entities:** ${sk.core_entities.join(', ')}\n\n`;
+  if ((sk.supporting_terms || []).length) md += `**Supporting Terms:** ${sk.supporting_terms.join(', ')}\n\n`;
+  if ((sk.action_modifiers || []).length) md += `**Action Modifiers:** ${sk.action_modifiers.join(', ')}\n\n`;
+
+  md += `---\n\n## Hub & Spoke\n\n`;
+  md += `**📌 Pillar:** ${hs.pillar_title || (hs.pillar || {}).title || '—'}\n\n`;
+  const spokes = hs.spoke_topics || (hs.spokes || []).map(s => s.title);
+  spokes.forEach((s, i) => md += `${i+1}. ${s}\n`);
+  md += `\n---\n\n## 60 Chữ Vàng\n\n`;
+  (r.golden_paragraphs || []).forEach((g, i) => {
+    md += `### ${i+1}. ${g.target_query || g.h2 || ''}\n\n> ${g.bite_sized_answer || g.sample_50_words || ''}\n\n`;
+  });
+
+  // Trigger download
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `qf-${(seed || 'export').slice(0, 40).replace(/[^a-zA-Z0-9-_]/g, '_')}-${Date.now()}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  _showToast('✅ Đã tải Markdown', 'success');
 }
 
 // ── JSON Editor helpers ────────────────────────────────────────
@@ -5299,7 +5431,8 @@ function _renderQueryResult(r, seed, entity) {
         <span class="qf-sum-label">Semantic keywords</span>
         <strong>${(sk.core_entities?.length || 0) + (sk.supporting_terms?.length || 0)} từ</strong>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <button class="qf-api-btn" onclick="exportQFMarkdown()" style="white-space:nowrap">📥 Markdown</button>
         <button class="qf-api-btn" onclick="openQFJsonEditor()" style="white-space:nowrap">🗒 Edit JSON</button>
       </div>
     </div>
