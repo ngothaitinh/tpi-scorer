@@ -798,6 +798,91 @@ body {
 @keyframes celebrate-pop { from { transform: translate(-50%,-50%) scale(.7); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
 .confetti-piece { position: absolute; top: -16px; animation: confetti-fall linear forwards; }
 @keyframes confetti-fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* ── QUERY FAN-OUT PAGE ──────────────────────────────────────────────────── */
+.qf-form-card { background: var(--bg2); border: 1px solid var(--line2); border-radius: 12px; padding: 24px 28px; margin-bottom: 28px; }
+.qf-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+.qf-field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+.qf-field input[type=text], .qf-field textarea { width: 100%; background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: var(--ink); font-family: 'Be Vietnam Pro', sans-serif; outline: none; transition: border-color .15s; }
+.qf-field input[type=text]:focus, .qf-field textarea:focus { border-color: var(--accent); }
+.qf-field textarea { resize: vertical; min-height: 72px; }
+.qf-full { grid-column: 1 / -1; }
+.qf-radio-row, .qf-check-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.qf-radio-row label, .qf-check-row label { display: flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid var(--line); border-radius: 20px; padding: 5px 13px; font-size: 12px; cursor: pointer; transition: all .15s; user-select: none; }
+.qf-radio-row input, .qf-check-row input { display: none; }
+.qf-radio-row input:checked + span, .qf-check-row input:checked + span { color: var(--accent); }
+.qf-radio-row label:has(input:checked), .qf-check-row label:has(input:checked) { background: rgba(224,92,58,.1); border-color: var(--accent); color: var(--accent); }
+.qf-run-btn { width: 100%; margin-top: 20px; padding: 13px; background: var(--btn-accent); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: 'Be Vietnam Pro', sans-serif; cursor: pointer; transition: opacity .15s; }
+.qf-run-btn:hover { opacity: .88; }
+.qf-run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Results */
+.qf-summary-bar { display: flex; gap: 24px; background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.qf-summary-bar > div { display: flex; flex-direction: column; gap: 4px; }
+.qf-sum-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); }
+.qf-concern-chip { background: rgba(224,92,58,.1); border: 1px solid rgba(224,92,58,.3); color: var(--accent); padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+
+.qf-section { background: var(--bg2); border: 1px solid var(--line2); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; }
+.qf-section-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.qf-section-icon { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.qf-section-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.qf-section-sub { font-size: 12px; color: var(--ink3); }
+
+/* Fan-out branches */
+.qf-branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.qf-branch-card { background: var(--bg3); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.qf-branch-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.qf-branch-icon { font-size: 18px; }
+.qf-branch-theme { font-size: 12px; font-weight: 700; flex: 1; color: var(--ink); }
+.qf-priority-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; letter-spacing: .05em; }
+.qf-priority-high { background: rgba(220,53,69,.15); color: #dc3545; }
+.qf-priority-med  { background: rgba(255,193,7,.15); color: #b08800; }
+.qf-priority-low  { background: rgba(76,175,130,.15); color: var(--green); }
+.qf-query-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+.qf-query-list li { font-size: 11.5px; color: var(--ink2); padding: 4px 8px; background: var(--bg2); border-radius: 4px; border-left: 2px solid var(--line2); line-height: 1.4; }
+.qf-query-list li:hover { border-left-color: var(--accent); color: var(--ink); }
+
+/* Journey groups */
+.qf-stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.qf-stage-card { border-radius: 8px; padding: 12px 14px; border: 1px solid transparent; }
+.qf-stage-aw { background: rgba(76,175,130,.07); border-color: rgba(76,175,130,.3); }
+.qf-stage-co { background: rgba(255,193,7,.07); border-color: rgba(255,193,7,.3); }
+.qf-stage-de { background: rgba(224,92,58,.07); border-color: rgba(224,92,58,.3); }
+.qf-stage-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.qf-stage-aw .qf-stage-title { color: var(--green); }
+.qf-stage-co .qf-stage-title { color: #b08800; }
+.qf-stage-de .qf-stage-title { color: var(--accent); }
+.qf-stage-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.qf-stage-card li { font-size: 11px; color: var(--ink2); padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+
+/* Hub & Spoke */
+.qf-hs-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.qf-pillar-card, .qf-spokes-col { background: var(--bg3); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.qf-pillar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink3); margin-bottom: 8px; }
+.qf-pillar-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 12px; line-height: 1.4; }
+.qf-pillar-row { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.qf-pillar-row:last-child { border: none; }
+.qf-pillar-idx { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--ink3); flex-shrink: 0; }
+.qf-pillar-heading { font-size: 11.5px; color: var(--ink2); flex: 1; }
+.qf-pillar-words { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--ink3); }
+.qf-spoke-item { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.qf-spoke-item:last-child { border: none; }
+.qf-spoke-num { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+.qf-spoke-title { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.qf-spoke-meta { font-size: 10px; color: var(--ink3); }
+
+/* 50-chữ vàng */
+.qf-golden-list { display: flex; flex-direction: column; gap: 12px; }
+.qf-golden-item { background: var(--bg3); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.qf-golden-h2 { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.qf-golden-para { font-size: 13px; color: var(--ink); line-height: 1.7; font-style: italic; }
+
+@media (max-width: 600px) {
+  .qf-form-grid { grid-template-columns: 1fr; }
+  .qf-branch-grid { grid-template-columns: 1fr; }
+  .qf-stage-grid { grid-template-columns: 1fr; }
+  .qf-hs-layout { grid-template-columns: 1fr; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1202,6 +1287,68 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
     </div>
   </div>
 
+  <!-- ── QUERY FAN-OUT PAGE ── -->
+  <div id="view-query" class="page">
+    <div class="page-head">
+      <h1 class="syne">🔍 Nghiên cứu Query Fan-out</h1>
+      <p>Phân tích tia truy vấn — xây dựng chiến lược AEO/GEO cho bài viết BĐS</p>
+    </div>
+
+    <div class="qf-form-card">
+      <div class="qf-form-grid">
+        <div class="qf-field">
+          <label>Seed Query (Truy vấn gốc) *</label>
+          <input type="text" id="qf-seed" placeholder='VD: "Có nên mua Aqua City thời điểm này?"' />
+        </div>
+        <div class="qf-field">
+          <label>Entity / Tên dự án *</label>
+          <input type="text" id="qf-entity" placeholder='VD: "Aqua City Đồng Nai"' />
+        </div>
+
+        <div class="qf-field">
+          <label>Loại Query</label>
+          <div class="qf-radio-row">
+            <label><input type="radio" name="qf-type" value="old" checked><span>📊 Cũ — Có lịch sử tìm kiếm</span></label>
+            <label><input type="radio" name="qf-type" value="new"><span>🆕 Mới tình — Zero-volume</span></label>
+          </div>
+        </div>
+
+        <div class="qf-field">
+          <label>Trọng tâm Hành trình</label>
+          <div class="qf-radio-row">
+            <label><input type="radio" name="qf-journey" value="all" checked><span>🌐 Tất cả</span></label>
+            <label><input type="radio" name="qf-journey" value="Awareness"><span>🌱 Awareness</span></label>
+            <label><input type="radio" name="qf-journey" value="Consideration"><span>🤔 Consideration</span></label>
+            <label><input type="radio" name="qf-journey" value="Decision"><span>✅ Decision</span></label>
+          </div>
+        </div>
+
+        <div class="qf-field">
+          <label>Khách hàng mục tiêu</label>
+          <div class="qf-check-row">
+            <label><input type="checkbox" class="qf-persona" value="Nhà đầu tư lướt sóng" checked><span>📈 Nhà đầu tư</span></label>
+            <label><input type="checkbox" class="qf-persona" value="Người mua ở thực" checked><span>🏠 Mua ở thực</span></label>
+            <label><input type="checkbox" class="qf-persona" value="Người mua lần đầu"><span>🆕 Mua lần đầu</span></label>
+            <label><input type="checkbox" class="qf-persona" value="Người thuê"><span>🔑 Người thuê</span></label>
+          </div>
+        </div>
+
+        <div class="qf-field">
+          <label>Market Context (tùy chọn)</label>
+          <textarea id="qf-context" placeholder="Thêm thông tin thị trường hiện tại, tình trạng pháp lý, giá đang biến động... để AI phân tích chính xác hơn."></textarea>
+        </div>
+      </div>
+
+      <button class="qf-run-btn" id="qf-run-btn" onclick="runQueryFanout()">
+        🔍 Phân tích Query Fan-out
+      </button>
+    </div>
+
+    <div id="qf-result" style="display:none">
+      <div id="qf-result-inner"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1432,6 +1579,7 @@ function renderTopbar() {
   const views = [
     { id: 'submit', label: 'Nộp bài' },
     { id: 'history', label: 'Lịch sử' },
+    { id: 'query', label: '🔍 Query' },
     { id: 'aeo', label: 'AEO Plan' },
     ...(isAdmin ? [{ id: 'admin', label: '⚙ Admin' }] : [])
   ];
@@ -1456,6 +1604,7 @@ function showView(id) {
   if (id === 'history') renderHistory();
   if (id === 'admin') renderAdmin();
   if (id === 'aeo') renderAEO();
+  if (id === 'query') renderQueryPage();
 }
 
 // ============================================================
@@ -4642,6 +4791,251 @@ function resetCLTab() {
 function initCLChecklist() {
   loadCLState();
   renderCLContent();
+}
+
+// ============================================================
+// QUERY FAN-OUT
+// ============================================================
+
+function renderQueryPage() { /* form is static — nothing to render on load */ }
+
+async function runQueryFanout() {
+  const seedQuery = document.getElementById('qf-seed').value.trim();
+  const entity    = document.getElementById('qf-entity').value.trim();
+  const queryType = document.querySelector('input[name="qf-type"]:checked')?.value || 'old';
+  const journey   = document.querySelector('input[name="qf-journey"]:checked')?.value || 'all';
+  const personas  = [...document.querySelectorAll('.qf-persona:checked')].map(el => el.value);
+  const context   = document.getElementById('qf-context').value.trim();
+
+  if (!seedQuery) { alert('Vui lòng nhập Seed Query.'); return; }
+  if (!entity)    { alert('Vui lòng nhập Entity/Dự án.'); return; }
+
+  const apicfg = getApiConfig();
+  if (!apicfg.api_key && apicfg.provider !== 'anthropic') {
+    alert('Vui lòng cấu hình API Key trong trang Admin.'); return;
+  }
+
+  const btn = document.getElementById('qf-run-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang phân tích...';
+  document.getElementById('qf-result').style.display = 'none';
+
+  const typeLabel = queryType === 'new'
+    ? 'Mới tình — Zero-volume (dùng Pain-point mapping + dự đoán thông minh, không có volume thực)'
+    : 'Cũ — Đã có lịch sử tìm kiếm (dựa trên PAA, AnswerThePublic, related searches)';
+  const personaStr = personas.length ? personas.join(', ') : 'Nhà đầu tư, Người mua ở thực';
+  const journeyStr = journey === 'all' ? 'Tất cả giai đoạn (Awareness → Consideration → Decision)' : journey;
+
+  const prompt = `Bạn là chuyên gia AEO/GEO ngành bất động sản Việt Nam. Phân tích Seed Query và tạo bản đồ Query Fan-out hoàn chỉnh. Trả về JSON thuần, không markdown. Mọi nội dung bằng tiếng Việt tự nhiên.
+
+Seed Query: "${seedQuery}"
+Entity/Dự án: "${entity}"
+Loại query: ${typeLabel}
+Khách hàng mục tiêu: ${personaStr}
+Trọng tâm hành trình: ${journeyStr}
+${context ? `Thông tin bổ sung: ${context}` : ''}
+
+Trả về đúng JSON schema sau (không thêm text ngoài JSON):
+
+{
+  "seed_analysis": {
+    "complexity": "high hoặc medium hoặc low",
+    "main_intent": "awareness hoặc consideration hoặc decision",
+    "key_concerns": ["lo ngại 1", "lo ngại 2", "lo ngại 3"]
+  },
+  "fan_out_branches": [
+    {
+      "id": 1,
+      "theme": "Tên nhánh ngắn gọn (VD: Giá & Thanh khoản)",
+      "icon": "emoji phù hợp",
+      "priority": "high hoặc medium hoặc low",
+      "queries": [
+        "Câu hỏi cụ thể 1 người Việt hay gõ lên Google",
+        "Câu hỏi cụ thể 2",
+        "Câu hỏi cụ thể 3",
+        "Câu hỏi cụ thể 4"
+      ]
+    }
+  ],
+  "query_groups": {
+    "awareness": ["query ngắn 1", "query ngắn 2", "query ngắn 3"],
+    "consideration": ["query ngắn 4", "query ngắn 5", "query ngắn 6"],
+    "decision": ["query ngắn 7", "query ngắn 8", "query ngắn 9"]
+  },
+  "hub_spoke": {
+    "pillar": {
+      "title": "Tiêu đề bài Pillar dạng đánh giá tổng quan (có năm 2026)",
+      "h2_sections": [
+        {"heading": "H2 dạng câu hỏi người dùng hay hỏi?", "fan_out_ref": 1, "summary": "1 câu tóm tắt nội dung sẽ viết", "words": 200}
+      ]
+    },
+    "spokes": [
+      {"title": "Tiêu đề bài Spoke chuyên sâu (hyper long-tail)", "target_fan_out": 1, "angle": "Góc độ độc đáo của bài này", "word_count": 800}
+    ]
+  },
+  "golden_paragraphs": [
+    {
+      "h2": "Tiêu đề H2 (copy từ pillar.h2_sections)",
+      "sample_50_words": "Đoạn văn 40-60 từ trả lời TRỰC TIẾP, có số liệu cụ thể, câu đầu là câu trả lời, chuẩn AEO để AI có thể trích dẫn."
+    }
+  ]
+}
+
+Quy tắc:
+- fan_out_branches: tạo 5-7 nhánh, mỗi nhánh 3-5 câu hỏi tự nhiên người Việt hay hỏi
+- pillar.h2_sections: 5-8 mục, thứ tự logic từ tổng quan đến chi tiết đến CTA
+- hub_spoke.spokes: 3-5 bài, ưu tiên các nhánh priority=high
+- golden_paragraphs: chọn top 3 H2 quan trọng nhất của pillar
+- sample_50_words: phải có số liệu, phải trả lời thẳng không vòng vo, phải tự nhiên`;
+
+  try {
+    const model2 = apicfg.provider === 'custom' ? apicfg.custom_model_complex : apicfg.model_complex;
+    const raw = await callLLM(prompt, { ...apicfg, model: model2 }, 1400);
+    const result = safeParseJSON(raw);
+    if (!result || !result.fan_out_branches) throw new Error('Phản hồi AI không đúng định dạng');
+    _renderQueryResult(result, seedQuery, entity, queryType);
+    document.getElementById('qf-result').style.display = '';
+    document.getElementById('qf-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    console.error('Query Fan-out error:', e);
+    _showToast('Phân tích thất bại: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 Phân tích Query Fan-out';
+  }
+}
+
+function _renderQueryResult(r, seed, entity, queryType) {
+  const pColor = { high: 'qf-priority-high', medium: 'qf-priority-med', low: 'qf-priority-low' };
+
+  // A — Fan-out map
+  const branchesHtml = (r.fan_out_branches || []).map(b => `
+    <div class="qf-branch-card">
+      <div class="qf-branch-header">
+        <span class="qf-branch-icon">${b.icon || '🔍'}</span>
+        <span class="qf-branch-theme">${b.theme}</span>
+        <span class="qf-priority-badge ${pColor[b.priority] || 'qf-priority-med'}">${b.priority}</span>
+      </div>
+      <ul class="qf-query-list">
+        ${(b.queries || []).map(q => `<li>${q}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+
+  // B — Journey groups
+  const stageLabels = { awareness: '🌱 Awareness', consideration: '🤔 Consideration', decision: '✅ Decision' };
+  const stageClasses = { awareness: 'qf-stage-aw', consideration: 'qf-stage-co', decision: 'qf-stage-de' };
+  const journeyHtml = ['awareness', 'consideration', 'decision'].map(stage => {
+    const qs = (r.query_groups || {})[stage] || [];
+    return `<div class="qf-stage-card ${stageClasses[stage]}">
+      <div class="qf-stage-title">${stageLabels[stage]}</div>
+      <ul>${qs.map(q => `<li>${q}</li>`).join('') || '<li style="color:var(--ink3);font-style:italic">—</li>'}</ul>
+    </div>`;
+  }).join('');
+
+  // C — Hub & Spoke
+  const hs = r.hub_spoke || {};
+  const pillar = hs.pillar || {};
+  const spokes = hs.spokes || [];
+  const pillarRows = (pillar.h2_sections || []).map((s, i) =>
+    `<div class="qf-pillar-row">
+      <span class="qf-pillar-idx">H2.${i+1}</span>
+      <span class="qf-pillar-heading">${s.heading}</span>
+      <span class="qf-pillar-words">${s.words || 200}w</span>
+    </div>`).join('');
+  const spokesHtml = spokes.map((s, i) =>
+    `<div class="qf-spoke-item">
+      <div class="qf-spoke-num">SPOKE ${i+1} · Fan-out #${s.target_fan_out}</div>
+      <div class="qf-spoke-title">${s.title}</div>
+      <div class="qf-spoke-meta">Góc độ: ${s.angle} · ~${s.word_count || 800} từ</div>
+    </div>`).join('');
+
+  // D — Golden paragraphs
+  const goldenHtml = (r.golden_paragraphs || []).map(g =>
+    `<div class="qf-golden-item">
+      <div class="qf-golden-h2">H2: ${g.h2}</div>
+      <div class="qf-golden-para">${g.sample_50_words}</div>
+    </div>`).join('');
+
+  // Summary bar
+  const sa = r.seed_analysis || {};
+  const complexMap = { high: '🔴 Phức tạp cao', medium: '🟡 Trung bình', low: '🟢 Đơn giản' };
+  const concerns = (sa.key_concerns || []).map(c => `<span class="qf-concern-chip">${c}</span>`).join('');
+  const typeTag = queryType === 'new' ? '🆕 Zero-volume' : '📊 Có lịch sử';
+
+  document.getElementById('qf-result-inner').innerHTML = `
+    <div class="qf-summary-bar">
+      <div>
+        <span class="qf-sum-label">Seed Query</span>
+        <strong style="font-size:13px">"${seed}"</strong>
+      </div>
+      <div>
+        <span class="qf-sum-label">Loại</span>
+        <strong>${typeTag}</strong>
+      </div>
+      <div>
+        <span class="qf-sum-label">Độ phức tạp</span>
+        <strong>${complexMap[sa.complexity] || sa.complexity || '—'}</strong>
+      </div>
+      <div>
+        <span class="qf-sum-label">Mối quan tâm chính</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${concerns || '<span style="color:var(--ink3)">—</span>'}</div>
+      </div>
+    </div>
+
+    <div class="qf-section">
+      <div class="qf-section-header">
+        <span class="qf-section-icon">🌐</span>
+        <div>
+          <div class="qf-section-title">Bản đồ Query Fan-out</div>
+          <div class="qf-section-sub">${r.fan_out_branches?.length || 0} nhánh — mỗi nhánh là 1 "tia" AI sẽ dùng để tổng hợp câu trả lời</div>
+        </div>
+      </div>
+      <div class="qf-branch-grid">${branchesHtml}</div>
+    </div>
+
+    <div class="qf-section">
+      <div class="qf-section-header">
+        <span class="qf-section-icon">🗺</span>
+        <div>
+          <div class="qf-section-title">Nhóm theo Hành trình Khách hàng</div>
+          <div class="qf-section-sub">Phân loại query theo 3 giai đoạn — ưu tiên viết nội dung cho giai đoạn nhiều query nhất</div>
+        </div>
+      </div>
+      <div class="qf-stage-grid">${journeyHtml}</div>
+    </div>
+
+    <div class="qf-section">
+      <div class="qf-section-header">
+        <span class="qf-section-icon">🏗</span>
+        <div>
+          <div class="qf-section-title">Kế hoạch Hub &amp; Spoke</div>
+          <div class="qf-section-sub">1 bài Pillar tổng quan + ${spokes.length} bài Spoke chuyên sâu — bao phủ toàn bộ mạng lưới fan-out</div>
+        </div>
+      </div>
+      <div class="qf-hs-layout">
+        <div class="qf-pillar-card">
+          <div class="qf-pillar-label">📌 Bài PILLAR (Tổng quan)</div>
+          <div class="qf-pillar-title">${pillar.title || '—'}</div>
+          <div class="qf-pillar-h2s">${pillarRows || '<div style="color:var(--ink3);font-size:12px">—</div>'}</div>
+        </div>
+        <div class="qf-spokes-col">
+          <div class="qf-pillar-label">🔗 Bài SPOKE (Chuyên sâu)</div>
+          ${spokesHtml || '<div style="color:var(--ink3);font-size:12px">—</div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="qf-section">
+      <div class="qf-section-header">
+        <span class="qf-section-icon">✍</span>
+        <div>
+          <div class="qf-section-title">Mẫu "50 Chữ Vàng" chuẩn AEO</div>
+          <div class="qf-section-sub">Đặt ngay dưới H2 — câu đầu trả lời thẳng, AI Overview sẽ trích dẫn đoạn này</div>
+        </div>
+      </div>
+      <div class="qf-golden-list">${goldenHtml || '<div style="color:var(--ink3);font-size:12px">—</div>'}</div>
+    </div>
+  `;
 }
 </script>
 </body>
