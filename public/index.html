@@ -1357,7 +1357,7 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
   <div id="view-query" class="page">
     <div class="page-head">
       <h1 class="syne">🔍 Nghiên cứu Query Fan-out</h1>
-      <p>Trích xuất ≥10 nhánh fan-out · Semantic Keywords · Hub & Spoke · 60-chữ vàng AEO — Powered by TPI Land context</p>
+      <p>Query NLP tự nhiên (giọng người Việt thật) · ≥10 nhánh chi tiết · Semantic Knowledge Graph · 60-chữ vàng AEO — Powered by TPI Land</p>
     </div>
 
     <!-- Custom AI Config (riêng cho QF) -->
@@ -4972,7 +4972,7 @@ function clearQFApiConfig() {
   _showToast('Đã xóa cấu hình AI riêng', 'info');
 }
 
-async function _callLLM_QF(prompt, maxTokens = 5000) {
+async function _callLLM_QF(prompt, maxTokens = 6500) {
   const cfg = loadQFApiConfig();
   if (!cfg.api_key || !cfg.model) {
     throw new Error('Chưa cấu hình AI riêng cho QF — bấm 🔑 Cấu hình AI riêng phía trên để thiết lập.');
@@ -5048,58 +5048,99 @@ async function runQueryFanout() {
 
   const prompt = `${_tpiBrandContext()}
 
-Bạn là chuyên gia AEO/GEO cấp cao định hướng dữ liệu cho TPI Land (Đơn vị phân phối BĐS chiến lược tại các tỉnh thành mục tiêu).
+Bạn là chuyên gia AEO/GEO + nhà nghiên cứu hành vi tìm kiếm BĐS Việt Nam cho TPI Land. Nhiệm vụ: mô phỏng CHÍNH XÁC cách khách hàng Việt thật gõ Google / hỏi trong Facebook group / chat Zalo về dự án.
 
+═══ INPUT ═══
 Seed Query: "${seedQuery}"
 Entity/Dự án: "${entity}"
-Năm hiện tại: ${currentYear} — DÙNG NĂM NÀY trong mọi query có đề cập năm, TUYỆT ĐỐI không dùng ${currentYear - 1} hoặc ${currentYear - 2}.
+Năm hiện tại: ${currentYear} (TUYỆT ĐỐI không dùng ${currentYear - 1}, ${currentYear - 2})
 ${intentLine}
 ${context ? `Market Context: ${context}` : ''}
 
-YÊU CẦU QUAN TRỌNG:
-- Trích xuất cấu trúc TỐI THIỂU ${branchCount} nhánh fan-out (fan_out_branches) bao phủ toàn bộ vòng đời mua khách hàng.
-- Mỗi nhánh chứa 3-5 sub-queries thực tế (cách người Việt Nam gõ tìm kiếm dạng hội thoại).
-- Semantic_keywords phải được tối ưu theo mô hình Đồ thị tri thức (Knowledge Graph), tập trung vào Entity thay vì chỉ LSI.
+═══ NGUYÊN TẮC NGÔN NGỮ NLP (QUAN TRỌNG NHẤT) ═══
+Queries PHẢI giống y hệt cách người Việt THẬT gõ Google hoặc post lên Facebook group hỏi cộng đồng:
 
-ĐỊNH DẠNG ĐẦU RA BẮT BUỘC (Trích xuất 100% JSON hợp lệ, không Markdown dư thừa, không cắt cụt):
+✓ Đại từ cá nhân tự nhiên: "em", "mình", "anh/chị", "vợ chồng em", "ba mẹ em", "tụi em"
+✓ Ngữ điệu Việt: "vậy", "ạ", "nhỉ", "nha", "thế", "không?", "ko mọi người?"
+✓ Có context cá nhân (mua ở, đầu tư, gửi tiết kiệm, cho con...)
+✓ Có cảm xúc thật: phân vân, lo lắng, tò mò, muốn rõ ràng, ngờ vực
+✓ Câu DÀI ĐẦY ĐỦ — TỐI THIỂU 10 TỪ mỗi query
+✗ KHÔNG dùng giọng marketing/PR: "vị thế chiến lược", "tiềm năng vượt trội", "đẳng cấp"
+✗ KHÔNG cụt lủn dạng keyword: "Thanh Phú giá", "bảng giá ${currentYear}"
+✗ KHÔNG generic: "có nên mua không", phải cụ thể: "có nên mua Thanh Phú Centre Point lô góc B12 không"
+
+VÍ DỤ MINH HỌA:
+❌ XẤU: "Thanh Phú Centre Point giá"
+❌ XẤU: "bảng giá đất nền Thanh Phú Centre Point ${currentYear}"
+❌ XẤU: "chính sách chiết khấu khi mua Thanh Phú Centre Point"
+✅ TỐT: "Em mới ra trường có 800tr đang muốn mua đất nền Bến Lức, Thanh Phú Centre Point giá thực tế bao nhiêu vậy mọi người?"
+✅ TỐT: "Có ai đã đầu tư Thanh Phú Centre Point rồi cho em xin review thật chứ sale tư vấn em không tin lắm"
+✅ TỐT: "Vợ chồng em đang phân vân giữa Thanh Phú Centre Point và Waterpoint Nam Long, dự án nào pháp lý chuẩn hơn nhỉ?"
+✅ TỐT: "Mua Thanh Phú Centre Point đợt CK2 thanh toán bao nhiêu % và có hỗ trợ vay ngân hàng nào không ạ?"
+
+═══ FRAMEWORK 13 NHÓM CHI TIẾT (chọn ${branchCount} nhóm phù hợp nhất với Seed) ═══
+1. Giá & Bảng giá & Chiết khấu — giá CĐT vs giá môi giới vs giá ký gửi, CK1/CK2, đặt cọc, giá lô góc vs lô thường
+2. Pháp lý & Hợp đồng — sổ đỏ riêng từng lô, mẫu HĐMB, vi bằng, GPXD, 1/500, công văn 1/2000
+3. Phương thức thanh toán & Vay vốn — tiến độ TT (đợt 1-2-3-N), bank bảo lãnh, lãi suất ưu đãi, hồ sơ vay
+4. Chính sách bán hàng — quà tặng, cam kết mua lại, cam kết lợi nhuận, hoàn vốn, ưu đãi GĐ đầu
+5. Mặt bằng tổng thể & Phân lô — sơ đồ phân khu, lô đẹp, lô góc, lô đối diện công viên, hướng nhà, view
+6. Tiến độ xây dựng — hạ tầng điện nước thực tế, đường nội bộ, công viên, ngày bàn giao chính xác
+7. Thiết kế nhà mẫu & Quy định XD — mẫu điển hình, chiều cao tối đa, kiến trúc cho phép, mật độ XD %
+8. Tiện ích nội khu & ngoại khu — hồ bơi/gym/CV bên trong vs chợ/trường/BV/KCN xung quanh
+9. Vị trí & Kết nối hạ tầng — khoảng cách TP.HCM cụ thể, sân bay Long Thành, cao tốc, đường vành đai
+10. Chủ đầu tư & Uy tín — lịch sử CĐT, dự án trước đã bàn giao, tài chính, kiện tụng, dư luận
+11. So sánh dự án lân cận — pricing comp, pháp lý comp, tiến độ comp, thanh khoản comp với tên cụ thể
+12. Tiềm năng đầu tư & Thanh khoản — tăng giá 1-3-5 năm, dễ ra hàng, cho thuê, biên lợi nhuận
+13. Rủi ro & Cảnh báo — lừa đảo, tranh chấp, review tiêu cực Facebook, nợ xấu CĐT, dự án "ma"
+
+═══ CẤU TRÚC QUERY MỖI NHÁNH (mix 3 dạng để bao phủ tự nhiên) ═══
+- 1 query INFO-SEEKING: "Em muốn biết..." / "Cho em hỏi..." / "Ai có thông tin về..."
+- 1 query COMPARATIVE: "So với ... thì..." / "Giữa ... và ... cái nào..." / "...có hơn... không?"
+- 1 query CONCERN/RISK: "Có ai bị... không?" / "...có an toàn không?" / "Lỡ ... thì sao?"
+
+═══ JSON OUTPUT BẮT BUỘC ═══
 {
   "seed_analysis": {
-    "intent_type": "${intentSel === 'auto' ? 'Nhận dạng tự động — điền đây' : intentSel}",
-    "aeo_difficulty": "Mức độ cạnh tranh trên AI Overviews — High/Medium/Low kèm lý do ngắn"
+    "intent_type": "${intentSel === 'auto' ? 'Nhận dạng tự động dựa trên Seed Query' : intentSel}",
+    "aeo_difficulty": "High/Medium/Low — kèm 1 câu giải thích ngắn"
   },
   "fan_out_branches": [
     {
-      "branch_name": "Tên nhánh (Ví dụ: Rủi ro pháp lý)",
-      "priority_score": 8,
-      "queries": ["query 1", "query 2", "query 3"]
+      "branch_name": "Tên nhóm chi tiết (KHÔNG generic, VD: 'Bảng giá CĐT vs giá môi giới ${currentYear}')",
+      "priority_score": 9,
+      "queries": [
+        "Query 1 NLP dài ≥10 từ với đại từ + ngữ điệu",
+        "Query 2 NLP — comparative với dự án/lô cụ thể",
+        "Query 3 NLP — concern/risk với cảm xúc thật"
+      ]
     }
   ],
   "semantic_keywords": {
-    "core_entities": ["Điền ≥${kwCount} thực thể & LSI bắt buộc"],
-    "supporting_terms": ["≥10 từ khóa bổ trợ/đồng nghĩa"],
-    "action_modifiers": ["có nên", "đáng mua", "lừa đảo không", "tiến độ ${currentYear}", "giá mới nhất"]
+    "core_entities": ["≥${kwCount} entity cụ thể: tên dự án lân cận, CĐT, tên tuyến đường, KCN, xã/phường, đại lộ, sông/cầu, BV/trường gần"],
+    "supporting_terms": ["≥10 từ bổ trợ: pháp lý, mật độ XD, tiến độ TT, biên lợi nhuận..."],
+    "action_modifiers": ["có nên", "đáng mua", "lừa đảo không", "review thật", "phân vân", "tiến độ ${currentYear}"]
   },
   "hub_spoke_architecture": {
-    "pillar_title": "Tiêu đề bài Hub (dạng đánh giá tổng quan, có năm ${currentYear})",
-    "spoke_topics": ["Tiêu đề Spoke 1 — hyper long-tail", "Spoke 2", "Spoke 3"]
+    "pillar_title": "Tiêu đề bài Hub (đánh giá tổng quan dự án, có năm ${currentYear})",
+    "spoke_topics": ["Tiêu đề Spoke 1 hyper long-tail", "Spoke 2", "Spoke 3"]
   },
   "golden_paragraphs": [
     {
-      "target_query": "Truy vấn cụ thể nhắm tới",
-      "bite_sized_answer": "Đoạn văn trả lời trực diện, đúng trọng tâm, chứa Entity và Data, KHÔNG DÀI QUÁ 60 TỪ."
+      "target_query": "Truy vấn cụ thể nhắm tới (từ fan_out_branches)",
+      "bite_sized_answer": "Đoạn ≤60 từ trả lời thẳng, có Entity + số liệu cụ thể, giọng chuyên gia phân phối TPI Land — KHÔNG marketing."
     }
   ]
 }
 
-QUY TẮC NGHIÊM NGẶT:
-1. fan_out_branches: Đúng ${branchCount} nhánh (KHÔNG ít hơn). priority_score là số nguyên 1-10.
-2. semantic_keywords.core_entities: Đúng ≥${kwCount} từ khóa/thực thể trọng tâm.
-3. Mọi query có đề cập năm: chỉ dùng ${currentYear}, không dùng ${currentYear-1} hoặc ${currentYear-2}.
-4. Góc nhìn TPI Land: golden_paragraphs phản ánh vị thế chuyên gia phân phối + dữ liệu thị trường thực chiến.
-5. Trả về JSON thuần — KHÔNG có markdown block, KHÔNG cắt cụt giữa chừng.`;
+═══ QUY TẮC NGHIÊM NGẶT ═══
+1. ĐÚNG ${branchCount} nhánh fan-out — không ít hơn.
+2. Mỗi query ≥10 TỪ, ngôn ngữ NLP tự nhiên (xem ví dụ ✅ ở trên).
+3. core_entities ≥${kwCount} từ — phải có TÊN DỰ ÁN LÂN CẬN cụ thể, TÊN TUYẾN ĐƯỜNG cụ thể (không generic).
+4. Mọi query có năm: chỉ dùng ${currentYear}, KHÔNG dùng ${currentYear-1} hoặc ${currentYear-2}.
+5. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
 
   try {
-    const raw    = await _callLLM_QF(prompt, 5000);
+    const raw    = await _callLLM_QF(prompt, 6500);
     const result = safeParseJSON(raw);
     if (!result || !result.fan_out_branches) throw new Error('Phản hồi AI không đúng định dạng JSON');
     // lưu result để Edit JSON dùng
