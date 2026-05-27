@@ -6,6 +6,7 @@
 ## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 7ba4b32)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
+Live: **https://tpi-scorer.vercel.app**
 Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `api/claude.js` proxy.
 Đã nâng cấp lên **Rubric v3.0 E-E-A-T+HCU+GEO Edition** — 100đ, 6 tiêu chí mới (E1/E2/E3/G2/G3/HC1).
 
