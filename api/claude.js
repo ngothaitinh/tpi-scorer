@@ -5,7 +5,12 @@
 // Env vars:
 //   ANTHROPIC_API_KEY = sk-ant-...           (Anthropic native)
 //   LLM_ENDPOINT + LLM_API_KEY              (OpenAI-compatible, e.g. chiasegpu.vn)
+//   LLM_MODEL                               (default model nếu client không gửi)
 //   DAILY_CALL_LIMIT = 500                  (soft limit)
+//
+// Model routing (khi dùng LLM_ENDPOINT):
+//   model bắt đầu bằng "ant/" → /messages endpoint (Anthropic-compat format)
+//   model khác              → /chat/completions (OpenAI-compat format)
 
 function setCORS(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -70,6 +75,30 @@ async function callOpenAICompat(model, prompt, maxTokens, endpoint, apiKey) {
   return { status: 200, body: JSON.stringify(anthropicFmt) };
 }
 
+// Anthropic-compat: dùng cho chiasegpu.vn "ant/*" models
+async function callAnthropicCompat(model, prompt, maxTokens, endpoint, apiKey) {
+  const base = endpoint.replace(/\/$/, '');
+  const url = base.includes('/messages') ? base : base + '/messages';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+    },
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+  });
+
+  const raw = await res.text();
+  if (!res.ok) {
+    let msg = 'LLM error HTTP ' + res.status;
+    try { msg = JSON.parse(raw)?.error?.message || msg; } catch (_) {}
+    return { status: res.status, body: JSON.stringify({ error: { message: msg } }) };
+  }
+
+  // Response đã là Anthropic format — trả thẳng
+  return { status: 200, body: raw };
+}
+
 module.exports = async (req, res) => {
   setCORS(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -91,7 +120,9 @@ module.exports = async (req, res) => {
   }
 
   const body = req.body || {};
-  const { model, prompt, maxTokens = 1000 } = body;
+  const defaultModel = process.env.LLM_MODEL || '';
+  const { prompt, maxTokens = 1000 } = body;
+  const model = body.model || defaultModel;
   if (!model || !prompt) {
     return res.status(400).json({ error: { message: 'Thiếu model hoặc prompt' } });
   }
@@ -99,8 +130,13 @@ module.exports = async (req, res) => {
   try {
     let result;
     if (anthropicKey) {
+      // Anthropic native endpoint
       result = await callAnthropic(model, prompt, maxTokens, anthropicKey);
+    } else if (model.startsWith('ant/')) {
+      // Anthropic-compat endpoint (chiasegpu.vn "ant/*" models)
+      result = await callAnthropicCompat(model, prompt, maxTokens, llmEndpoint, llmKey);
     } else {
+      // OpenAI-compat endpoint
       result = await callOpenAICompat(model, prompt, maxTokens, llmEndpoint, llmKey);
     }
     res.setHeader('Content-Type', 'application/json');
