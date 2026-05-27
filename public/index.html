@@ -1414,10 +1414,10 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
               <label>Search Intent</label>
               <select id="qf-intent">
                 <option value="auto">🤖 Để AI tự nhận dạng</option>
-                <option value="Transactional/Commercial Investigation">💰 Transactional / Commercial</option>
-                <option value="Informational">📚 Informational</option>
-                <option value="Navigational">🧭 Navigational</option>
-                <option value="Consideration">🤔 Consideration (So sánh)</option>
+                <option value="Giao dịch / Mua bán (Transactional)">💰 Giao dịch / Mua bán</option>
+                <option value="Tìm hiểu thông tin (Informational)">📚 Tìm hiểu thông tin</option>
+                <option value="Điều hướng / Tìm địa chỉ (Navigational)">🧭 Điều hướng / Tìm địa chỉ</option>
+                <option value="Cân nhắc / So sánh (Commercial Investigation)">🤔 Cân nhắc / So sánh</option>
               </select>
             </div>
             <div class="qf-adv-field">
@@ -5226,18 +5226,18 @@ function _renderQueryResult(r, seed, entity) {
         <span class="qf-branch-theme">${_esc(b.branch_name || b.theme || 'Nhánh ' + (i+1))}</span>
         <span class="qf-priority-score ${scoreClass}">${score}/10</span>
       </div>
-      ${userQ.length ? `
-        <div class="qf-q-group qf-q-user">
-          <div class="qf-q-label">💬 Câu hỏi người dùng <span class="qf-q-tag">NLP</span></div>
-          <ul class="qf-query-list">
-            ${userQ.map(q => `<li>${_esc(q)}</li>`).join('')}
-          </ul>
-        </div>` : ''}
       ${fanoutQ.length ? `
         <div class="qf-q-group qf-q-fanout">
           <div class="qf-q-label">🔍 Query Fan-out <span class="qf-q-tag">SEO</span></div>
           <ul class="qf-query-list qf-query-list-seo">
             ${fanoutQ.map(q => `<li>${_esc(q)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+      ${userQ.length ? `
+        <div class="qf-q-group qf-q-user">
+          <div class="qf-q-label">💬 Câu hỏi người dùng <span class="qf-q-tag">NLP</span></div>
+          <ul class="qf-query-list">
+            ${userQ.map(q => `<li>${_esc(q)}</li>`).join('')}
           </ul>
         </div>` : ''}
     </div>`;
