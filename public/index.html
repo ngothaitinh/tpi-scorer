@@ -842,6 +842,17 @@ body {
 .qf-query-list li { font-size: 11.5px; color: var(--ink2); padding: 4px 8px; background: var(--bg2); border-radius: 4px; border-left: 2px solid var(--line2); line-height: 1.4; }
 .qf-query-list li:hover { border-left-color: var(--accent); color: var(--ink); }
 
+/* Two query groups per branch */
+.qf-q-group { margin-top: 10px; }
+.qf-q-group:first-of-type { margin-top: 0; }
+.qf-q-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink3); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+.qf-q-tag { font-size: 8.5px; font-weight: 800; font-family: 'DM Mono', monospace; padding: 1px 6px; border-radius: 8px; letter-spacing: .04em; }
+.qf-q-user .qf-q-tag { background: rgba(59,130,246,.15); color: #3b82f6; }
+.qf-q-fanout .qf-q-tag { background: rgba(224,92,58,.15); color: var(--accent); }
+.qf-q-user li { border-left-color: rgba(59,130,246,.45); }
+.qf-q-user li:hover { border-left-color: #3b82f6; }
+.qf-query-list-seo li { font-family: 'DM Mono', monospace; font-size: 10.5px; }
+
 /* Journey groups */
 .qf-stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .qf-stage-card { border-radius: 8px; padding: 12px 14px; border: 1px solid transparent; }
@@ -5093,10 +5104,19 @@ VÍ DỤ MINH HỌA:
 12. Tiềm năng đầu tư & Thanh khoản — tăng giá 1-3-5 năm, dễ ra hàng, cho thuê, biên lợi nhuận
 13. Rủi ro & Cảnh báo — lừa đảo, tranh chấp, review tiêu cực Facebook, nợ xấu CĐT, dự án "ma"
 
-═══ CẤU TRÚC QUERY MỖI NHÁNH (mix 3 dạng để bao phủ tự nhiên) ═══
-- 1 query INFO-SEEKING: "Em muốn biết..." / "Cho em hỏi..." / "Ai có thông tin về..."
-- 1 query COMPARATIVE: "So với ... thì..." / "Giữa ... và ... cái nào..." / "...có hơn... không?"
-- 1 query CONCERN/RISK: "Có ai bị... không?" / "...có an toàn không?" / "Lỡ ... thì sao?"
+═══ MỖI NHÁNH PHẢI CÓ 2 NHÓM QUERY ═══
+
+NHÓM A — "user_questions" (Câu hỏi người dùng — NLP TỰ NHIÊN):
+- 3-5 câu hỏi DÀI ≥10 TỪ, giọng người Việt thật
+- Bắt buộc có đại từ (em/mình/anh chị) + ngữ điệu (vậy/ạ/nhỉ)
+- Mix 3 dạng: INFO-SEEKING + COMPARATIVE + CONCERN/RISK
+- VD: "Vợ chồng em đang phân vân giữa Thanh Phú Centre Point và Waterpoint, dự án nào pháp lý chuẩn hơn nhỉ?"
+
+NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
+- 3-5 query NGẮN GỌN, dạng người dùng gõ vào Google search bar
+- 4-8 từ, có keyword chính + modifier (giá, mới nhất, ${currentYear}, có nên, đánh giá...)
+- KHÔNG cần đại từ/ngữ điệu, KHÔNG cụt lủn 1-2 từ
+- VD: "giá Thanh Phú Centre Point mới nhất ${currentYear}", "đánh giá pháp lý Thanh Phú Centre Point", "Thanh Phú Centre Point có nên mua không"
 
 ═══ JSON OUTPUT BẮT BUỘC ═══
 {
@@ -5108,10 +5128,15 @@ VÍ DỤ MINH HỌA:
     {
       "branch_name": "Tên nhóm chi tiết (KHÔNG generic, VD: 'Bảng giá CĐT vs giá môi giới ${currentYear}')",
       "priority_score": 9,
-      "queries": [
-        "Query 1 NLP dài ≥10 từ với đại từ + ngữ điệu",
-        "Query 2 NLP — comparative với dự án/lô cụ thể",
-        "Query 3 NLP — concern/risk với cảm xúc thật"
+      "user_questions": [
+        "Câu hỏi NLP 1 dài ≥10 từ — info-seeking với đại từ + ngữ điệu",
+        "Câu hỏi NLP 2 — comparative",
+        "Câu hỏi NLP 3 — concern/risk"
+      ],
+      "fan_out_queries": [
+        "query seo ngắn 1 ${currentYear}",
+        "query seo ngắn 2 có nên mua",
+        "query seo ngắn 3 đánh giá"
       ]
     }
   ],
@@ -5134,10 +5159,12 @@ VÍ DỤ MINH HỌA:
 
 ═══ QUY TẮC NGHIÊM NGẶT ═══
 1. ĐÚNG ${branchCount} nhánh fan-out — không ít hơn.
-2. Mỗi query ≥10 TỪ, ngôn ngữ NLP tự nhiên (xem ví dụ ✅ ở trên).
-3. core_entities ≥${kwCount} từ — phải có TÊN DỰ ÁN LÂN CẬN cụ thể, TÊN TUYẾN ĐƯỜNG cụ thể (không generic).
-4. Mọi query có năm: chỉ dùng ${currentYear}, KHÔNG dùng ${currentYear-1} hoặc ${currentYear-2}.
-5. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
+2. Mỗi nhánh PHẢI có CẢ HAI: user_questions (3-5, NLP dài) + fan_out_queries (3-5, SEO ngắn).
+3. user_questions: ≥10 từ/câu, có đại từ + ngữ điệu Việt (xem ví dụ ✅ ở trên).
+4. fan_out_queries: 4-8 từ, dạng keyword search bar, có modifier (giá/đánh giá/có nên/${currentYear}).
+5. core_entities ≥${kwCount} từ — phải có TÊN DỰ ÁN LÂN CẬN cụ thể, TÊN TUYẾN ĐƯỜNG cụ thể (không generic).
+6. Mọi query có năm: chỉ dùng ${currentYear}, KHÔNG dùng ${currentYear-1} hoặc ${currentYear-2}.
+7. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
 
   try {
     const raw    = await _callLLM_QF(prompt, 6500);
@@ -5191,14 +5218,28 @@ function _renderQueryResult(r, seed, entity) {
   const branchesHtml = (r.fan_out_branches || []).map((b, i) => {
     const score = parseInt(b.priority_score) || 5;
     const scoreClass = score >= 8 ? 'qf-score-high' : score >= 5 ? 'qf-score-med' : 'qf-score-low';
+    // Backward compat: branch.queries (cũ) → fan_out_queries
+    const userQ   = b.user_questions || [];
+    const fanoutQ = b.fan_out_queries || b.queries || [];
     return `<div class="qf-branch-card">
       <div class="qf-branch-header">
         <span class="qf-branch-theme">${_esc(b.branch_name || b.theme || 'Nhánh ' + (i+1))}</span>
         <span class="qf-priority-score ${scoreClass}">${score}/10</span>
       </div>
-      <ul class="qf-query-list">
-        ${(b.queries || []).map(q => `<li>${_esc(q)}</li>`).join('')}
-      </ul>
+      ${userQ.length ? `
+        <div class="qf-q-group qf-q-user">
+          <div class="qf-q-label">💬 Câu hỏi người dùng <span class="qf-q-tag">NLP</span></div>
+          <ul class="qf-query-list">
+            ${userQ.map(q => `<li>${_esc(q)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+      ${fanoutQ.length ? `
+        <div class="qf-q-group qf-q-fanout">
+          <div class="qf-q-label">🔍 Query Fan-out <span class="qf-q-tag">SEO</span></div>
+          <ul class="qf-query-list qf-query-list-seo">
+            ${fanoutQ.map(q => `<li>${_esc(q)}</li>`).join('')}
+          </ul>
+        </div>` : ''}
     </div>`;
   }).join('');
 
