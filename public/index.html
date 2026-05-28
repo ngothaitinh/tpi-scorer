@@ -5080,10 +5080,22 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
 6. Mọi query có năm: chỉ dùng ${currentYear}, KHÔNG dùng ${currentYear-1} hoặc ${currentYear-2}.
 7. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
 
+  let _rawForDebug = '';
   try {
     const raw    = await _callLLM_QF(prompt, 6500);
-    const result = safeParseJSON(raw);
-    if (!result || !result.fan_out_branches) throw new Error('Phản hồi AI không đúng định dạng JSON');
+    _rawForDebug = raw;
+    let result;
+    try {
+      result = safeParseJSON(raw);
+    } catch (parseErr) {
+      console.error('=== QF raw response (parse failed) ===\n', raw, '\n=== end raw ===');
+      const preview = (raw || '').slice(0, 300).replace(/\s+/g, ' ');
+      throw new Error(`JSON parse fail. Đầu phản hồi: "${preview}..." — Xem console để debug đầy đủ.`);
+    }
+    if (!result || !result.fan_out_branches) {
+      console.error('=== QF result missing fan_out_branches ===\n', result);
+      throw new Error('AI trả về JSON nhưng thiếu fan_out_branches — xem console.');
+    }
     // lưu result để Edit JSON dùng
     window._qfLastResult = result;
     window._qfLastSeed   = seedQuery;
