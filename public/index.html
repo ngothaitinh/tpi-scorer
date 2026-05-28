@@ -5393,6 +5393,138 @@ function exportQFMarkdown() {
   _showToast('✅ Đã tải Markdown', 'success');
 }
 
+// ── QF Export Brief cho Gemini Gem ────────────────────────────
+function exportQFBriefForGem() {
+  const r      = window._qfLastResult;
+  const seed   = window._qfLastSeed   || '';
+  const entity = window._qfLastEntity || '';
+  if (!r) { _showToast('Chưa có kết quả để export', 'warn'); return; }
+
+  const sa = r.seed_analysis || {};
+  const sk = r.semantic_keywords || {};
+  const hs = r.hub_spoke_architecture || r.hub_spoke || {};
+
+  // Pick top branch (highest priority_score)
+  const branches = (r.fan_out_branches || []);
+  const topBranch = branches.reduce((best, b) =>
+    (parseInt(b.priority_score) || 0) > (parseInt(best.priority_score) || 0) ? b : best,
+    branches[0] || {});
+
+  const allFanoutQ = branches.flatMap(b => b.fan_out_queries || b.queries || []);
+  const topUserQ   = topBranch.user_questions || [];
+  const topFanoutQ = topBranch.fan_out_queries || topBranch.queries || [];
+
+  const spokes = hs.spoke_topics || (hs.spokes || []).map(s => (typeof s === 'string' ? s : s.title));
+
+  // ── Build brief ─────────────────────────────────────────────
+  let md = '';
+  md += `# ✍️ BRIEF VIẾT BÀI — ${entity || seed}\n\n`;
+  md += `> Brief này được tạo tự động từ TPI Scorer / Query Fan-out.\n`;
+  md += `> Dán vào Gemini Gem để viết bài chuẩn rubric TPI v3.0.\n\n`;
+  md += `---\n\n`;
+
+  // 1. Keyword & meta
+  md += `## 1. Keyword & Thông tin cơ bản\n\n`;
+  md += `| Trường | Giá trị |\n`;
+  md += `|--------|----------|\n`;
+  md += `| **Keyword chính** | ${seed} |\n`;
+  md += `| **Entity chính** | ${entity} |\n`;
+  md += `| **Search Intent** | ${sa.intent_type || '—'} |\n`;
+  md += `| **AEO Difficulty** | ${sa.aeo_difficulty || '—'} |\n`;
+  md += `| **Ngày tạo brief** | ${new Date().toLocaleDateString('vi-VN')} |\n\n`;
+
+  // 2. Top branch info
+  md += `## 2. Nhánh Trọng Tâm (Branch ưu tiên cao nhất)\n\n`;
+  md += `**Branch:** ${topBranch.branch_name || topBranch.theme || '—'}`;
+  if (topBranch.priority_score) md += ` (Priority: ${topBranch.priority_score}/10)`;
+  md += `\n\n`;
+
+  if (topUserQ.length) {
+    md += `### Đề xuất H2 cho bài viết (từ user questions)\n\n`;
+    topUserQ.forEach((q, i) => md += `${i+1}. ${q}\n`);
+    md += `\n`;
+  }
+
+  if (topFanoutQ.length) {
+    md += `### Query SEO cần tích hợp tự nhiên\n\n`;
+    topFanoutQ.forEach(q => md += `- ${q}\n`);
+    md += `\n`;
+  }
+
+  // 3. Semantic keywords
+  md += `## 3. Từ Khoá Ngữ Nghĩa (Tích hợp tự nhiên vào bài)\n\n`;
+  if ((sk.core_entities || []).length) {
+    md += `**Core Entities (bắt buộc xuất hiện):**\n`;
+    sk.core_entities.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+  if ((sk.supporting_terms || []).length) {
+    md += `**Supporting Terms (hỗ trợ ngữ nghĩa):**\n`;
+    sk.supporting_terms.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+  if ((sk.action_modifiers || []).length) {
+    md += `**Action Modifiers (intent signals):**\n`;
+    sk.action_modifiers.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+
+  // 4. Hub & Spoke (bài nào sẽ viết trong tương lai)
+  if (hs.pillar_title || spokes.length) {
+    md += `## 4. Hub & Spoke — Vị trí bài trong Content Cluster\n\n`;
+    md += `**Pillar (bài trụ cột):** ${hs.pillar_title || (hs.pillar || {}).title || '—'}\n\n`;
+    if (spokes.length) {
+      md += `**Spoke topics liên quan:**\n`;
+      spokes.forEach((s, i) => md += `${i+1}. ${s}\n`);
+      md += `\n`;
+    }
+  }
+
+  // 5. Golden paragraphs
+  if ((r.golden_paragraphs || []).length) {
+    md += `## 5. "60 Chữ Vàng" — Đoạn Answer-First Gợi ý\n\n`;
+    md += `> Dùng làm mẫu cho phần mở đầu (Answer-First 40-70 từ) và FAQ.\n\n`;
+    (r.golden_paragraphs || []).forEach((g, i) => {
+      md += `### ${i+1}. ${g.target_query || g.h2 || ''}\n\n`;
+      md += `> ${g.bite_sized_answer || g.sample_50_words || ''}\n\n`;
+    });
+  }
+
+  // 6. All SEO queries (for long-tail coverage reference)
+  if (allFanoutQ.length > topFanoutQ.length) {
+    md += `## 6. Toàn bộ Query Fan-out (tham khảo long-tail)\n\n`;
+    allFanoutQ.forEach(q => md += `- ${q}\n`);
+    md += `\n`;
+  }
+
+  // 7. Instructions for Gem — what to ask next
+  md += `---\n\n`;
+  md += `## ⚠️ GEM CẦN HỎI THÊM TRƯỚC KHI VIẾT\n\n`;
+  md += `Brief này đã có keyword + H2 gợi ý + từ khoá ngữ nghĩa. Gem cần bổ sung:\n\n`;
+  md += `1. **Dữ liệu độc quyền TPI** — con số thực, case study, giá thực tế TPI Land\n`;
+  md += `   *Ví dụ: "Căn 2PN tại dự án X giá Y tỷ, đã bán Z căn trong tháng 5/2026"*\n\n`;
+  md += `2. **Trích dẫn từ chuyên gia nội bộ** — Tên + chức danh + câu nói thực\n`;
+  md += `   *Ví dụ: "Anh Nguyễn Văn A – Trưởng phòng Kinh doanh TPI Land: '...'"*\n\n`;
+  md += `3. **Liên kết nội bộ + NAP cuối bài**\n`;
+  md += `   - 2-3 URL trang liên quan trên tpiland.vn\n`;
+  md += `   - Xác nhận NAP: Tên công ty, địa chỉ, SĐT chính xác\n\n`;
+  md += `---\n\n`;
+  md += `*Brief tạo bởi TPI Scorer — ${new Date().toLocaleString('vi-VN')}*\n`;
+
+  // Trigger download
+  const fname = `tpi-brief-gem-${(entity || seed).slice(0, 35).replace(/[^a-zA-Z0-9-_]/g, '_')}-${Date.now()}.md`;
+  const blob  = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  _showToast('✅ Đã tải brief cho Gem', 'success');
+}
+
 // ── JSON Editor helpers ────────────────────────────────────────
 function openQFJsonEditor() {
   const r = window._qfLastResult;
@@ -5505,6 +5637,7 @@ function _renderQueryResult(r, seed, entity) {
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
         <button class="qf-api-btn" id="qf-cluster-btn" onclick="runSemanticClustering()" style="white-space:nowrap" title="Tìm nhóm nhánh trùng ngữ nghĩa (Keyword Cannibalization)">🔗 Cụm ngữ nghĩa</button>
+        <button class="qf-api-btn" onclick="exportQFBriefForGem()" style="white-space:nowrap;background:#6366f1;color:#fff;border-color:#6366f1" title="Tạo brief tối ưu cho Gemini Gem — gồm H2 gợi ý, từ khoá, Hub &amp; Spoke, 60 Chữ Vàng">📤 Brief cho Gem</button>
         <button class="qf-api-btn" onclick="exportQFMarkdown()" style="white-space:nowrap">📥 Markdown</button>
         <button class="qf-api-btn" onclick="openQFJsonEditor()" style="white-space:nowrap">🗒 Edit JSON</button>
       </div>
