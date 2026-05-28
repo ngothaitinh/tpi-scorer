@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quy trình Content TPI Land — QF → Gem → Scorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap&subset=vietnamese" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e8e4dc;
+    --ink: #1a1814;
+    --ink2: #4a4640;
+    --ink3: #8a867e;
+    --green: #16a34a;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --blue: #2563eb;
+    --indigo: #4f46e5;
+    --purple: #7c3aed;
+    --teal: #0d9488;
+    --yellow-bg: #fefce8;
+    --yellow-border: #fde047;
+    --green-bg: #f0fdf4;
+    --green-border: #86efac;
+    --red-bg: #fef2f2;
+    --red-border: #fca5a5;
+    --blue-bg: #eff6ff;
+    --blue-border: #93c5fd;
+    --indigo-bg: #eef2ff;
+    --indigo-border: #a5b4fc;
+    --orange-bg: #fff7ed;
+    --orange-border: #fed7aa;
+    --code-bg: #1e293b;
+    --code-ink: #f1f5f9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  /* ── Layout ─────────────────────────────────── */
+  .page-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  .page-header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e40af 100%);
+    color: #fff;
+    padding: 56px 40px 48px;
+    margin: 0 -24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(99,102,241,0.3) 0%, transparent 70%);
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .page-header p {
+    font-size: 15px;
+    opacity: 0.85;
+    max-width: 560px;
+    position: relative;
+  }
+  .header-version {
+    position: absolute;
+    top: 24px; right: 32px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+
+  /* ── Table of Contents ───────────────────────── */
+  .toc {
+    background: var(--indigo-bg);
+    border: 1px solid var(--indigo-border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  .toc-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--indigo);
+    margin-bottom: 10px;
+  }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--indigo); text-decoration: none; font-size: 14px; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Flow diagram ────────────────────────────── */
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 48px;
+    overflow: hidden;
+  }
+  .flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 8px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .flow-node.qf { background: #fff7ed; border: 1.5px solid #fed7aa; }
+  .flow-node.gem { background: #f0fdf4; border: 1.5px solid #86efac; }
+  .flow-node.scorer { background: var(--indigo-bg); border: 1.5px solid var(--indigo-border); }
+  .flow-node .fn-icon { font-size: 28px; line-height: 1; }
+  .flow-node .fn-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .flow-node .fn-sub { font-size: 11px; color: var(--ink3); }
+  .flow-arrow {
+    font-size: 20px;
+    color: var(--ink3);
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  .flow-arrow.export { color: var(--indigo); font-size: 14px; font-weight: 700; text-align: center; writing-mode: vertical-rl; }
+  .flow-btn {
+    display: inline-block;
+    background: var(--indigo);
+    color: #fff;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+  .flow-btn.orange { background: var(--orange); }
+
+  /* ── Section headings ────────────────────────── */
+  .section {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .num-orange { background: #fff7ed; color: var(--orange); border: 2px solid var(--orange); }
+  .num-green { background: var(--green-bg); color: var(--green); border: 2px solid var(--green); }
+  .num-indigo { background: var(--indigo-bg); color: var(--indigo); border: 2px solid var(--indigo); }
+  .num-red { background: var(--red-bg); color: var(--red); border: 2px solid var(--red); }
+  .num-teal { background: #f0fdfa; color: var(--teal); border: 2px solid var(--teal); }
+  .num-gray { background: #f8fafc; color: var(--ink3); border: 2px solid #cbd5e1; }
+
+  /* ── Step cards ──────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-num.orange { background: #fff7ed; color: var(--orange); border: 1.5px solid #fed7aa; }
+  .step-num.green { background: var(--green-bg); color: var(--green); border: 1.5px solid var(--green-border); }
+  .step-num.indigo { background: var(--indigo-bg); color: var(--indigo); border: 1.5px solid var(--indigo-border); }
+  .step-body { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .step-desc { font-size: 13.5px; color: var(--ink2); line-height: 1.65; }
+
+  /* ── Callout boxes ───────────────────────────── */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { flex: 1; }
+  .callout-title { font-weight: 700; margin-bottom: 4px; }
+  .callout.tip { background: var(--blue-bg); border: 1px solid var(--blue-border); color: #1d4ed8; }
+  .callout.warn { background: var(--yellow-bg); border: 1px solid var(--yellow-border); color: #854d0e; }
+  .callout.success { background: var(--green-bg); border: 1px solid var(--green-border); color: #15803d; }
+  .callout.danger { background: var(--red-bg); border: 1px solid var(--red-border); color: #b91c1c; }
+  .callout.indigo { background: var(--indigo-bg); border: 1px solid var(--indigo-border); color: #3730a3; }
+
+  /* ── Button mockups ──────────────────────────── */
+  .btn-mock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid;
+    vertical-align: middle;
+  }
+  .btn-mock.indigo { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+  .btn-mock.gray { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+  .btn-mock.orange { background: #ea580c; color: #fff; border-color: #ea580c; }
+
+  /* ── Code / file blocks ──────────────────────── */
+  .file-block {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 12px 0;
+    overflow-x: auto;
+  }
+  .file-block .comment { color: #94a3b8; }
+  .file-block .key { color: #7dd3fc; }
+  .file-block .val { color: #86efac; }
+
+  /* ── Tables ──────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 16px 0;
+  }
+  th {
+    background: #f1f5f9;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border);
+    color: var(--ink2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  /* ── Score badge ─────────────────────────────── */
+  .score-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .score-pass { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .score-mid { background: var(--yellow-bg); color: #b45309; border: 1px solid var(--yellow-border); }
+  .score-fail { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+  /* ── Checklist ───────────────────────────────── */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14px;
+    margin-bottom: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .checklist li .ci { font-size: 16px; flex-shrink: 0; }
+
+  /* ── Divider ─────────────────────────────────── */
+  .divider { border: none; border-top: 2px dashed var(--border); margin: 32px 0; }
+
+  /* ── FAQ ─────────────────────────────────────── */
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .faq-q { font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--ink); }
+  .faq-a { font-size: 13.5px; color: var(--ink2); line-height: 1.65; }
+
+  /* ── Footer ──────────────────────────────────── */
+  .page-footer {
+    text-align: center;
+    color: var(--ink3);
+    font-size: 12px;
+    padding: 32px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 640px) {
+    .page-header { padding: 40px 20px 36px; margin: 0 -24px 36px; }
+    .page-header h1 { font-size: 24px; }
+    .header-version { display: none; }
+    .flow-diagram { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page-header { background: #1e1b4b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- ── HEADER ── -->
+<div class="page-header">
+  <div class="header-version">v3.2 · 28/05/2026</div>
+  <div class="header-badge">TPI Land Internal</div>
+  <h1>Quy trình Content Chuẩn TPI Land<br>QF → Gem → Scorer</h1>
+  <p>Hướng dẫn chi tiết từng bước: từ nghiên cứu từ khóa đến bài viết đạt ≥85 điểm rubric — dành cho team content.</p>
+</div>
+
+<!-- ── TOC ── -->
+<div class="toc">
+  <div class="toc-title">📋 Nội dung</div>
+  <ol>
+    <li><a href="#s0">Tổng quan vòng lặp</a></li>
+    <li><a href="#s1">Chuẩn bị</a></li>
+    <li><a href="#s2">Bước 1 — Nghiên cứu từ khóa với Query Fan-out</a></li>
+    <li><a href="#s3">Bước 2 — Tạo Brief và gửi cho Gem</a></li>
+    <li><a href="#s4">Bước 3 — Gemini Gem viết bài</a></li>
+    <li><a href="#s5">Bước 4 — Chấm điểm với TPI Scorer</a></li>
+    <li><a href="#s6">Bước 5 — Sửa bài với Gem (nếu < 85đ)</a></li>
+    <li><a href="#s7">Tiêu chuẩn xuất bản</a></li>
+    <li><a href="#s8">Câu hỏi thường gặp</a></li>
+  </ol>
+</div>
+
+<!-- ── S0: OVERVIEW ── -->
+<div class="section" id="s0">
+  <div class="section-title">
+    <div class="section-num num-indigo">🔄</div>
+    Tổng quan vòng lặp
+  </div>
+
+  <div class="flow-diagram">
+    <div class="flow-node qf">
+      <div class="fn-icon">🔍</div>
+      <div class="fn-title">Query Fan-out</div>
+      <div class="fn-sub">Nghiên cứu từ khóa</div>
+      <span class="flow-btn orange">📤 Brief cho Gem</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node gem">
+      <div class="fn-icon">💎</div>
+      <div class="fn-title">Gemini Gem</div>
+      <div class="fn-sub">Viết bài chuẩn rubric</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node scorer">
+      <div class="fn-icon">📊</div>
+      <div class="fn-title">TPI Scorer</div>
+      <div class="fn-sub">Chấm điểm 100đ</div>
+      <span class="flow-btn">📤 Sửa với Gem</span>
+    </div>
+    <div class="flow-arrow">↩</div>
+    <div class="flow-node gem" style="min-width:90px">
+      <div class="fn-icon">✅</div>
+      <div class="fn-title">≥ 85 điểm</div>
+      <div class="fn-sub">Xuất bản</div>
+    </div>
+  </div>
+
+  <p style="color:var(--ink2);font-size:14px;margin-bottom:16px;">
+    Quy trình gồm <strong>3 công cụ</strong> phối hợp: <strong>Query Fan-out</strong> (nghiên cứu từ khóa), <strong>Gemini Gem</strong> (viết bài), <strong>TPI Scorer</strong> (chấm điểm). Hai nút export màu tím — <span class="btn-mock indigo" style="font-size:11px">📤 Brief cho Gem</span> và <span class="btn-mock indigo" style="font-size:11px">📤 Sửa với Gem</span> — là cầu nối tự động giữa các công cụ, giúp không phải copy-paste thủ công.
+  </p>
+
+  <table>
+    <tr><th>Công cụ</th><th>Truy cập</th><th>Vai trò</th></tr>
+    <tr><td><strong>TPI Scorer</strong></td><td><a href="https://tpi-scorer.vercel.app" target="_blank" style="color:var(--indigo)">tpi-scorer.vercel.app</a></td><td>Hub chính — QF + chấm điểm + export brief</td></tr>
+    <tr><td><strong>Gemini Gem</strong></td><td><a href="https://gemini.google.com/gems" target="_blank" style="color:var(--indigo)">gemini.google.com/gems</a></td><td>Viết bài + sửa bài theo feedback Scorer</td></tr>
+  </table>
+</div>
+
+<!-- ── S1: CHUẨN BỊ ── -->
+<div class="section" id="s1">
+  <div class="section-title">
+    <div class="section-num num-gray">0</div>
+    Chuẩn bị — Làm 1 lần duy nhất
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">Phần này <strong>chỉ cần làm 1 lần</strong>. Sau khi cài đặt xong, team content chỉ cần làm từ Bước 1.</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num indigo">A</div>
+      <div class="step-body">
+        <div class="step-title">Admin cấu hình TPI Scorer</div>
+        <div class="step-desc">
+          Vào <strong>tpi-scorer.vercel.app</strong> → đăng nhập tài khoản <code>admin</code> → tab <strong>Admin</strong> → mục <strong>API & Model</strong>.<br><br>
+          Điền:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;">
+            <li><strong>Model chấm bài</strong> (model_simple + model_complex) — VD: <code>gemini-2.5-flash</code></li>
+            <li><strong>Model Query Fan-out</strong> (qf_model) — VD: <code>gemini-2.5-flash</code></li>
+          </ul>
+          <br>Nhấn <strong>Test</strong> → xác nhận thấy "✓ Kết nối thành công" → nhấn <strong>Lưu cấu hình</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">B</div>
+      <div class="step-body">
+        <div class="step-title">Admin tạo tài khoản cho từng thành viên</div>
+        <div class="step-desc">
+          Tab <strong>Admin</strong> → mục <strong>Duyệt tài khoản</strong>. Mỗi thành viên tự đăng ký tài khoản trên Scorer, admin duyệt và cấp giới hạn bài/ngày phù hợp.<br><br>
+          <em style="color:var(--ink3)">Lưu ý: Đổi mật khẩu admin mặc định ngay sau khi deploy.</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">C</div>
+      <div class="step-body">
+        <div class="step-title">Cài đặt Gemini Gem "TPI Content Writer"</div>
+        <div class="step-desc">
+          1. Vào <a href="https://gemini.google.com/gems" target="_blank" style="color:var(--indigo)">gemini.google.com/gems</a> → <strong>Create a Gem</strong><br>
+          2. Đặt tên: <strong>TPI Content Writer</strong><br>
+          3. Paste toàn bộ nội dung file <code>prompt-gem-v3.2.txt</code> vào ô <em>Instructions</em><br>
+          4. Nhấn <strong>Save</strong><br><br>
+          <div class="callout warn" style="margin:0">
+            <div class="callout-icon">⚠️</div>
+            <div class="callout-body">Mỗi thành viên cần tạo Gem riêng trong tài khoản Google của mình. Gem không share được qua tài khoản khác.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S2: QUERY FAN-OUT ── -->
+<div class="section" id="s2">
+  <div class="section-title">
+    <div class="section-num num-orange">1</div>
+    Bước 1 — Nghiên cứu từ khóa với Query Fan-out
+  </div>
+
+  <p style="color:var(--ink2);font-size:14px;margin-bottom:20px;">
+    Query Fan-out phân tích seed query và sinh ra 10–20 nhánh từ khóa liên quan, phân loại theo SEO query và câu hỏi người dùng thực tế. Đây là nguyên liệu đầu vào cho cả bài viết và brief cho Gem.
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num orange">1</div>
+      <div class="step-body">
+        <div class="step-title">Mở trang Query Fan-out</div>
+        <div class="step-desc">
+          Vào <strong>tpi-scorer.vercel.app</strong> → đăng nhập → click tab <strong>🔍 Query Fan-out</strong> ở thanh điều hướng trên cùng.<br>
+          <em style="color:var(--ink3);font-size:13px">Hoặc truy cập thẳng: tpi-scorer.vercel.app/#query</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">2</div>
+      <div class="step-body">
+        <div class="step-title">Điền thông tin seed query</div>
+        <div class="step-desc">
+          Điền 3 trường:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li><strong>Seed query</strong> — từ khóa chính cần nghiên cứu<br>
+              <em style="color:var(--ink3)">VD: "condotel Vũng Tàu giá bao nhiêu"</em></li>
+            <li><strong>Entity chính</strong> — tên dự án hoặc chủ đề<br>
+              <em style="color:var(--ink3)">VD: "Blanca City Vũng Tàu"</em></li>
+            <li><strong>Ngữ cảnh thêm</strong> (tùy chọn) — thông tin bổ sung nếu cần<br>
+              <em style="color:var(--ink3)">VD: "dự án condotel 5 sao, CĐT Danh Khôi, pháp lý sổ 50 năm"</em></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">3</div>
+      <div class="step-body">
+        <div class="step-title">Nhấn "Phân tích" và chờ kết quả</div>
+        <div class="step-desc">
+          Nhấn nút <strong>🔍 Phân tích</strong> hoặc nhấn <kbd style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;padding:1px 6px;font-size:12px">Ctrl + Enter</kbd>.<br><br>
+          AI sẽ sinh ra <strong>10–20 nhánh từ khóa</strong>, mỗi nhánh gồm:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li>🔍 <strong>Query fan-out (SEO)</strong> — từ 4–8 từ, dùng trong bài</li>
+            <li>💬 <strong>Câu hỏi người dùng (NLP)</strong> — ≥10 từ, dùng làm H2</li>
+            <li><strong>Priority score</strong> — 1–10 (nhánh nào Gem sẽ tập trung)</li>
+          </ul>
+          Bên dưới còn có <strong>Semantic Keywords</strong> (core entities / supporting terms / action modifiers) và <strong>Hub & Spoke architecture</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">4</div>
+      <div class="step-body">
+        <div class="step-title">Đọc qua kết quả, chỉnh nếu cần</div>
+        <div class="step-desc">
+          Xem lại các nhánh. Nếu muốn điều chỉnh, nhấn <span class="btn-mock gray" style="font-size:11px">🗒 Edit JSON</span> để sửa trực tiếp dữ liệu rồi nhấn <strong>Apply</strong> — không cần chạy lại AI.<br><br>
+          <div class="callout tip" style="margin:0">
+            <div class="callout-icon">💡</div>
+            <div class="callout-body">Lịch sử 5 lần chạy gần nhất hiện phía trên form — click để tải lại kết quả cũ mà không cần chạy AI lại.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S3: BRIEF CHO GEM ── -->
+<div class="section" id="s3">
+  <div class="section-title">
+    <div class="section-num num-indigo">2</div>
+    Bước 2 — Tạo Brief và gửi cho Gem
+  </div>
+
+  <p style="color:var(--ink2);font-size:14px;margin-bottom:20px;">
+    Sau khi có kết quả QF, nhấn một nút để tạo file brief đầy đủ — Gem đọc file này và chỉ hỏi thêm những gì còn thiếu, không hỏi lại từ đầu.
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num indigo">1</div>
+      <div class="step-body">
+        <div class="step-title">Nhấn nút "📤 Brief cho Gem"</div>
+        <div class="step-desc">
+          Trong thanh công cụ kết quả QF, nhấn nút <span class="btn-mock indigo">📤 Brief cho Gem</span>.<br>
+          Trình duyệt sẽ tải về file <code>tpi-brief-gem-{entity}-{timestamp}.md</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">2</div>
+      <div class="step-body">
+        <div class="step-title">Mở file brief và kiểm tra nội dung</div>
+        <div class="step-desc">
+          Mở file .md bằng bất kỳ text editor nào (Notepad, VS Code, v.v.). File gồm:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li><strong>Bảng thông tin</strong> — keyword, entity, intent, AEO difficulty</li>
+            <li><strong>H2 gợi ý</strong> — từ user questions của nhánh priority cao nhất</li>
+            <li><strong>Query SEO</strong> — cần tích hợp tự nhiên vào bài</li>
+            <li><strong>Từ khóa ngữ nghĩa</strong> — core entities, supporting terms, action modifiers</li>
+            <li><strong>Hub & Spoke</strong> — vị trí bài trong content cluster</li>
+            <li><strong>60 Chữ Vàng</strong> — mẫu đoạn Answer-First và FAQ</li>
+            <li>⚠️ <strong>Gem cần hỏi thêm</strong> — 3 mục Gem sẽ hỏi trước khi viết</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">3</div>
+      <div class="step-body">
+        <div class="step-title">Paste toàn bộ nội dung file vào Gemini Gem</div>
+        <div class="step-desc">
+          Mở <strong>Gemini Gem "TPI Content Writer"</strong> → tạo chat mới → paste toàn bộ nội dung file brief vào chat → gửi.<br><br>
+          Gem sẽ đọc phần ⚠️ và hỏi lại đúng 3 mục còn thiếu:
+          <div class="file-block">
+<span class="comment"># Gem sẽ phản hồi kiểu:</span>
+Tôi đã đọc brief. Để viết được bài, tôi cần thêm:
+<span class="key">1.</span> <span class="val">Dữ liệu độc quyền TPI</span> — số liệu giao dịch, case khách hàng thực
+<span class="key">2.</span> <span class="val">Trích dẫn chuyên gia</span> — Tên + chức vụ TPI + 1 câu quote
+<span class="key">3.</span> <span class="val">Internal links + NAP</span> — URL tpiland.vn + xác nhận địa chỉ/hotline
+Anh/chị bổ sung được không?
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">4</div>
+      <div class="step-body">
+        <div class="step-title">Bổ sung 3 mục còn thiếu cho Gem</div>
+        <div class="step-desc">
+          Trả lời Gem trong cùng một tin nhắn:
+          <div class="file-block">
+<span class="comment"># VD — trả lời 3 mục trong 1 tin nhắn</span>
+<span class="key">1. Data TPI:</span> <span class="val">Q1/2026 bán 47 căn, 68% khách từ HCM.
+   Giá từ 2.8 tỷ/căn 1PN (35m²), tới 4.5 tỷ/căn 2PN (65m²).
+   Khách sạn đang xây đến tầng 12/22, dự kiến bàn giao Q4/2027.</span>
+
+<span class="key">2. Quote:</span> <span class="val">Anh Trần Hoài Bảo - TGĐ TPI Land:
+   "Lượng khách hỏi condotel Blanca tăng 35% tháng 4/2026,
+   chủ yếu từ nhà đầu tư HCM mua để khai thác cho thuê."</span>
+
+<span class="key">3. NAP + links:</span> <span class="val">
+   - URL 1: tpiland.vn/du-an/blanca-city (ngữ cảnh: trang dự án chính)
+   - URL 2: tpiland.vn/tin-tuc/condotel-vung-tau (bài tin liên quan)
+   - Tên: Công ty Cổ phần TPI Land
+   - Địa chỉ: 123 Đường Thùy Vân, P. Thắng Tam, Vũng Tàu
+   - Hotline: 1800 1234</span>
+          </div>
+          <div class="callout danger" style="margin-top:12px">
+            <div class="callout-icon">🚫</div>
+            <div class="callout-body"><strong>Không bịa số liệu.</strong> Nếu chưa có data, hỏi lại team sales. Bài thiếu dữ liệu độc quyền sẽ không đạt 70 điểm rubric — Gem sẽ từ chối viết.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S4: GEM VIẾT BÀI ── -->
+<div class="section" id="s4">
+  <div class="section-title">
+    <div class="section-num num-green">3</div>
+    Bước 3 — Gemini Gem viết bài
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num green">1</div>
+      <div class="step-body">
+        <div class="step-title">Gem trình Outline — anh duyệt trước khi viết</div>
+        <div class="step-desc">
+          Sau khi nhận đủ data, Gem sẽ <strong>KHÔNG viết bài ngay</strong>. Gem trình outline gồm:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li>H1 đề xuất (có hook, không template AI)</li>
+            <li>4–6 H2 (lấy từ user questions trong brief)</li>
+            <li>H3 con cho từng H2</li>
+            <li>Đánh dấu: H2 nào dùng bảng, H2 nào dùng &lt;ol&gt;, H2 nào chứa FAQ</li>
+          </ul>
+          Đọc outline và phản hồi: OK hoặc yêu cầu điều chỉnh.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num green">2</div>
+      <div class="step-body">
+        <div class="step-title">Gem viết bài hoàn chỉnh</div>
+        <div class="step-desc">
+          Sau khi anh OK outline, Gem viết bài đầy đủ theo đúng rubric:<br><br>
+          <ul style="margin:0 0 0 18px;font-size:13.5px;line-height:2;">
+            <li>Đoạn đầu sau H1: 40–70 từ, trả lời thẳng keyword</li>
+            <li>Câu định nghĩa "[Entity] là..." trong 1.500 ký tự đầu</li>
+            <li>≥1 bảng HTML (EAV hoặc so sánh)</li>
+            <li>≥1 danh sách &lt;ol&gt;</li>
+            <li>≥1 trích dẫn tên + chức vụ TPI</li>
+            <li>FAQ 4–6 câu, mỗi câu ≤100 từ</li>
+            <li>NAP đầy đủ + 2–3 internal link cuối bài</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num green">3</div>
+      <div class="step-body">
+        <div class="step-title">Gem báo "Không còn placeholder" — copy bài</div>
+        <div class="step-desc">
+          Gem kết thúc bằng:
+          <div class="file-block">
+✅ Bài hoàn chỉnh — không còn placeholder.
+Anh/chị paste lên <span class="val">tpi-scorer.vercel.app</span> để chấm điểm chính thức.
+          </div>
+          Nếu Gem báo "Placeholder còn: X mục" — trả lời bổ sung thông tin trước khi copy bài.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <div class="callout-title">Gem bảo "cứ viết đi, data sau" — từ chối</div>
+      Nếu team nói "cứ viết đi để anh/chị điền sau", Gem sẽ từ chối và giải thích lý do. Đây là đúng — bài có placeholder sẽ không đạt E-E-A-T, trừ điểm nặng ở Tầng 4.
+    </div>
+  </div>
+</div>
+
+<!-- ── S5: SCORER CHẤM ĐIỂM ── -->
+<div class="section" id="s5">
+  <div class="section-title">
+    <div class="section-num num-indigo">4</div>
+    Bước 4 — Chấm điểm với TPI Scorer
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num indigo">1</div>
+      <div class="step-body">
+        <div class="step-title">Mở tab "Nộp bài" và điền thông tin</div>
+        <div class="step-desc">
+          Vào <strong>tpi-scorer.vercel.app</strong> → tab <strong>📝 Nộp bài</strong>.<br><br>
+          Điền các trường:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li><strong>Keyword chính</strong> — từ khóa seed (giống với QF)</li>
+            <li><strong>Entity chính</strong> — tên dự án/chủ đề</li>
+            <li><strong>Search Intent</strong> — Know / Do / Go / Hybrid</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">2</div>
+      <div class="step-body">
+        <div class="step-title">Paste bài vào tab "Dán bài"</div>
+        <div class="step-desc">
+          Click vào ô <strong>Dán bài viết</strong> → paste toàn bộ nội dung HTML bài viết từ Gem vào đây.<br><br>
+          Hoặc dùng tab <strong>URL</strong> nếu bài đã đăng online.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">3</div>
+      <div class="step-body">
+        <div class="step-title">Nhấn "Chấm bài" và chờ kết quả</div>
+        <div class="step-desc">
+          Nhấn nút <strong>Chấm bài</strong>. Scorer sẽ:
+          <ul style="margin:8px 0 0 18px;font-size:13.5px;line-height:2;">
+            <li>Kiểm tra 5 Preflight (H1, H2, từ số, keyword trong H1)</li>
+            <li>Chạy Rule scoring (~instant, 28 tiêu chí)</li>
+            <li>Gọi AI chấm các tiêu chí phức tạp (E-E-A-T, RPP, Information Gain)</li>
+          </ul>
+          Kết quả hiện ra gồm: <strong>tổng điểm /100</strong>, điểm 4 tầng, top 5 issues.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num indigo">4</div>
+      <div class="step-body">
+        <div class="step-title">Đọc kết quả và xác định bước tiếp theo</div>
+        <div class="step-desc">
+          <table style="margin:8px 0 0">
+            <tr><th>Điểm</th><th>Trạng thái</th><th>Hành động</th></tr>
+            <tr>
+              <td><span class="score-badge score-pass">≥ 85</span></td>
+              <td>Xuất sắc</td>
+              <td>Xuất bản ngay</td>
+            </tr>
+            <tr>
+              <td><span class="score-badge score-pass">70–84</span></td>
+              <td>Đạt chuẩn</td>
+              <td>Cân nhắc polish thêm, hoặc xuất bản</td>
+            </tr>
+            <tr>
+              <td><span class="score-badge score-mid">50–69</span></td>
+              <td>Chưa đạt</td>
+              <td>Sửa theo fix list — dùng "📤 Sửa với Gem"</td>
+            </tr>
+            <tr>
+              <td><span class="score-badge score-fail">&lt; 50</span></td>
+              <td>Cần làm lại</td>
+              <td>Xem xét viết lại với data đầy đủ hơn</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S6: SỬA VỚI GEM ── -->
+<div class="section" id="s6">
+  <div class="section-title">
+    <div class="section-num num-red">5</div>
+    Bước 5 — Sửa bài với Gem (nếu &lt; 85đ)
+  </div>
+
+  <p style="color:var(--ink2);font-size:14px;margin-bottom:20px;">
+    Nếu bài chưa đạt điểm mong muốn, Scorer sẽ chỉ ra đúng chỗ cần sửa. Nút "📤 Sửa với Gem" tạo file fix brief gửi thẳng cho Gem — không cần đọc hết báo cáo.
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num orange">1</div>
+      <div class="step-body">
+        <div class="step-title">Nhấn nút "📤 Sửa với Gem" trong kết quả chấm</div>
+        <div class="step-desc">
+          Trong panel kết quả → nhấn <span class="btn-mock indigo">📤 Sửa với Gem</span>.<br>
+          Trình duyệt tải về file <code>tpi-fix-gem-{keyword}-{date}.md</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">2</div>
+      <div class="step-body">
+        <div class="step-title">Gửi fix file + bài viết vào Gem (cùng 1 tin nhắn)</div>
+        <div class="step-desc">
+          Mở Gemini Gem "TPI Content Writer" → tạo chat mới → paste theo thứ tự:<br><br>
+          <div class="file-block">
+<span class="comment"># Paste theo thứ tự này vào 1 tin nhắn:</span>
+<span class="key">--- FIX BRIEF (từ file tpi-fix-gem-*.md) ---</span>
+[paste toàn bộ nội dung file fix brief]
+
+<span class="key">--- BÀI VIẾT CẦN SỬA ---</span>
+[paste toàn bộ bài HTML từ Gem]
+          </div>
+          Gem sẽ đọc fix brief, xác định tầng yếu và danh sách 🔴/🟡/🟢 rồi sửa bài theo đúng thứ tự đó.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">3</div>
+      <div class="step-body">
+        <div class="step-title">Bổ sung nếu Gem hỏi thêm data</div>
+        <div class="step-desc">
+          Với các lỗi Critical liên quan đến data (VD: thiếu số liệu cụ thể, thiếu quote), Gem sẽ hỏi trước khi sửa. Bổ sung thông tin rồi Gem sửa tiếp.<br><br>
+          <div class="callout success" style="margin:0">
+            <div class="callout-icon">✅</div>
+            <div class="callout-body">Gem sẽ trả lại <strong>toàn bộ bài đã sửa</strong> (không chỉ đoạn sửa), kết thúc bằng "Đã sửa X mục. Paste lên Scorer để chấm lại."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num orange">4</div>
+      <div class="step-body">
+        <div class="step-title">Paste bài đã sửa lên Scorer → chấm lại</div>
+        <div class="step-desc">
+          Copy bài từ Gem → quay lại Scorer → nhấn <strong>🔄 Chấm lại</strong> → paste bài mới → chấm.<br><br>
+          Lặp lại vòng Sửa với Gem → Chấm lại cho đến khi đạt <strong>≥ 85 điểm</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <div class="callout-title">Thường mất 1–2 vòng sửa</div>
+      Lần chấm đầu tiên thường 65–75đ nếu data đầy đủ. Sau 1 vòng sửa Critical issues thường lên 80–90đ. Vòng 2 chỉ còn Minor polish.
+    </div>
+  </div>
+</div>
+
+<!-- ── S7: TIÊU CHUẨN XUẤT BẢN ── -->
+<div class="section" id="s7">
+  <div class="section-title">
+    <div class="section-num num-teal">6</div>
+    Tiêu chuẩn xuất bản
+  </div>
+
+  <table>
+    <tr><th>Tiêu chí</th><th>Yêu cầu tối thiểu</th><th>Mục tiêu</th></tr>
+    <tr>
+      <td><strong>Điểm Scorer</strong></td>
+      <td><span class="score-badge score-pass">≥ 70</span> (pass)</td>
+      <td><span class="score-badge score-pass">≥ 85</span> (xuất sắc)</td>
+    </tr>
+    <tr>
+      <td><strong>Số từ</strong></td>
+      <td>800–10.000 từ</td>
+      <td>1.500–2.500 từ</td>
+    </tr>
+    <tr>
+      <td><strong>Placeholder</strong></td>
+      <td>0 placeholder</td>
+      <td>0 placeholder</td>
+    </tr>
+    <tr>
+      <td><strong>Dữ liệu thực TPI</strong></td>
+      <td>≥1 số liệu độc quyền</td>
+      <td>≥3 số liệu + 1 case khách</td>
+    </tr>
+    <tr>
+      <td><strong>Trích dẫn</strong></td>
+      <td>≥1 quote tên + chức vụ</td>
+      <td>≥2 quote từ 2 người khác nhau</td>
+    </tr>
+    <tr>
+      <td><strong>Internal link</strong></td>
+      <td>≥2 URL tpiland.vn</td>
+      <td>3 URL với anchor text CTA tự nhiên</td>
+    </tr>
+    <tr>
+      <td><strong>NAP cuối bài</strong></td>
+      <td>Đầy đủ (tên/địa chỉ/hotline)</td>
+      <td>Đầy đủ + schema NAP nếu có thể</td>
+    </tr>
+    <tr>
+      <td><strong>Tầng 4 (E-E-A-T)</strong></td>
+      <td>≥ 15/27</td>
+      <td>≥ 20/27</td>
+    </tr>
+  </table>
+
+  <div class="callout warn" style="margin-top:16px">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <div class="callout-title">Không xuất bản bài dưới 70 điểm</div>
+      Bài dưới 70 điểm chưa pass tiêu chuẩn Rubric TPI v3.0. Bài thiếu E-E-A-T signals (E1/E2/E3) sẽ bị Google đánh giá thấp và không cạnh tranh được trong AI Overview.
+    </div>
+  </div>
+</div>
+
+<!-- ── S8: FAQ ── -->
+<div class="section" id="s8">
+  <div class="section-title">
+    <div class="section-num num-gray">?</div>
+    Câu hỏi thường gặp
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Gem không đọc được brief — phản hồi sai</div>
+    <div class="faq-a">Kiểm tra: (1) đã paste đủ nội dung file chưa (phải có dòng "✍️ BRIEF VIẾT BÀI —" ở đầu); (2) mở chat <strong>mới</strong> thay vì tiếp tục chat cũ; (3) xác nhận Gem đang dùng đúng prompt v3.2 (vào Gem Settings kiểm tra).</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Scorer báo "Phân tích thất bại: HTTP 504"</div>
+    <div class="faq-a">Model AI đang bận hoặc timeout. Nhấn <strong>🔄 Chấm lại</strong> sau 30 giây. Nếu vẫn lỗi, admin kiểm tra cấu hình model trong Admin panel và thử đổi sang model khác.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Điểm Tầng 4 (E-E-A-T) luôn thấp dù bài viết tốt</div>
+    <div class="faq-a">Tầng 4 chấm E1 (kinh nghiệm thực địa), E2 (credential tác giả), E3 (ngày cập nhật), I1 (data TPI độc quyền). Giải pháp: (1) thêm ≥2 cụm "Khảo sát thực địa..." hoặc "Từ X giao dịch Q../2026 của TPI..."; (2) thêm tên tác giả + chức vụ đầu bài; (3) ghi rõ "Cập nhật: tháng 5/2026".</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Gem tự bịa số liệu dù đã nhắc không được bịa</div>
+    <div class="faq-a">Kiểm tra prompt Gem — phải đang dùng v3.2. Nếu Gem bịa số, phản hồi thẳng: "Số X này từ đâu? Tôi không cung cấp số này." Gem sẽ thừa nhận và xóa hoặc hỏi lại.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Query Fan-out sinh ra ít hơn 10 nhánh</div>
+    <div class="faq-a">Vào <strong>Advanced Settings</strong> trong form QF → tăng <strong>Branch Count</strong> lên 15 hoặc 20. Nếu vẫn ít, thêm ngữ cảnh vào trường "Ngữ cảnh thêm" để AI hiểu rõ hơn về dự án.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Tôi không có data TPI — có thể viết không?</div>
+    <div class="faq-a"><strong>Không nên.</strong> Bài thiếu data độc quyền sẽ không đạt E-E-A-T, dễ bị AI Overview bỏ qua. Liên hệ team sales để lấy: số liệu giao dịch gần nhất, quote từ 1 chuyên gia, 1 case khách hàng thực. Chỉ cần 2–3 con số cụ thể là đủ để bài pass Tầng 4.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ Bài đã lên 85 điểm nhưng muốn tối ưu thêm</div>
+    <div class="faq-a">Xem tab <strong>📋 Checklist</strong> trong kết quả Scorer — nhấn nút <strong>AI kiểm tra</strong> để AI đánh giá các mục manual. Focus vào Tầng 3 (RPP) và Tầng 4 (Information Gain) vì đây là tầng ăn điểm lớn nhất với AI Overview.</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── QUICK REF ── -->
+<div class="section">
+  <div class="section-title">
+    <div class="section-num num-indigo">⚡</div>
+    Quick Reference — Checklist trước khi publish
+  </div>
+
+  <ul class="checklist">
+    <li><span class="ci">🔍</span>Đã chạy Query Fan-out và tải brief</li>
+    <li><span class="ci">💎</span>Gem đã viết bài với đủ 3 mục: data TPI + quote + NAP</li>
+    <li><span class="ci">📊</span>Scorer chấm <strong>≥ 85 điểm</strong> (hoặc ≥ 70 nếu deadline gấp)</li>
+    <li><span class="ci">🚫</span>Không còn placeholder nào trong bài</li>
+    <li><span class="ci">✅</span>Có ≥1 bảng HTML + ≥1 danh sách &lt;ol&gt;</li>
+    <li><span class="ci">✅</span>Có ≥1 trích dẫn tên + chức vụ TPI</li>
+    <li><span class="ci">✅</span>NAP đầy đủ cuối bài (tên/địa chỉ/hotline)</li>
+    <li><span class="ci">✅</span>2–3 internal link với anchor text tự nhiên</li>
+    <li><span class="ci">✅</span>Heading viết hoa chữ đầu + danh từ riêng (chuẩn tiếng Việt)</li>
+    <li><span class="ci">✅</span>Đoạn sau H1 từ 40–70 từ (đếm bằng Scorer)</li>
+  </ul>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="page-footer">
+  <p>TPI Land Internal Documentation · Rubric v3.0 · Workflow v3.2</p>
+  <p style="margin-top:4px">tpi-scorer.vercel.app · Cập nhật: 28/05/2026</p>
+</div>
+
+</div><!-- end page-wrap -->
+</body>
+</html>

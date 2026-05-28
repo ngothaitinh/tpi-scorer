@@ -1710,6 +1710,7 @@ function renderTopbar() {
   nav.innerHTML = views.map(v =>
     `<button class="nav-btn syne" id="nav-${v.id}" onclick="showView('${v.id}')">${v.label}</button>`
   ).join('') +
+    `<a class="nav-btn syne" href="workflow-guide.html" target="_blank" style="text-decoration:none" title="Quy trình QF → Gem → Scorer">🔄 Quy trình</a>` +
     `<a class="nav-btn syne" href="user-guide.html" target="_blank" style="text-decoration:none" title="Hướng dẫn sử dụng">📖 Hướng dẫn</a>` +
     `<a class="nav-btn syne" href="rubric-guide.html" target="_blank" style="text-decoration:none" title="28 tiêu chí chấm">📋 Rubric</a>`;
 
