@@ -132,11 +132,9 @@ module.exports = async (req, res) => {
     if (anthropicKey) {
       // Anthropic native endpoint
       result = await callAnthropic(model, prompt, maxTokens, anthropicKey);
-    } else if (model.startsWith('ant/')) {
-      // Anthropic-compat endpoint (chiasegpu.vn "ant/*" models)
-      result = await callAnthropicCompat(model, prompt, maxTokens, llmEndpoint, llmKey);
     } else {
-      // OpenAI-compat endpoint
+      // OpenAI-compat endpoint (/chat/completions) — dùng cho tất cả model kể cả ant/*
+      // chiasegpu.vn nhận model name "ant/..." qua /chat/completions bình thường
       result = await callOpenAICompat(model, prompt, maxTokens, llmEndpoint, llmKey);
     }
     res.setHeader('Content-Type', 'application/json');
