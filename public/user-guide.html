@@ -473,7 +473,7 @@
     Khách hàng BĐS Vũng Tàu/Long An hiện hỏi AI: <em>"Có nên mua Thanh Phú Centre Point không?"</em>. Nếu bài viết TPI Land được AI trích dẫn → khách thấy uy tín ngay từ câu trả lời đầu tiên, chưa cần click.
   </div>
 
-  <h3>Hệ thống gồm 2 công cụ chính</h3>
+  <h3>Hệ thống gồm 3 công cụ phối hợp</h3>
 
   <div class="table-wrap">
   <table>
@@ -487,13 +487,18 @@
     <tbody>
       <tr>
         <td><strong>🔍 Query Fan-out</strong><br><span style="color:var(--ink3);font-size:13px">Research keyword AI-powered</span></td>
-        <td>Sinh 10+ nhánh truy vấn, semantic keywords, kiến trúc Hub & Spoke từ 1 Seed Query</td>
+        <td>Sinh 10+ nhánh truy vấn, semantic keywords, kiến trúc Hub & Spoke từ 1 Seed Query. Xuất brief cho Gem bằng 1 click.</td>
         <td>Trước khi viết bài — giai đoạn lập kế hoạch</td>
       </tr>
       <tr>
+        <td><strong>💎 Gemini Gem TPI Content Writer</strong><br><span style="color:var(--ink3);font-size:13px">AI viết bài chuẩn rubric</span></td>
+        <td>Nhận brief từ Scorer → viết bài đạt chuẩn 28 tiêu chí. Hỗ trợ paste tài liệu TPI độc quyền trực tiếp vào chat.</td>
+        <td>Sau khi có brief — viết bài + sửa bài theo fix list</td>
+      </tr>
+      <tr>
         <td><strong>📊 Content Scorer</strong><br><span style="color:var(--ink3);font-size:13px">Chấm bài 28 tiêu chí</span></td>
-        <td>Phân tích bài viết theo rubric v3.0 E-E-A-T+HCU+GEO, trả về điểm + Fix Cards cụ thể</td>
-        <td>Sau khi viết bài xong — kiểm tra & cải thiện</td>
+        <td>Phân tích bài viết theo rubric v3.0 E-E-A-T+HCU+GEO, trả về điểm + Fix Cards cụ thể. Xuất fix brief cho Gem bằng 1 click.</td>
+        <td>Sau khi Gem viết xong — kiểm tra & vòng lặp cải thiện</td>
       </tr>
     </tbody>
   </table>
@@ -527,7 +532,7 @@
       <div class="step-num">1</div>
       <div class="step-body">
         <div class="step-title">Research bằng Query Fan-out</div>
-        <div class="step-desc">Nhập Seed Query → AI sinh 10+ nhánh truy vấn liên quan, semantic keywords, gợi ý Hub & Spoke. Mục tiêu: hiểu khách hỏi gì, dùng từ nào.</div>
+        <div class="step-desc">Nhập Seed Query → AI sinh 10+ nhánh từ khóa, semantic keywords, gợi ý Hub & Spoke. Mục tiêu: hiểu khách hỏi gì, dùng từ nào.</div>
         <span class="step-meta">⏱ 2–3 phút · 🤖 1 LLM call</span>
       </div>
     </div>
@@ -536,7 +541,7 @@
       <div class="step-num">2</div>
       <div class="step-body">
         <div class="step-title">Lọc trùng lặp với Semantic Clustering</div>
-        <div class="step-desc">Nhấn nút "🔗 Cụm ngữ nghĩa" → AI phát hiện nhánh trùng ý nghĩa để tránh keyword cannibalization. Gộp nhánh trùng thành 1 bài duy nhất.</div>
+        <div class="step-desc">Nhấn "🔗 Cụm ngữ nghĩa" → AI phát hiện nhánh trùng ý nghĩa để tránh keyword cannibalization. Gộp nhánh trùng thành 1 bài.</div>
         <span class="step-meta">⏱ 1 phút · 🤖 1 LLM call</span>
       </div>
     </div>
@@ -544,18 +549,18 @@
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <div class="step-title">Lập Outline & Brief</div>
-        <div class="step-desc">Từ kết quả Query Fan-out, chọn 1 nhánh ưu tiên cao nhất (priority_score ≥8) làm bài Hub. Lập outline H1/H2/H3 dựa trên user_questions thực tế.</div>
-        <span class="step-meta">⏱ 15–20 phút · ✍ Thủ công</span>
+        <div class="step-title">Tạo Brief và gửi cho Gemini Gem</div>
+        <div class="step-desc">Nhấn <strong>"📤 Brief cho Gem"</strong> → tải file brief → paste vào <a href="https://gemini.google.com/u/2/gem/ce399149b789" class="inline-link" target="_blank">Gem TPI Content Writer</a> cùng tài liệu TPI độc quyền (bảng giá, data giao dịch, pháp lý...). Xem chi tiết tại <a href="#gem" class="inline-link">mục 5b bên dưới</a>.</div>
+        <span class="step-meta">⏱ 5 phút · 📤 1 click export</span>
       </div>
     </div>
 
     <div class="step">
       <div class="step-num">4</div>
       <div class="step-body">
-        <div class="step-title">Viết bài chuẩn 28 tiêu chí</div>
-        <div class="step-desc">Viết bài theo outline. Tuân thủ checklist E-E-A-T, AEO Answer-First, Số liệu cụ thể, NAP consistency, Definition Sentence. Tham khảo <a href="rubric-guide.html" class="inline-link">rubric-guide.html</a> chi tiết.</div>
-        <span class="step-meta">⏱ 2–4 giờ · ✍ Thủ công</span>
+        <div class="step-title">Gemini Gem viết bài từ brief + data TPI</div>
+        <div class="step-desc">Gem duyệt outline với anh/chị trước → viết bài hoàn chỉnh chuẩn 28 tiêu chí — Answer-First, số liệu thực, E-E-A-T, NAP. Không còn viết tay từ đầu.</div>
+        <span class="step-meta">⏱ 5–10 phút · 💎 Gemini Gem</span>
       </div>
     </div>
 
@@ -563,7 +568,7 @@
       <div class="step-num">5</div>
       <div class="step-body">
         <div class="step-title">Chấm bài với Scorer</div>
-        <div class="step-desc">Paste bài vào Submit page → AI chấm theo 28 tiêu chí → trả về điểm tổng (target ≥70), Fix Cards với vị trí cụ thể, checklist auto-check.</div>
+        <div class="step-desc">Paste bài vào Submit → AI chấm 28 tiêu chí → trả về điểm tổng (target ≥85), Fix Cards vị trí cụ thể, checklist auto-check.</div>
         <span class="step-meta">⏱ 1–2 phút · 🤖 2 LLM calls</span>
       </div>
     </div>
@@ -571,16 +576,16 @@
     <div class="step">
       <div class="step-num">6</div>
       <div class="step-body">
-        <div class="step-title">Sửa theo Fix Cards & Resubmit</div>
-        <div class="step-desc">Sửa các Fix Cards Critical (≥5đ) trước, Major sau, Minor cuối. Resubmit cho đến khi đạt ≥70đ. Xuất bản khi pass.</div>
-        <span class="step-meta">⏱ 30–60 phút/vòng · ✍ + 🤖</span>
+        <div class="step-title">Sửa với Gem theo Fix Cards & Resubmit</div>
+        <div class="step-desc">Nhấn <strong>"📤 Sửa với Gem"</strong> → tải fix brief → paste vào Gem cùng bài viết → Gem sửa đúng chỗ, trả lại bài hoàn chỉnh → Resubmit. Lặp cho đến ≥85đ.</div>
+        <span class="step-meta">⏱ 5–10 phút/vòng · 💎 Gemini Gem</span>
       </div>
     </div>
   </div>
 
   <div class="callout callout-tip">
-    <div class="callout-title">✅ Kết quả mong đợi</div>
-    1 bài chuẩn quy trình = <strong>≥70đ</strong> sau 1–2 vòng sửa. Bài đạt 85–100đ có cơ hội cao xuất hiện trong AI Overviews.
+    <div class="callout-title">✅ Kết quả mong đợi với Gem</div>
+    Lần chấm đầu tiên thường đạt <strong>65–80đ</strong> nếu data đầy đủ. Sau 1–2 vòng sửa với Gem → đạt <strong>≥85đ</strong>. Bài ≥85đ có cơ hội cao xuất hiện trong AI Overviews.
   </div>
 </section>
 
@@ -788,6 +793,137 @@
 - NAP: TPI Land, [địa chỉ], 0xxx-xxx-xxx
 - Link đến Hub: [URL]
 </code></pre>
+</section>
+
+<!-- ── 5b. GEMINI GEM ── -->
+<section id="gem">
+  <h2><span class="h2-num">5b</span>Viết bài với Gemini Gem</h2>
+
+  <p>Gemini Gem TPI Content Writer đã được cài đặt sẵn. Anh/chị chỉ cần paste brief + tài liệu TPI vào chat — Gem tự viết bài chuẩn rubric, không cần hướng dẫn lại từ đầu.</p>
+
+  <div style="background:var(--purple-bg);border:1.5px solid var(--purple-border);border-radius:12px;padding:16px 20px;margin:16px 0;display:flex;align-items:center;gap:14px;">
+    <span style="font-size:28px">💎</span>
+    <div>
+      <div style="font-weight:700;font-size:15px">Gemini Gem TPI Content Writer</div>
+      <a href="https://gemini.google.com/u/2/gem/ce399149b789" target="_blank" style="color:var(--purple);font-size:13px;word-break:break-all">gemini.google.com/u/2/gem/ce399149b789</a>
+      <div style="color:var(--ink3);font-size:12px;margin-top:3px">Đăng nhập tài khoản Google công ty trước khi mở</div>
+    </div>
+  </div>
+
+  <h3>5b.1 Quy trình chat với Gem — 3 bước</h3>
+
+  <div class="workflow">
+    <div class="step">
+      <div class="step-num" style="background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)">A</div>
+      <div class="step-body">
+        <div class="step-title">Tạo chat mới → Paste brief từ Scorer</div>
+        <div class="step-desc">
+          Trong kết quả Query Fan-out → nhấn <strong>📤 Brief cho Gem</strong> → tải file <code>tpi-brief-gem-*.md</code>.<br>
+          Mở file → <kbd style="background:#f1f5f9;border:1px solid #ddd;border-radius:3px;padding:1px 6px;font-size:12px">Ctrl+A</kbd> → <kbd style="background:#f1f5f9;border:1px solid #ddd;border-radius:3px;padding:1px 6px;font-size:12px">Ctrl+C</kbd> → paste vào chat Gem mới.
+        </div>
+        <span class="step-meta">⏱ 1 phút · Gem tự đọc brief, hỏi 3 mục còn thiếu</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)">B</div>
+      <div class="step-body">
+        <div class="step-title">Paste tài liệu TPI độc quyền vào cùng 1 tin nhắn tiếp theo</div>
+        <div class="step-desc">
+          Gem sẽ hỏi 3 mục cần bổ sung. Trả lời bằng cách paste tài liệu TPI theo đúng format bên dưới (mục 5b.2). Gộp cả 3 mục vào 1 tin nhắn duy nhất.
+        </div>
+        <span class="step-meta">⏱ 3–5 phút · Chuẩn bị tài liệu trước</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" style="background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)">C</div>
+      <div class="step-body">
+        <div class="step-title">Duyệt outline → Gem viết bài → Copy bài sang Scorer</div>
+        <div class="step-desc">
+          Gem trình outline H1/H2/H3 để anh/chị duyệt. Sau khi OK → Gem viết bài hoàn chỉnh → copy toàn bộ bài → paste vào Scorer chấm điểm.
+        </div>
+        <span class="step-meta">⏱ 5–10 phút · Gem viết 1.500–2.500 từ</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>5b.2 Format tài liệu TPI độc quyền — paste vào Gem</h3>
+
+  <p>Copy đúng format bên dưới, điền thông tin thực vào chỗ <code>[...]</code>, paste vào chat Gem cùng lúc với phần trả lời 3 mục thiếu. Gem nhận ra block nào để dùng vào đâu trong bài.</p>
+
+  <h4 style="font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--ink2)">📋 Block 1 — Bảng giá & thông số dự án</h4>
+  <p style="font-size:13px;color:var(--ink3);margin-bottom:8px">Dùng khi: viết bài về 1 dự án cụ thể. Gem tự tạo bảng HTML EAV từ block này.</p>
+  <pre><code>=== BẢNG GIÁ & THÔNG SỐ DỰ ÁN (Nguồn: TPI Land nội bộ) ===
+Tên dự án:         [Tên đầy đủ chính xác]
+Loại hình:         [Căn hộ / Đất nền / Biệt thự / Condotel / ...]
+Vị trí:            [Xã, Huyện, Tỉnh]
+Chủ đầu tư:        [Tên CĐT]
+Quy mô:            [X căn / X ha]
+Diện tích căn:     [Từ X m² đến Y m²]
+Giá từ:            [X tỷ/căn] hoặc [X triệu/m²]
+Tiến độ thi công:  [Đang ở tầng X/Y, dự kiến bàn giao Q.../20...]
+Tình trạng pháp lý:[Sổ đỏ / Sổ hồng 50 năm / Đang làm sổ / ...]
+Tiện ích nội khu:  [Liệt kê 3–5 tiện ích chính]
+Điểm đặc biệt:     [Yếu tố khác biệt so với dự án lân cận]</code></pre>
+
+  <h4 style="font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--ink2)">📊 Block 2 — Số liệu giao dịch nội bộ</h4>
+  <p style="font-size:13px;color:var(--ink3);margin-bottom:8px">Dùng để ăn điểm E-E-A-T Tầng 4 (I1 — dữ liệu độc quyền TPI). Là phần ăn điểm nhiều nhất trong rubric.</p>
+  <pre><code>=== SỐ LIỆU GIAO DỊCH TPI (Nội bộ — Tháng .../20...) ===
+Số căn đã bán:     [X căn trong tháng/quý/năm]
+Tỷ lệ khách theo vùng: [VD: 68% HCM, 20% Đồng Nai, 12% địa phương]
+Loại căn bán chạy: [VD: căn 1PN 35m² chiếm 60% giao dịch]
+Giá thực tế:       [VD: giá trung bình thực tế 3.1 tỷ/căn]
+Insight sales:     [Điều khách quan tâm nhất khi mua, VD: 70% hỏi về pháp lý]
+Case khách hàng:   [VD: Anh Nguyễn Văn A (HCM) mua 2 căn tháng 3 để đầu tư]</code></pre>
+
+  <h4 style="font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--ink2)">🏢 Block 3 — NAP & thông tin công ty (dùng trong mọi bài)</h4>
+  <p style="font-size:13px;color:var(--ink3);margin-bottom:8px">Điền 1 lần, dùng lại cho tất cả bài. Gem tự đặt vào cuối bài theo chuẩn NAP schema.</p>
+  <pre><code>=== THÔNG TIN CÔNG TY TPI LAND (NAP cố định) ===
+Tên đầy đủ:        Công ty Cổ phần TPI Land
+Địa chỉ VP:        [Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/TP]
+Hotline:           [Số điện thoại]
+Website:           [URL]
+Giới thiệu ngắn:  [1 câu: TPI Land là đơn vị... chuyên... tại...]
+Người trích dẫn:   [Tên + Chức vụ + 1 câu quote về chủ đề bài viết]
+Internal links:    [URL 1] — [mô tả ngữ cảnh link đến đâu]
+                   [URL 2] — [mô tả]</code></pre>
+
+  <h4 style="font-size:14px;font-weight:700;margin:20px 0 8px;color:var(--ink2)">⚖️ Block 4 — Tài liệu pháp lý & đặc điểm dự án</h4>
+  <p style="font-size:13px;color:var(--ink3);margin-bottom:8px">Dùng khi bài có section pháp lý hoặc khách hay hỏi về rủi ro. Giúp Gem viết H3 objection handling chính xác.</p>
+  <pre><code>=== TÀI LIỆU PHÁP LÝ & ĐẶC ĐIỂM DỰ ÁN ===
+Loại sổ & thời hạn:   [VD: Sổ hồng sở hữu lâu dài / Sổ 50 năm gia hạn]
+Tình trạng hiện tại:  [VD: Đã có sổ 100% nền — cấp tháng 4/2026]
+Quy hoạch khu vực:    [VD: Nằm trong vùng quy hoạch đô thị 1/500 tỉnh BR-VT]
+Tình trạng thế chấp:  [VD: Dự án không thế chấp tại ngân hàng / đã giải chấp]
+Rủi ro thường gặp:    [VD: Khách lo tiến độ — thực tế đã bàn giao 3 block đúng hạn]
+Chính sách vay:       [VD: Vay 70% giá trị, lãi suất 8%/năm năm đầu, 15 ngân hàng hỗ trợ]</code></pre>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Quan trọng khi paste tài liệu</div>
+    <ul style="margin:6px 0 0 16px;line-height:2">
+      <li>Chỉ paste thông tin <strong>chính xác, đã xác nhận</strong> với team sales/pháp lý</li>
+      <li>Không để trống <code>[...]</code> — nếu chưa có thông tin, xóa cả dòng đó đi</li>
+      <li>Gem sẽ dùng nguyên số liệu anh/chị cung cấp — bịa số = bài sai thực tế</li>
+      <li>Block 3 (NAP) giữ nguyên cho mọi bài, chỉ thay phần "Người trích dẫn" và "Internal links"</li>
+    </ul>
+  </div>
+
+  <h3>5b.3 Sửa bài với Gem sau khi chấm Scorer</h3>
+
+  <p>Sau khi Scorer chấm xong và điểm chưa đạt mục tiêu:</p>
+  <ol style="margin:10px 0 0 20px;line-height:2.2;font-size:14px">
+    <li>Nhấn <strong>📤 Sửa với Gem</strong> trong panel kết quả chấm → tải file <code>tpi-fix-gem-*.md</code></li>
+    <li>Mở Gem → tạo <strong>chat mới</strong></li>
+    <li>Paste vào cùng 1 tin nhắn: nội dung file fix brief + toàn bộ bài HTML</li>
+    <li>Gem đọc danh sách lỗi 🔴→🟡→🟢, sửa theo thứ tự, trả lại bài đầy đủ</li>
+    <li>Copy bài đã sửa → Scorer → Chấm lại → lặp cho đến ≥ 85đ</li>
+  </ol>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">💡 Thường mất 1–2 vòng sửa</div>
+    Lần 1: thường lên 80–88đ (fix Critical issues). Lần 2: minor polish → ≥85đ. Nếu sau 3 vòng vẫn thấp, kiểm tra lại Block 2 (data giao dịch) — đây là tiêu chí mất điểm nhiều nhất (Tầng 4 E-E-A-T).
+  </div>
 </section>
 
 <!-- ── 6. WRITING ── -->
