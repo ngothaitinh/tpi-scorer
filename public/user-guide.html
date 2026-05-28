@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hướng dẫn sử dụng TPI Content Scorer — Quy trình viết bài AEO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap&subset=vietnamese" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e8e4dc;
+    --ink: #1a1814;
+    --ink2: #4a4640;
+    --ink3: #8a867e;
+    --green: #16a34a;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+    --teal: #0d9488;
+    --yellow-bg: #fefce8;
+    --yellow-border: #fde047;
+    --green-bg: #f0fdf4;
+    --green-border: #86efac;
+    --red-bg: #fef2f2;
+    --red-border: #fca5a5;
+    --blue-bg: #eff6ff;
+    --blue-border: #93c5fd;
+    --purple-bg: #faf5ff;
+    --purple-border: #d8b4fe;
+    --code-bg: #1e293b;
+    --code-ink: #f1f5f9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0d4d3a 100%);
+    color: white;
+    padding: 56px 32px 48px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    padding: 4px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: rgba(255,255,255,0.85);
+  }
+  .hero h1 {
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 800;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.75);
+    max-width: 640px;
+    margin: 0 auto 28px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+
+  /* ── TABLE OF CONTENTS ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .toc-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink3);
+    margin-bottom: 16px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 24px;
+  }
+  .toc a {
+    color: var(--ink2);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s;
+  }
+  .toc a:hover { color: var(--blue); }
+  .toc-num {
+    color: var(--ink3);
+    font-weight: 600;
+    min-width: 24px;
+    font-size: 13px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 64px; scroll-margin-top: 24px; }
+  h2 {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .h2-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: var(--ink);
+  }
+  p { margin-bottom: 12px; color: var(--ink2); }
+  ul, ol { margin: 12px 0 16px 20px; color: var(--ink2); }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); font-weight: 700; }
+  code {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 0.88em;
+    background: var(--yellow-bg);
+    color: #92400e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--yellow-border);
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 12px 0;
+  }
+  pre code {
+    background: transparent;
+    color: inherit;
+    border: none;
+    padding: 0;
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    font-size: 14px;
+  }
+  .callout-tip   { background: var(--green-bg);  border-left-color: var(--green); }
+  .callout-warn  { background: var(--yellow-bg); border-left-color: #ca8a04; }
+  .callout-error { background: var(--red-bg);    border-left-color: var(--red); }
+  .callout-info  { background: var(--blue-bg);   border-left-color: var(--blue); }
+  .callout-title { font-weight: 700; margin-bottom: 6px; color: var(--ink); }
+
+  /* ── STEP WORKFLOW ── */
+  .workflow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    margin: 20px 0 28px;
+    overflow: hidden;
+  }
+  .step {
+    display: flex;
+    gap: 20px;
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 17px;
+  }
+  .step-body { flex: 1; }
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .step-desc {
+    font-size: 14px;
+    color: var(--ink2);
+    margin-bottom: 8px;
+  }
+  .step-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    background: var(--blue-bg);
+    color: var(--blue);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    border: 1px solid var(--blue-border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+  th {
+    background: #f1efeb;
+    text-align: left;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink2);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── EXAMPLE BOX ── */
+  .example {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .example-card {
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid;
+  }
+  .example-card.good { background: var(--green-bg); border-color: var(--green-border); }
+  .example-card.bad  { background: var(--red-bg);   border-color: var(--red-border); }
+  .example-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .example-card.good .example-label { color: var(--green); }
+  .example-card.bad  .example-label { color: var(--red); }
+  .example-text { font-size: 14px; color: var(--ink); }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid;
+  }
+  .badge-blue   { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-border); }
+  .badge-green  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+  .badge-orange { background: #fff7ed;          color: var(--orange); border-color: #fdba74; }
+  .badge-purple { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+
+  /* ── FAQ ── */
+  details.faq {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  details.faq summary {
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::before {
+    content: '+';
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--blue-bg);
+    color: var(--blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+  }
+  details.faq[open] summary::before { content: '−'; }
+  details.faq[open] summary { border-bottom: 1px solid var(--border); }
+  .faq-body { padding: 16px 20px; font-size: 14px; color: var(--ink2); }
+  .faq-body p { margin-bottom: 10px; }
+  .faq-body p:last-child { margin-bottom: 0; }
+
+  /* ── KBD ── */
+  kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    background: #f1efeb;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  /* ── LINK ── */
+  a.inline-link {
+    color: var(--blue);
+    text-decoration: underline;
+    text-decoration-color: rgba(37,99,235,0.3);
+    text-underline-offset: 2px;
+  }
+  a.inline-link:hover { text-decoration-color: var(--blue); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    color: var(--ink3);
+    font-size: 13px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 720px) {
+    .toc-grid { grid-template-columns: 1fr; }
+    .example { grid-template-columns: 1fr; }
+    .container { padding: 32px 18px 64px; }
+    .step { padding: 18px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">TPI Land · Hướng dẫn người dùng</div>
+  <h1>Quy trình viết bài AEO chuẩn TPI</h1>
+  <p>Hướng dẫn đầy đủ từ research keyword → viết bài → chấm điểm → tối ưu. Dành cho team Content TPI Land sử dụng TPI Content Scorer.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">Bước quy trình</div></div>
+    <div class="stat"><div class="stat-num">28</div><div class="stat-label">Tiêu chí chấm</div></div>
+    <div class="stat"><div class="stat-num">≥70</div><div class="stat-label">Điểm pass</div></div>
+    <div class="stat"><div class="stat-num">2</div><div class="stat-label">Công cụ AI</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">Mục lục</div>
+  <div class="toc-grid">
+    <a href="#overview"><span class="toc-num">1.</span>Tổng quan hệ thống</a>
+    <a href="#workflow"><span class="toc-num">2.</span>Quy trình 6 bước viết bài AEO</a>
+    <a href="#query-fanout"><span class="toc-num">3.</span>Query Fan-out — Research</a>
+    <a href="#clustering"><span class="toc-num">4.</span>Semantic Clustering</a>
+    <a href="#outline"><span class="toc-num">5.</span>Lập Outline & Brief</a>
+    <a href="#writing"><span class="toc-num">6.</span>Viết bài chuẩn 28 tiêu chí</a>
+    <a href="#scoring"><span class="toc-num">7.</span>Chấm bài với Scorer</a>
+    <a href="#iterate"><span class="toc-num">8.</span>Sửa bài theo Fix Cards</a>
+    <a href="#admin"><span class="toc-num">9.</span>Hướng dẫn cho Admin</a>
+    <a href="#faq"><span class="toc-num">10.</span>FAQ & Troubleshooting</a>
+  </div>
+</div>
+
+<!-- ── 1. OVERVIEW ── -->
+<section id="overview">
+  <h2><span class="h2-num">1</span>Tổng quan hệ thống</h2>
+
+  <p><strong>TPI Content Scorer</strong> là bộ công cụ AI nội bộ giúp team Content TPI Land viết bài SEO/AEO chuẩn — từ research keyword đến chấm điểm tự động theo rubric 28 tiêu chí.</p>
+
+  <h3>AEO là gì? Vì sao TPI Land cần?</h3>
+  <p><strong>AEO (Answer Engine Optimization)</strong> là tối ưu nội dung để xuất hiện trong câu trả lời của AI như Google AI Overviews, ChatGPT, Gemini. Khác với SEO truyền thống (tối ưu cho 10 link xanh), AEO nhắm vào <strong>việc được AI trích dẫn</strong> trong câu trả lời tổng hợp.</p>
+
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Vì sao quan trọng với TPI Land?</div>
+    Khách hàng BĐS Vũng Tàu/Long An hiện hỏi AI: <em>"Có nên mua Thanh Phú Centre Point không?"</em>. Nếu bài viết TPI Land được AI trích dẫn → khách thấy uy tín ngay từ câu trả lời đầu tiên, chưa cần click.
+  </div>
+
+  <h3>Hệ thống gồm 2 công cụ chính</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30%">Công cụ</th>
+        <th>Vai trò</th>
+        <th style="width:25%">Dùng khi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>🔍 Query Fan-out</strong><br><span style="color:var(--ink3);font-size:13px">Research keyword AI-powered</span></td>
+        <td>Sinh 10+ nhánh truy vấn, semantic keywords, kiến trúc Hub & Spoke từ 1 Seed Query</td>
+        <td>Trước khi viết bài — giai đoạn lập kế hoạch</td>
+      </tr>
+      <tr>
+        <td><strong>📊 Content Scorer</strong><br><span style="color:var(--ink3);font-size:13px">Chấm bài 28 tiêu chí</span></td>
+        <td>Phân tích bài viết theo rubric v3.0 E-E-A-T+HCU+GEO, trả về điểm + Fix Cards cụ thể</td>
+        <td>Sau khi viết bài xong — kiểm tra & cải thiện</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Đăng nhập</h3>
+  <ol>
+    <li>Vào <code>https://tpi-scorer.vercel.app</code></li>
+    <li>Đăng ký tài khoản → chờ admin duyệt (status <code>pending</code> → <code>active</code>)</li>
+    <li>Sau khi được duyệt → đăng nhập, dùng được ngay</li>
+  </ol>
+
+  <h3>Các trang chính (URL riêng)</h3>
+  <ul>
+    <li><code>#submit</code> — Nộp bài chấm điểm</li>
+    <li><code>#history</code> — Lịch sử bài đã chấm</li>
+    <li><code>#query</code> — Query Fan-out research</li>
+    <li><code>#aeo</code> — Checklist AEO 43 mục</li>
+    <li><code>#admin</code> — Admin panel (chỉ admin)</li>
+  </ul>
+</section>
+
+<!-- ── 2. WORKFLOW ── -->
+<section id="workflow">
+  <h2><span class="h2-num">2</span>Quy trình 6 bước viết bài AEO chuẩn TPI</h2>
+
+  <p>Đây là quy trình chuẩn — <strong>luôn làm đúng thứ tự</strong>. Bỏ bước nào cũng làm bài kém chất lượng.</p>
+
+  <div class="workflow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Research bằng Query Fan-out</div>
+        <div class="step-desc">Nhập Seed Query → AI sinh 10+ nhánh truy vấn liên quan, semantic keywords, gợi ý Hub & Spoke. Mục tiêu: hiểu khách hỏi gì, dùng từ nào.</div>
+        <span class="step-meta">⏱ 2–3 phút · 🤖 1 LLM call</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Lọc trùng lặp với Semantic Clustering</div>
+        <div class="step-desc">Nhấn nút "🔗 Cụm ngữ nghĩa" → AI phát hiện nhánh trùng ý nghĩa để tránh keyword cannibalization. Gộp nhánh trùng thành 1 bài duy nhất.</div>
+        <span class="step-meta">⏱ 1 phút · 🤖 1 LLM call</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Lập Outline & Brief</div>
+        <div class="step-desc">Từ kết quả Query Fan-out, chọn 1 nhánh ưu tiên cao nhất (priority_score ≥8) làm bài Hub. Lập outline H1/H2/H3 dựa trên user_questions thực tế.</div>
+        <span class="step-meta">⏱ 15–20 phút · ✍ Thủ công</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Viết bài chuẩn 28 tiêu chí</div>
+        <div class="step-desc">Viết bài theo outline. Tuân thủ checklist E-E-A-T, AEO Answer-First, Số liệu cụ thể, NAP consistency, Definition Sentence. Tham khảo <a href="rubric-guide.html" class="inline-link">rubric-guide.html</a> chi tiết.</div>
+        <span class="step-meta">⏱ 2–4 giờ · ✍ Thủ công</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Chấm bài với Scorer</div>
+        <div class="step-desc">Paste bài vào Submit page → AI chấm theo 28 tiêu chí → trả về điểm tổng (target ≥70), Fix Cards với vị trí cụ thể, checklist auto-check.</div>
+        <span class="step-meta">⏱ 1–2 phút · 🤖 2 LLM calls</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <div class="step-title">Sửa theo Fix Cards & Resubmit</div>
+        <div class="step-desc">Sửa các Fix Cards Critical (≥5đ) trước, Major sau, Minor cuối. Resubmit cho đến khi đạt ≥70đ. Xuất bản khi pass.</div>
+        <span class="step-meta">⏱ 30–60 phút/vòng · ✍ + 🤖</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Kết quả mong đợi</div>
+    1 bài chuẩn quy trình = <strong>≥70đ</strong> sau 1–2 vòng sửa. Bài đạt 85–100đ có cơ hội cao xuất hiện trong AI Overviews.
+  </div>
+</section>
+
+<!-- ── 3. QUERY FAN-OUT ── -->
+<section id="query-fanout">
+  <h2><span class="h2-num">3</span>Query Fan-out — Research giai đoạn 1</h2>
+
+  <p>Truy cập: <code>https://tpi-scorer.vercel.app/#query</code></p>
+
+  <h3>3.1. Cách điền form</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%">Trường</th>
+        <th style="width:15%">Bắt buộc</th>
+        <th>Cách điền</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Seed Query</strong></td>
+        <td>✅ Có</td>
+        <td>Câu hỏi khách hàng thật, dài 6–15 từ. VD: <em>"Có nên mua Thanh Phú Centre Point thời điểm này?"</em></td>
+      </tr>
+      <tr>
+        <td><strong>Entity / Tên dự án</strong></td>
+        <td>✅ Có</td>
+        <td>Tên chính xác của dự án/khu vực. VD: <em>"Thanh Phú Centre Point Long An"</em></td>
+      </tr>
+      <tr>
+        <td><strong>Market Context</strong></td>
+        <td>Tùy chọn</td>
+        <td>Bối cảnh thị trường, pháp lý, giá, tiến độ — giúp AI sinh query sát thực tế hơn</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h4>Advanced Settings</h4>
+  <ul>
+    <li><strong>Intent</strong>: <code>auto</code> (đề xuất) hoặc chọn Thông tin / Thương mại / Điều hướng / Giao dịch</li>
+    <li><strong>Branch count</strong>: 10 (mặc định) — đủ cho 1 chủ đề trung bình. Tăng 15–20 nếu chủ đề lớn</li>
+    <li><strong>Keyword count</strong>: 10–20 — số lượng semantic keywords sinh ra</li>
+  </ul>
+
+  <h3>3.2. Đọc kết quả Query Fan-out</h3>
+
+  <p>Kết quả chia làm 4 phần:</p>
+
+  <h4>🌐 Phần 1: Bản đồ Query Fan-out</h4>
+  <p>Mỗi card là 1 "nhánh tia" mà AI sẽ dùng để tổng hợp câu trả lời. Card gồm:</p>
+  <ul>
+    <li><strong>Tên nhánh</strong> + <strong>Priority Score</strong> (1–10): ưu tiên viết bài cho nhánh điểm cao trước</li>
+    <li><strong>🔍 Query Fan-out (SEO)</strong>: 3–5 cụm từ khóa ngắn 4–8 từ — dùng cho meta, H2, internal link</li>
+    <li><strong>💬 Câu hỏi người dùng (NLP)</strong>: 3–5 câu dài ≥10 từ — dùng làm H2/H3 trong bài, mô phỏng giọng khách hỏi</li>
+  </ul>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">💡 Tip dùng SEO + NLP cùng lúc</div>
+    <strong>SEO query</strong> dùng cho phần kỹ thuật (meta title, slug, anchor text). <strong>NLP question</strong> dùng làm headings tự nhiên trong bài để bắt long-tail voice search.
+  </div>
+
+  <h4>🔤 Phần 2: Semantic Keywords (Knowledge Graph)</h4>
+  <p>3 nhóm chip màu:</p>
+  <ul>
+    <li><span class="badge badge-orange">🎯 Core Entities</span> — BẮT BUỘC xuất hiện trong bài, là từ khóa chính</li>
+    <li><span class="badge badge-blue">📎 Supporting Terms</span> — nên có, củng cố ngữ cảnh chủ đề</li>
+    <li><span class="badge badge-purple">⚡ Action Modifiers</span> — từ hành động/cảm xúc khách dùng ("có nên", "lừa đảo không")</li>
+  </ul>
+  <p>Nhấn nút <strong>📋 Copy tất cả LSI keywords</strong> để paste vào Notes khi viết outline.</p>
+
+  <h4>🏗 Phần 3: Kiến trúc Hub & Spoke</h4>
+  <ul>
+    <li><strong>Bài HUB (Pillar)</strong>: bài tổng quan 2000–3000 từ, bao quát toàn chủ đề</li>
+    <li><strong>Bài SPOKE</strong>: 3–5 bài chuyên sâu 1200–1800 từ, mỗi bài đào sâu 1 nhánh</li>
+  </ul>
+  <p>Hub link đến Spoke. Spoke link ngược về Hub. Đây là chiến lược internal link chuẩn AEO.</p>
+
+  <h4>✍ Phần 4: 60 Chữ Vàng (Bite-sized AEO Answers)</h4>
+  <p>Mỗi item là 1 đoạn ≤60 từ trả lời thẳng 1 query cụ thể. <strong>Đặt ngay sau H2</strong> trong bài → AI Overviews sẽ ưu tiên trích dẫn đoạn này.</p>
+
+  <h3>3.3. Export Markdown để gửi cho team</h3>
+  <p>Nhấn nút <strong>📥 Markdown</strong> → tải file <code>.md</code> chứa toàn bộ kết quả. Gửi qua Slack/Telegram cho writer.</p>
+
+  <h3>3.4. Lịch sử & JSON Editor</h3>
+  <ul>
+    <li><strong>History chips</strong>: 5 lần research gần nhất hiện ở đầu page, click để load lại</li>
+    <li><strong>🗒 Edit JSON</strong>: sửa raw JSON nếu muốn tinh chỉnh kết quả AI mà không gọi lại</li>
+    <li><strong>Ctrl+Enter</strong>: phím tắt chạy phân tích từ bất kỳ field nào</li>
+  </ul>
+</section>
+
+<!-- ── 4. CLUSTERING ── -->
+<section id="clustering">
+  <h2><span class="h2-num">4</span>Semantic Clustering — Tránh Cannibalization</h2>
+
+  <p>Sau khi có kết quả Query Fan-out, <strong>luôn bấm</strong> nút <strong>🔗 Cụm ngữ nghĩa</strong> để AI phát hiện các nhánh trùng ý nghĩa.</p>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Keyword Cannibalization là gì?</div>
+    Khi 2 bài viết cùng website nhắm trùng ý nghĩa → Google không biết hiển thị bài nào → cả 2 bài đều rớt hạng. Đây là lỗi nghiêm trọng với site BĐS lớn như TPI Land.
+  </div>
+
+  <h3>Cách đọc kết quả clustering</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%">Hiển thị</th>
+        <th>Ý nghĩa</th>
+        <th>Xử lý</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-green">✅ Giữ lại — Nhóm #1</span></td>
+        <td>Nhánh chính được AI gợi ý giữ trong nhóm trùng</td>
+        <td>Viết 1 bài Spoke cho nhánh này</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-orange">⚠️ Trùng với "X" (85%)</span></td>
+        <td>Nhánh này trùng ý nghĩa với nhánh khác → card mờ đi</td>
+        <td><strong>Không viết bài riêng</strong>, gộp ý vào bài "X"</td>
+      </tr>
+      <tr>
+        <td>Card bình thường (không badge)</td>
+        <td>Nhánh độc lập, không trùng ai</td>
+        <td>Viết 1 bài Spoke riêng</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Phần dưới hiện <strong>tóm tắt các nhóm trùng</strong> + gợi ý merge ("Gộp thành 1 bài: [tên đề xuất]").</p>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Best practice</div>
+    Nếu 10 nhánh → 2 nhóm trùng (5 nhánh) → 5 nhánh độc lập + 2 nhánh chính = <strong>chỉ viết 7 bài Spoke</strong> thay vì 10. Tiết kiệm 30% effort, tránh cannibalization.
+  </div>
+</section>
+
+<!-- ── 5. OUTLINE ── -->
+<section id="outline">
+  <h2><span class="h2-num">5</span>Lập Outline & Brief</h2>
+
+  <p>Đây là bước <strong>quan trọng nhất</strong> — outline tốt = bài viết tốt. Đừng bắt đầu viết khi outline chưa rõ.</p>
+
+  <h3>5.1. Cấu trúc bài chuẩn AEO</h3>
+
+  <pre><code>H1: [Tên chủ đề + Năm hiện tại] — vd: "Thanh Phú Centre Point 2026: Có Nên Mua?"
+   ├─ Đoạn mở đầu: 40–70 từ — TRẢ LỜI THẲNG câu hỏi chính (Answer-First)
+   ├─ Câu định nghĩa: "{Entity} là..." (trong 1500 ký tự đầu)
+   │
+   ├─ H2: [Câu hỏi NLP từ Query Fan-out]
+   │   ├─ 60 chữ vàng: đoạn ≤60 từ trả lời thẳng
+   │   ├─ Số liệu cụ thể (giá, m², năm)
+   │   └─ Internal link đến bài Hub
+   │
+   ├─ H2: [Câu hỏi NLP thứ 2]
+   │   ├─ Bảng so sánh hoặc danh sách (cho GEO)
+   │   └─ Câu chuyện thực tế / case study (E1)
+   │
+   ├─ H2: FAQ (3–5 câu)
+   │   ├─ H3: Câu hỏi 1 → trả lời ≤100 từ
+   │   ├─ H3: Câu hỏi 2 → trả lời ≤100 từ
+   │   └─ H3: Câu hỏi 3 → trả lời ≤100 từ
+   │
+   └─ H2: Kết luận + CTA
+       ├─ NAP TPI Land (Name + Address + Phone)
+       └─ Tên + chức danh tư vấn viên (E2)
+</code></pre>
+
+  <h3>5.2. Brief template cho writer</h3>
+
+  <pre><code># BRIEF: [Tên bài]
+
+## Meta
+- Keyword chính: [từ Core Entities]
+- Search Intent: [Thông tin / Thương mại / Giao dịch]
+- Word count target: 1500–2000
+- Target score: ≥75
+
+## H1
+[Tiêu đề chứa keyword + năm 2026]
+
+## Outline H2
+1. [H2 lấy từ user_questions của Query Fan-out]
+2. [H2 lấy từ user_questions]
+3. ...
+
+## Semantic Keywords BẮT BUỘC xuất hiện
+- Core: [paste từ clipboard]
+- Supporting: [paste]
+- Modifiers: [paste]
+
+## E-E-A-T signals cần có
+- [ ] Câu chuyện thực tế / dẫn lời khách thật (E1)
+- [ ] Tên + chức danh người viết/tư vấn (E2)
+- [ ] Ngày cập nhật dữ liệu năm 2026 (E3)
+
+## CTA cuối bài
+- NAP: TPI Land, [địa chỉ], 0xxx-xxx-xxx
+- Link đến Hub: [URL]
+</code></pre>
+</section>
+
+<!-- ── 6. WRITING ── -->
+<section id="writing">
+  <h2><span class="h2-num">6</span>Viết bài chuẩn 28 tiêu chí</h2>
+
+  <p>Chi tiết đầy đủ 28 tiêu chí xem <a href="rubric-guide.html" class="inline-link">rubric-guide.html</a>. Dưới đây là <strong>10 nguyên tắc bất khả xâm phạm</strong> — vi phạm 1 trong số này = mất 5–10đ.</p>
+
+  <h3>6.1. Top 10 nguyên tắc bắt buộc</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:5%">#</th>
+        <th style="width:30%">Nguyên tắc</th>
+        <th>Cách làm đúng</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Answer-First</strong></td><td>Đoạn sau H1 phải 40–70 từ, trả lời thẳng câu hỏi chính. KHÔNG mở bài lan man.</td></tr>
+      <tr><td>2</td><td><strong>Câu định nghĩa</strong></td><td>Có 1 câu dạng "{Entity} là..." trong 1500 ký tự đầu</td></tr>
+      <tr><td>3</td><td><strong>Số liệu cụ thể</strong></td><td>≥1 số liệu cho mỗi 300 từ. Giá, diện tích, năm, %, m². Không dùng "rất nhiều", "khá lớn"</td></tr>
+      <tr><td>4</td><td><strong>Be Certain</strong></td><td>KHÔNG dùng "có thể", "có lẽ", "khoảng", "tương đối". Khẳng định chắc chắn</td></tr>
+      <tr><td>5</td><td><strong>First-hand E1</strong></td><td>Có 1 đoạn dẫn lời khách thật / kinh nghiệm khảo sát / hình ảnh thực tế</td></tr>
+      <tr><td>6</td><td><strong>Author E2</strong></td><td>Cuối bài có tên + chức danh người viết/tư vấn (vd: "Nguyễn Văn A — Trưởng phòng tư vấn TPI Land")</td></tr>
+      <tr><td>7</td><td><strong>Freshness E3</strong></td><td>Có ngày cập nhật năm 2026 trong bài. Vd: "Cập nhật giá tháng 5/2026"</td></tr>
+      <tr><td>8</td><td><strong>Bảng/Danh sách G2</strong></td><td>Có ≥1 bảng HTML và ≥1 danh sách số. AI Overviews ưu tiên trích từ format này</td></tr>
+      <tr><td>9</td><td><strong>NAP G3</strong></td><td>30% cuối bài có đầy đủ Name + Address + Phone TPI Land</td></tr>
+      <tr><td>10</td><td><strong>FAQ Schema-Ready</strong></td><td>Có section FAQ với H3 là câu hỏi, đáp ≤100 từ/câu. AI/Schema sẽ parse được</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>6.2. Ví dụ Answer-First chuẩn</h3>
+
+  <div class="example">
+    <div class="example-card bad">
+      <div class="example-label">❌ Sai — lan man</div>
+      <div class="example-text">"Thị trường BĐS Long An đang sôi động với nhiều dự án mới. Trong số đó, Thanh Phú Centre Point nổi lên như một lựa chọn đáng cân nhắc cho các nhà đầu tư..."</div>
+    </div>
+    <div class="example-card good">
+      <div class="example-label">✅ Đúng — Answer-First</div>
+      <div class="example-text">"Thanh Phú Centre Point đáng mua năm 2026 với 3 lý do: pháp lý đã có sổ riêng từng nền (4/2026), giá 18 triệu/m² thấp hơn Waterpoint 22%, và liên kết cao tốc Bến Lức chỉ 35 phút về Quận 7."</div>
+    </div>
+  </div>
+
+  <h3>6.3. Ví dụ Số liệu cụ thể</h3>
+
+  <div class="example">
+    <div class="example-card bad">
+      <div class="example-label">❌ Chung chung</div>
+      <div class="example-text">"Dự án có vị trí khá đẹp, giá cũng phải chăng, tiện ích đầy đủ và pháp lý ổn."</div>
+    </div>
+    <div class="example-card good">
+      <div class="example-label">✅ Cụ thể</div>
+      <div class="example-text">"Dự án cách Quận 7 35km (35 phút qua cao tốc Bến Lức), giá 18 triệu/m² (thấp hơn Waterpoint 22%), 12 tiện ích nội khu, sổ riêng từng nền cấp tháng 4/2026."</div>
+    </div>
+  </div>
+
+  <h3>6.4. Ví dụ NAP đúng chuẩn</h3>
+
+  <pre><code>📍 TPI Land — Đơn vị phân phối chính thức
+Địa chỉ: 123 Đường ABC, Phường XYZ, TP. Vũng Tàu, Bà Rịa - Vũng Tàu
+Hotline: 0901-234-567
+Website: tpiland.com.vn
+
+Tư vấn trực tiếp: Nguyễn Văn A — Trưởng phòng kinh doanh
+"Khách hàng có thể đến văn phòng TPI Land tại Vũng Tàu để xem mặt bằng
+chi tiết, hoặc đăng ký xem dự án vào thứ 7 hàng tuần."
+</code></pre>
+
+  <div class="callout callout-info">
+    <div class="callout-title">🎯 Tip viết Câu định nghĩa (A3)</div>
+    Cấu trúc: <code>{Tên dự án} là {loại sản phẩm} {vị trí} do {chủ đầu tư} phát triển, {điểm nhấn chính}.</code><br>
+    VD: <em>"Thanh Phú Centre Point là khu đô thị compound 25 ha tại Bến Lức, Long An do TPI Group phát triển, ra mắt 2026 với pháp lý sổ đỏ từng nền."</em>
+  </div>
+</section>
+
+<!-- ── 7. SCORING ── -->
+<section id="scoring">
+  <h2><span class="h2-num">7</span>Chấm bài với Scorer</h2>
+
+  <p>Truy cập: <code>https://tpi-scorer.vercel.app/#submit</code></p>
+
+  <h3>7.1. Cách nhập bài</h3>
+
+  <p>2 cách:</p>
+  <ul>
+    <li><strong>Tab Paste</strong>: copy bài từ Google Docs/Word → paste vào ô contenteditable. Giữ format heading (H1, H2, H3)</li>
+    <li><strong>Tab URL Fetch</strong>: dán link bài đã publish (WordPress, Google Docs public) → app tự fetch</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Lưu ý khi paste từ Google Docs</div>
+    Google Docs đôi khi mất format heading khi copy. Kiểm tra ngay sau paste — nếu H1/H2 mất, dùng nút "Format heading" hoặc paste qua trung gian (Notepad → app).
+  </div>
+
+  <h3>7.2. Điền meta data</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:25%">Trường</th><th>Mô tả</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Keyword chính</strong></td><td>Từ khóa SEO chính của bài. VD: "thanh phú centre point"</td></tr>
+      <tr><td><strong>Main Entity</strong></td><td>Tên thực thể chính. Thường giống keyword</td></tr>
+      <tr><td><strong>Search Intent</strong></td><td>Know / Do / Hybrid / Go — chọn 1</td></tr>
+      <tr><td><strong>Notes (tùy chọn)</strong></td><td>Ghi chú gì cần lưu ý khi chấm</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>7.3. Đọc kết quả — 3 tabs</h3>
+
+  <h4>🛠 Tab Fix Cards</h4>
+  <p>Danh sách lỗi cụ thể chia 3 mức:</p>
+  <ul>
+    <li><span class="badge badge-orange">Critical (≥5đ mất)</span> — Sửa NGAY, ưu tiên 1</li>
+    <li><span class="badge badge-purple">Major (3–4.99đ)</span> — Sửa sau Critical</li>
+    <li><span class="badge badge-blue">Minor (&lt;3đ)</span> — Sửa cuối cùng nếu còn time</li>
+  </ul>
+  <p>Mỗi card có <strong>vị trí cụ thể</strong> (đoạn nào, dòng nào) và <strong>gợi ý fix</strong>.</p>
+
+  <h4>📋 Tab Checklist</h4>
+  <p>43 mục checklist AEO. 3 loại badge:</p>
+  <ul>
+    <li><strong>🤖 auto</strong> — đã tự check từ rubric (20 mục)</li>
+    <li><strong>🤝 AI</strong> — nhấn nút AI check để chấm (11 mục, ~$0.002)</li>
+    <li><strong>👁 manual</strong> — tự kiểm tra mắt thường (12 mục)</li>
+  </ul>
+
+  <h4>📊 Tab Chi tiết</h4>
+  <p>Bảng điểm chi tiết 28 tiêu chí + breakdown 4 tier (Cấu trúc 27đ + Đoạn 22đ + RPP 24đ + IG 27đ = 100đ).</p>
+
+  <h3>7.4. Hiểu severity & priority</h3>
+
+  <p>App tự sort Fix Cards theo công thức: <code>severity × (1 + priority_bonus)</code>. Cứ làm từ trên xuống dưới là tối ưu.</p>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">💰 Chi phí mỗi lần chấm</div>
+    ~$0.02 USD / bài (balanced mode). Mỗi user có quota hàng ngày do admin set (default 5 bài/ngày).
+  </div>
+</section>
+
+<!-- ── 8. ITERATE ── -->
+<section id="iterate">
+  <h2><span class="h2-num">8</span>Sửa bài theo Fix Cards</h2>
+
+  <h3>8.1. Workflow sửa bài</h3>
+
+  <ol>
+    <li><strong>Đọc tổng điểm</strong>: dưới 50 → sửa lớn (reorganize), 50–70 → sửa nhỏ (fix gaps), 70+ → chỉ refine</li>
+    <li><strong>Mở tab Fix Cards</strong>: bắt đầu từ Critical xuống</li>
+    <li><strong>Mỗi Fix Card</strong>: đọc "issue" + "fix suggestion" + đến đúng vị trí trong bài để sửa</li>
+    <li><strong>Sau khi sửa 3–5 cards</strong>: resubmit lại</li>
+    <li><strong>Lặp lại</strong> đến khi đạt ≥70đ (target ≥80đ cho bài quan trọng)</li>
+  </ol>
+
+  <h3>8.2. Quy tắc sửa bài</h3>
+
+  <div class="callout callout-error">
+    <div class="callout-title">❌ KHÔNG được làm</div>
+    <ul style="margin-bottom:0">
+      <li>Nhồi keyword giả tạo để qua điểm (AI sẽ phát hiện, mất điểm I3 Tránh văn phong AI)</li>
+      <li>Copy-paste giữa các bài (sẽ trùng ngữ nghĩa → cannibalization)</li>
+      <li>Bịa số liệu giả (sai số liệu = sai E-E-A-T Trustworthiness)</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ NÊN làm</div>
+    <ul style="margin-bottom:0">
+      <li>Mỗi lần sửa = focus vào 3–5 Fix Cards Critical/Major</li>
+      <li>Đếm lại số liệu, kiểm tra từng tên dự án, đường, năm</li>
+      <li>Đọc to bài lên 1 lần — phát hiện câu cụt, mơ hồ</li>
+      <li>Nếu điểm không lên sau 2 vòng sửa → đổi tiếp cận chủ đề</li>
+    </ul>
+  </div>
+
+  <h3>8.3. Khi nào dừng sửa?</h3>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:20%">Điểm</th><th>Hành động</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>&lt;50</td><td>Viết lại — quá nhiều lỗi cơ bản</td></tr>
+      <tr><td>50–69</td><td>Bắt buộc sửa — chưa đủ pass</td></tr>
+      <tr><td>70–79</td><td>Đạt — có thể publish nếu gấp, nên sửa thêm</td></tr>
+      <tr><td>80–89</td><td>Tốt — publish được</td></tr>
+      <tr><td>≥90</td><td>Xuất sắc — có khả năng cao vào AI Overviews</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ── 9. ADMIN ── -->
+<section id="admin">
+  <h2><span class="h2-num">9</span>Hướng dẫn cho Admin</h2>
+
+  <p>Phần này dành cho admin TPI Land cấu hình hệ thống lần đầu.</p>
+
+  <h3>9.1. Setup API key trên Vercel (1 lần duy nhất)</h3>
+
+  <ol>
+    <li>Vào <a href="https://vercel.com" class="inline-link" target="_blank">vercel.com</a> → project <code>tpi-scorer</code></li>
+    <li>Tab <strong>Settings</strong> → <strong>Environment Variables</strong></li>
+    <li>Thêm 2 biến (Production + Preview):
+      <ul>
+        <li><code>LLM_ENDPOINT</code> = <code>https://llm.chiasegpu.vn/v1</code> (hoặc endpoint khác)</li>
+        <li><code>LLM_API_KEY</code> = key chiasegpu.vn (sensitive)</li>
+      </ul>
+    </li>
+    <li>Save → Redeploy (hoặc đợi auto-deploy lần sau)</li>
+  </ol>
+
+  <div class="callout callout-info">
+    <div class="callout-title">🔒 Bảo mật</div>
+    Key chỉ lưu server-side. User không cần và không thể nhập key. Tất cả LLM call đi qua proxy <code>/api/claude</code>.
+  </div>
+
+  <h3>9.2. Cấu hình model trong app</h3>
+
+  <p>Vào <code>https://tpi-scorer.vercel.app/#admin</code> → phần <strong>API & Model</strong>:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:25%">Field</th><th>Vai trò</th><th style="width:35%">Đề xuất</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>model</code></td><td>Chấm tiêu chí đơn giản (Tier 1–2)</td><td><code>ant/claude-haiku-4-5</code> hoặc Gemini Flash</td></tr>
+      <tr><td><code>model_complex</code></td><td>Chấm tiêu chí phức tạp (Tier 3–4)</td><td><code>ant/claude-sonnet-4-6</code> hoặc Gemini Pro</td></tr>
+      <tr><td><code>qf_model</code></td><td>Model cho Query Fan-out</td><td><code>gemini-2.5-flash</code> hoặc Sonnet</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Sau khi nhập, nhấn <strong>Test</strong> để kiểm tra kết nối → <strong>Lưu cấu hình</strong>.</p>
+
+  <h3>9.3. Quản lý user</h3>
+
+  <ul>
+    <li><strong>Duyệt user mới</strong>: user đăng ký xong status <code>pending</code> → admin duyệt → status <code>active</code></li>
+    <li><strong>Đổi dailyLimit</strong>: per-user, mặc định 5 bài/ngày</li>
+    <li><strong>Vô hiệu hóa user</strong>: đổi status về <code>suspended</code></li>
+  </ul>
+
+  <h3>9.4. Đổi mật khẩu admin</h3>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Bắt buộc làm sau khi deploy</div>
+    Mật khẩu mặc định là <code>admin2024</code>. Đổi ngay lần đầu đăng nhập trong Admin panel.
+  </div>
+
+  <h3>9.5. Vercel timeout config</h3>
+
+  <p>File <code>vercel.json</code> đã set <code>maxDuration: 60</code> (giây). Đủ cho hầu hết QF call. Nếu vẫn timeout thường xuyên:</p>
+  <ul>
+    <li>Đổi <code>qf_model</code> sang model nhanh hơn (Haiku, Flash)</li>
+    <li>Giảm Branch count xuống 8 trong Advanced Settings</li>
+    <li>Upgrade Vercel Pro plan (max 300s)</li>
+  </ul>
+</section>
+
+<!-- ── 10. FAQ ── -->
+<section id="faq">
+  <h2><span class="h2-num">10</span>FAQ & Troubleshooting</h2>
+
+  <details class="faq">
+    <summary>❓ Lỗi HTTP 405 khi chấm bài</summary>
+    <div class="faq-body">
+      <p><strong>Nguyên nhân:</strong> Vercel env vars chưa cấu hình, hoặc <code>LLM_ENDPOINT</code> sai path.</p>
+      <p><strong>Fix:</strong> Admin vào Vercel → Environment Variables → kiểm tra <code>LLM_ENDPOINT</code> kết thúc bằng <code>/v1</code> (không có <code>/chat/completions</code>). Redeploy.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Lỗi HTTP 504 / FUNCTION_INVOCATION_TIMEOUT</summary>
+    <div class="faq-body">
+      <p><strong>Nguyên nhân:</strong> LLM call quá lâu, vượt 60s timeout của Vercel.</p>
+      <p><strong>Fix:</strong> Đổi <code>qf_model</code> sang model nhanh hơn (Haiku/Flash). Giảm Branch count xuống 8. Nếu vẫn lỗi, upgrade Vercel Pro plan.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Lỗi "JSON parse fail" khi chạy Query Fan-out</summary>
+    <div class="faq-body">
+      <p><strong>Nguyên nhân:</strong> Phản hồi AI bị cắt giữa chừng (truncation) do hết token output.</p>
+      <p><strong>Fix:</strong> Hệ thống đã có auto-recovery — sẽ cứu các nhánh đã sinh được. Nếu vẫn fail, retry 2–3 lần (AI provider đôi khi flaky). Hoặc giảm Branch count.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Sao bài tôi viết kỹ vẫn dưới 70đ?</summary>
+    <div class="faq-body">
+      <p>Thường do bỏ qua 3 nhóm tiêu chí quan trọng:</p>
+      <ol>
+        <li><strong>E-E-A-T (E1/E2/E3)</strong>: chưa có câu chuyện thực tế, tên tác giả, ngày cập nhật → mất 8đ</li>
+        <li><strong>GEO (G2/G3)</strong>: chưa có bảng HTML, NAP cuối bài → mất 5đ</li>
+        <li><strong>AEO (A1/A2)</strong>: đoạn mở đầu không Answer-First, FAQ thiếu format → mất 6đ</li>
+      </ol>
+      <p>Đọc kỹ <a href="rubric-guide.html" class="inline-link">rubric-guide.html</a> để hiểu từng tiêu chí.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Khi nào nên dùng Query Fan-out trước khi viết?</summary>
+    <div class="faq-body">
+      <p><strong>LUÔN LUÔN</strong> dùng trước khi viết bài mới. Lý do:</p>
+      <ul>
+        <li>Tránh viết trùng ý nghĩa với bài cũ (cannibalization)</li>
+        <li>Bắt đúng giọng khách hỏi → bài tự nhiên hơn</li>
+        <li>Có sẵn semantic keywords để chèn vào bài</li>
+        <li>Có gợi ý outline H2 ngay từ user_questions</li>
+      </ul>
+      <p>Bỏ qua bước này = viết bài "blind" = điểm thấp.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Có thể chỉnh sửa rubric không?</summary>
+    <div class="faq-body">
+      <p>Rubric v3.0 (28 tiêu chí, 100đ, pass=70) là chuẩn TPI Land đã lock. Không sửa từng tiêu chí trong app.</p>
+      <p>Nếu muốn nâng cấp toàn bộ rubric → cần phát triển v4.0 (yêu cầu Jimmy T7 duyệt). File <code>src/rubric.tpi-v3.json</code> là nguồn thật.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Export báo cáo ra Markdown được không?</summary>
+    <div class="faq-body">
+      <p>Query Fan-out: có nút <strong>📥 Markdown</strong> ngay trong result.</p>
+      <p>Scorer: hiện tại chưa có nút export — đang trong roadmap (P1). Workaround: copy nội dung 3 tabs ra Notepad.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Phím tắt nào hữu ích?</summary>
+    <div class="faq-body">
+      <ul>
+        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd>: chạy Query Fan-out từ bất kỳ field nào</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> (trong Paste): submit bài chấm</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Lịch sử bài chấm lưu ở đâu?</summary>
+    <div class="faq-body">
+      <p>localStorage browser, key <code>tpi_submissions</code>. Tối đa 200 bài gần nhất. Nếu xóa cache browser → mất lịch sử.</p>
+      <p>Backup quan trọng: export bằng JSON Editor trong Query Fan-out, hoặc screenshot kết quả chấm.</p>
+    </div>
+  </details>
+
+  <details class="faq">
+    <summary>❓ Tại sao không cho user nhập API key riêng?</summary>
+    <div class="faq-body">
+      <p>Lý do bảo mật + đơn giản:</p>
+      <ul>
+        <li>Tránh user lộ key cá nhân → tiền mất, account bị treo</li>
+        <li>Admin kiểm soát chi phí toàn công ty từ 1 chỗ</li>
+        <li>User chỉ cần đăng nhập, không phải hiểu kỹ thuật</li>
+        <li>Đổi provider/model: admin đổi 1 lần, tất cả user áp dụng ngay</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<footer>
+  TPI Content Scorer · Quy trình viết bài AEO · Author: Jimmy T7 · TPI Land<br>
+  Cập nhật cuối: 28/05/2026 · v3.0.0
+</footer>
+
+</div>
+
+</body>
+</html>

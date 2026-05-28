@@ -1709,7 +1709,9 @@ function renderTopbar() {
   ];
   nav.innerHTML = views.map(v =>
     `<button class="nav-btn syne" id="nav-${v.id}" onclick="showView('${v.id}')">${v.label}</button>`
-  ).join('');
+  ).join('') +
+    `<a class="nav-btn syne" href="user-guide.html" target="_blank" style="text-decoration:none" title="Hướng dẫn sử dụng">📖 Hướng dẫn</a>` +
+    `<a class="nav-btn syne" href="rubric-guide.html" target="_blank" style="text-decoration:none" title="28 tiêu chí chấm">📋 Rubric</a>`;
 
   document.getElementById('user-label').textContent = currentUser.name;
   const dot = document.getElementById('user-dot');
