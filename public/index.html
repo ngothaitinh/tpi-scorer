@@ -3204,6 +3204,7 @@ function renderResult(wrap, sub, reasons, allScores) {
       <div class="result-actions">
         <button class="btn-action" onclick="document.getElementById('form-wrap')?.scrollIntoView({behavior:'smooth'})">🔄 Chấm lại</button>
         <button class="btn-action" id="btn-export-md" onclick="exportMarkdown && exportMarkdown()">📤 Export MD</button>
+        <button class="btn-action" onclick="exportFixesForGem()" style="background:#6366f1;border-color:#6366f1;color:#fff" title="Tạo file fix brief tối ưu cho Gemini Gem — gồm issues cần sửa, vị trí cụ thể, hướng dẫn cho Gem">📤 Sửa với Gem</button>
       </div>
     </div>
     <!-- RIGHT: tabs -->
@@ -3392,6 +3393,156 @@ _Báo cáo tạo bởi [TPI Content Scorer](https://aeotpi.netlify.app/) · Rubr
   URL.revokeObjectURL(url);
 
   _showToast('✓ Đã tải báo cáo Markdown!', 'success');
+}
+
+// ============================================================
+// EXPORT FIX BRIEF CHO GEMINI GEM
+// ============================================================
+function exportFixesForGem() {
+  const r = window._currentResult;
+  if (!r) { _showToast('Chưa có kết quả để export.', 'warn'); return; }
+  const { sub, reasons, allScores } = r;
+
+  const totalRnd = Math.round(sub.total * 10) / 10;
+  const status   = sub.passed ? '✓ ĐẠT CHUẨN' : '✗ CHƯA ĐẠT';
+  const dateStr  = sub.date ? sub.date.slice(0, 10) : '—';
+  const deficit  = 100 - sub.total;
+
+  const sevLabel = f => {
+    const max   = CRITERION_MAX[f.criterion_id] || 5;
+    const score = allScores ? (allScores[f.criterion_id] ?? max) : max;
+    const d     = max - score;
+    if (d >= 5) return '🔴 Critical';
+    if (d >= 3) return '🟡 Major';
+    return '🟢 Minor';
+  };
+
+  const tiers = [
+    { label: 'T1 — Cấu trúc & Ngữ cảnh',              ids: ['S1','S2','S3','S4','S5','A3','G3','E3'],        max: 27 },
+    { label: 'T2 — Chất lượng đoạn & AEO+SI',          ids: ['P1','P2','P3','P4','P5','P6','A1','A2','SI2'],  max: 22 },
+    { label: 'T3 — RPP & Entity & SI & HCU',            ids: ['R1','R2','R3','R4','R5','SI1','HC1'],           max: 24 },
+    { label: 'T4 — Information Gain & GEO & E-E-A-T',  ids: ['I1','I2','I3','I4','G1','G2','E1','E2'],        max: 27 },
+  ];
+
+  // Tìm tầng yếu nhất
+  const tierScores = tiers.map((t, i) => {
+    const td  = sub.tierBreakdown?.[i];
+    const sc  = td ? td.score : t.ids.reduce((a, id) => a + (allScores?.[id] ?? 0), 0);
+    const pct = Math.round(sc / t.max * 100);
+    return { label: t.label, score: Math.round(sc * 10) / 10, max: t.max, pct };
+  });
+
+  const weakTiers = tierScores.filter(t => t.pct < 70).sort((a, b) => a.pct - b.pct);
+
+  // Fix cards theo severity
+  const critical = sub.top5.filter(f => sevLabel(f) === '🔴 Critical');
+  const major    = sub.top5.filter(f => sevLabel(f) === '🟡 Major');
+  const minor    = sub.top5.filter(f => sevLabel(f) === '🟢 Minor');
+
+  const renderFix = f => {
+    const cname = CRITERION_NAMES[f.criterion_id] || f.criterion_id;
+    const max   = CRITERION_MAX[f.criterion_id] || 5;
+    const got   = allScores?.[f.criterion_id] ?? max;
+    return `**${f.criterion_id} — ${cname}** (đạt ${Math.round(got * 10) / 10}/${max})
+📍 Vị trí: ${f.location || 'Toàn bài'}
+❌ Vấn đề: ${f.issue}
+✅ Cách sửa: ${f.fix}`;
+  };
+
+  // Build brief
+  let md = '';
+  md += `# 🔧 YÊU CẦU SỬA BÀI — TPI Scorer Feedback\n\n`;
+  md += `> Brief này từ TPI Content Scorer. Gem đọc và sửa bài theo từng mục dưới đây.\n`;
+  md += `> Sau khi sửa xong, anh/chị paste bài lên **tpi-scorer.vercel.app** để chấm lại.\n\n`;
+  md += `---\n\n`;
+
+  // Score summary
+  md += `## 📊 Kết quả chấm điểm\n\n`;
+  md += `| | |\n|---|---|\n`;
+  md += `| **Keyword** | ${sub.keyword || '—'} |\n`;
+  md += `| **Entity** | ${sub.entity || '—'} |\n`;
+  md += `| **Tổng điểm** | **${totalRnd}/100 — ${status}** |\n`;
+  md += `| **Cần thêm** | ~${Math.ceil(deficit)} điểm để ${sub.passed ? 'đạt 90+' : 'pass 70'} |\n`;
+  md += `| **Phương thức** | ${sub.llmUsed ? 'AI (đầy đủ)' : 'Rule only (không AI)'} |\n`;
+  md += `| **Ngày chấm** | ${dateStr} |\n\n`;
+
+  // Tier scores
+  md += `### Điểm theo tầng\n\n`;
+  md += `| Tầng | Điểm | Tối đa | % |\n|------|-----:|-------:|--:|\n`;
+  tierScores.forEach((t, i) => {
+    const flag = t.pct < 70 ? ' ⚠️' : '';
+    md += `| T${i+1}: ${t.label.replace(/^T\d — /, '')} | ${t.score} | ${t.max} | ${t.pct}%${flag} |\n`;
+  });
+  md += `\n`;
+
+  if (weakTiers.length) {
+    md += `> ⚠️ **Tầng yếu nhất:** ${weakTiers.map(t => `${t.label.replace(/^T\d — /, '')} (${t.pct}%)`).join(', ')}\n\n`;
+  }
+
+  md += `---\n\n`;
+
+  // Fix cards
+  md += `## 🛠 Danh sách sửa (${sub.top5.length} mục)\n\n`;
+
+  if (sub.top5.length === 0) {
+    md += `_✓ Bài viết đạt chuẩn tốt. Không có vấn đề lớn cần sửa._\n\n`;
+  } else {
+    if (critical.length) {
+      md += `### 🔴 Critical — Sửa trước khi publish (${critical.length} mục)\n\n`;
+      critical.forEach(f => { md += renderFix(f); md += `\n\n---\n\n`; });
+    }
+    if (major.length) {
+      md += `### 🟡 Major — Nên sửa (${major.length} mục)\n\n`;
+      major.forEach(f => { md += renderFix(f); md += `\n\n---\n\n`; });
+    }
+    if (minor.length) {
+      md += `### 🟢 Minor — Polish khi có thời gian (${minor.length} mục)\n\n`;
+      minor.forEach(f => { md += renderFix(f); md += `\n\n---\n\n`; });
+    }
+  }
+
+  // Scores breakdown — top losing criteria
+  const losers = Object.entries(CRITERION_MAX)
+    .map(([id, max]) => ({ id, max, got: allScores?.[id] ?? max, deficit: max - (allScores?.[id] ?? max) }))
+    .filter(x => x.deficit > 0)
+    .sort((a, b) => b.deficit - a.deficit)
+    .slice(0, 8);
+
+  if (losers.length) {
+    md += `## 📋 Tiêu chí mất điểm nhiều nhất\n\n`;
+    md += `| ID | Tiêu chí | Đạt | Tối đa | Mất |\n|----|---------|----:|-------:|----:|\n`;
+    losers.forEach(x => {
+      const nm = CRITERION_NAMES[x.id] || x.id;
+      const rsn = reasons?.[x.id] ? ` _(${reasons[x.id].slice(0, 80)}${reasons[x.id].length > 80 ? '...' : ''})_` : '';
+      md += `| \`${x.id}\` | ${nm}${rsn} | ${Math.round(x.got*10)/10} | ${x.max} | -${Math.round(x.deficit*10)/10} |\n`;
+    });
+    md += `\n`;
+  }
+
+  // Instructions for Gem
+  md += `---\n\n`;
+  md += `## 📝 Hướng dẫn cho Gem\n\n`;
+  md += `1. **Đọc toàn bộ bài viết** mà anh/chị sắp paste (hoặc đã paste trước đó)\n`;
+  md += `2. **Sửa theo thứ tự:** 🔴 Critical → 🟡 Major → 🟢 Minor\n`;
+  md += `3. **Không thêm placeholder** — nếu thiếu data thực hỏi lại trước khi sửa\n`;
+  md += `4. **Không thêm cụm AI sáo rỗng** khi viết lại đoạn văn\n`;
+  md += `5. Sau khi sửa: trả lại bài đầy đủ (không chỉ đoạn đã sửa)\n`;
+  md += `6. Kết thúc bằng: _"Bài đã sửa xong. Anh/chị paste lên tpi-scorer.vercel.app để chấm lại."_\n\n`;
+  md += `---\n\n`;
+  md += `*Fix brief tạo bởi TPI Scorer — ${new Date().toLocaleString('vi-VN')}*\n`;
+
+  // Download
+  const slug = (sub.keyword || 'bai-viet').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '').slice(0, 35);
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `tpi-fix-gem_${slug}_${dateStr}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  _showToast('✅ Đã tải Fix Brief cho Gem', 'success');
 }
 
 // ============================================================
