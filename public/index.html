@@ -4948,6 +4948,49 @@ async function _callLLM_QF(prompt, maxTokens = 6500) {
   return callProxy(prompt, model, maxTokens);
 }
 
+// Cứu JSON bị cắt cụt: tìm last branch hoàn chỉnh trong fan_out_branches, đóng bracket
+function _qfRecoverTruncated(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  let s = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const start = s.indexOf('{');
+  if (start < 0) return null;
+  s = s.slice(start);
+
+  // Tìm vị trí "fan_out_branches": [
+  const arrStart = s.search(/"fan_out_branches"\s*:\s*\[/);
+  if (arrStart < 0) return null;
+  const arrOpen = s.indexOf('[', arrStart);
+  if (arrOpen < 0) return null;
+
+  // Quét từng branch hoàn chỉnh (depth-tracking, biết escape & string)
+  let i = arrOpen + 1, depth = 0, inStr = false, esc = false;
+  let lastGoodEnd = -1;
+  for (; i < s.length; i++) {
+    const c = s[i];
+    if (esc) { esc = false; continue; }
+    if (c === '\\') { esc = true; continue; }
+    if (c === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) lastGoodEnd = i; // 1 branch xong
+    }
+  }
+  if (lastGoodEnd < 0) return null;
+
+  // Cắt sau branch cuối hoàn chỉnh, đóng array + object
+  const head = s.slice(0, start);
+  const truncated = s.slice(0, lastGoodEnd + 1) + ']}';
+  try {
+    const obj = JSON.parse(truncated);
+    if (!Array.isArray(obj.fan_out_branches) || obj.fan_out_branches.length === 0) return null;
+    return obj;
+  } catch(e) {
+    return null;
+  }
+}
+
 // ── Main orchestrator ──────────────────────────────────────────
 async function runQueryFanout() {
   const seedQuery   = document.getElementById('qf-seed').value.trim();
@@ -5035,8 +5078,8 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
 ═══ JSON OUTPUT BẮT BUỘC ═══
 {
   "seed_analysis": {
-    "intent_type": "${intentSel === 'auto' ? 'Nhận dạng tự động dựa trên Seed Query' : intentSel}",
-    "aeo_difficulty": "High/Medium/Low — kèm 1 câu giải thích ngắn"
+    "intent_type": "${intentSel === 'auto' ? '1 trong 4: Thông tin / Thương mại / Điều hướng / Giao dịch (TỐI ĐA 5 từ)' : intentSel}",
+    "aeo_difficulty": "Low | Medium | High (CHỈ 1 TỪ — không giải thích thêm)"
   },
   "fan_out_branches": [
     {
@@ -5080,17 +5123,21 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
 6. Mọi query có năm: chỉ dùng ${currentYear}, KHÔNG dùng ${currentYear-1} hoặc ${currentYear-2}.
 7. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
 
-  let _rawForDebug = '';
   try {
-    const raw    = await _callLLM_QF(prompt, 6500);
-    _rawForDebug = raw;
+    const raw    = await _callLLM_QF(prompt, 8000);
     let result;
     try {
       result = safeParseJSON(raw);
     } catch (parseErr) {
-      console.error('=== QF raw response (parse failed) ===\n', raw, '\n=== end raw ===');
-      const preview = (raw || '').slice(0, 300).replace(/\s+/g, ' ');
-      throw new Error(`JSON parse fail. Đầu phản hồi: "${preview}..." — Xem console để debug đầy đủ.`);
+      // Auto-recovery: nếu truncated, cố cứu các branches đã có
+      result = _qfRecoverTruncated(raw);
+      if (result) {
+        _showToast(`⚠️ Phản hồi AI bị cắt — đã cứu ${result.fan_out_branches.length} nhánh, mất phần keywords/hub-spoke`, 'error');
+      } else {
+        console.error('=== QF raw response (parse failed) ===\n', raw, '\n=== end raw ===');
+        const preview = (raw || '').slice(0, 300).replace(/\s+/g, ' ');
+        throw new Error(`JSON parse fail. Đầu phản hồi: "${preview}..." — Xem console để debug đầy đủ.`);
+      }
     }
     if (!result || !result.fan_out_branches) {
       console.error('=== QF result missing fan_out_branches ===\n', result);
