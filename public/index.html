@@ -888,6 +888,10 @@ body {
 .qf-golden-h2 { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .qf-golden-para { font-size: 13px; color: var(--ink); line-height: 1.7; font-style: italic; }
 
+/* QF Model badge */
+.qf-model-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--bg2); border: 1px solid var(--line2); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; font-size: 12px; color: var(--ink3); }
+.qf-model-badge .qf-model-name { color: var(--ink); font-weight: 700; font-family: 'DM Mono', monospace; }
+
 /* QF History chips */
 .qf-history-wrap { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
 .qf-hist-label { font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
@@ -915,24 +919,6 @@ body {
 .qf-json-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--line2); }
 .qf-json-title { font-size: 13px; font-weight: 700; color: var(--ink); }
 .qf-json-textarea { width: 100%; min-height: 360px; background: var(--bg3); border: none; padding: 14px 16px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--ink2); line-height: 1.6; resize: vertical; outline: none; box-sizing: border-box; }
-
-/* QF API Config */
-.qf-api-config { background: var(--bg2); border: 1px solid var(--line2); border-radius: 10px; padding: 0; margin-bottom: 16px; overflow: hidden; }
-.qf-api-config summary { cursor: pointer; padding: 10px 16px; font-size: 12px; font-weight: 700; color: var(--ink3); list-style: none; display: flex; align-items: center; gap: 8px; }
-.qf-api-config summary::-webkit-details-marker { display: none; }
-.qf-api-config[open] summary { border-bottom: 1px solid var(--line2); color: var(--ink); }
-.qf-api-config-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-.qf-api-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.qf-api-config input[type=text], .qf-api-config input[type=password] { width: 100%; background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 7px 11px; font-size: 12px; color: var(--ink); font-family: 'Be Vietnam Pro', sans-serif; outline: none; box-sizing: border-box; }
-.qf-api-config input:focus { border-color: var(--accent); }
-.qf-api-btns { display: flex; gap: 8px; }
-.qf-api-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--line2); background: var(--bg3); color: var(--ink2); transition: all .15s; font-family: 'Be Vietnam Pro', sans-serif; }
-.qf-api-btn:hover { background: var(--bg2); color: var(--ink); }
-.qf-api-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.qf-api-btn.primary:hover { opacity: .85; }
-.qf-api-btn.danger { color: var(--accent); }
-.qf-api-status-ok  { color: #4caf82; font-weight: 700; }
-.qf-api-status-err { color: var(--accent); font-weight: 700; }
 
 /* Semantic Keywords chips */
 .qf-lsi-wrap { display: flex; flex-direction: column; gap: 12px; }
@@ -1241,6 +1227,11 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
           <input class="config-val mono" id="cfg-custom-model-complex" placeholder="gpt-4o" style="width:280px;font-size:12px">
         </div>
       </div>
+      <div class="config-row" style="margin-top:12px;border-top:1px solid var(--line2);padding-top:12px">
+        <span class="config-key mono">qf_model</span>
+        <span class="config-desc">Model cho <strong>Query Fan-out</strong> — dùng chung cho tất cả user</span>
+        <input class="config-val mono" id="cfg-qf-model" placeholder="ant/claude-sonnet-4-6 hoặc gemini-2.0-flash-lite" style="width:280px;font-size:12px">
+      </div>
       <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
         <button class="btn-save-config syne" onclick="saveApiConfig()">Lưu</button>
         <button class="btn-outline" onclick="testApiConfig()">Test</button>
@@ -1370,22 +1361,8 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
       <p>Query NLP tự nhiên (giọng người Việt thật) · ≥10 nhánh chi tiết · Semantic Knowledge Graph · 60-chữ vàng AEO — Powered by TPI Land</p>
     </div>
 
-    <!-- Custom AI Config (riêng cho QF) -->
-    <details class="qf-api-config" id="qf-api-config-panel">
-      <summary>🔑 Cấu hình AI riêng cho trang này — <span id="qf-api-status">Chưa cấu hình</span></summary>
-      <div class="qf-api-config-body">
-        <div class="qf-api-row">
-          <input type="text" id="qf-api-endpoint" placeholder="API Endpoint — vd: https://llm.chiasegpu.vn/v1" />
-          <input type="password" id="qf-api-key" placeholder="API Key" />
-        </div>
-        <input type="text" id="qf-api-model" placeholder="Model — vd: ant/claude-sonnet-4-6 hoặc csu/cheap/gpt-5.5" />
-        <div class="qf-api-btns">
-          <button class="qf-api-btn primary" onclick="saveQFApiConfig()">💾 Lưu</button>
-          <button class="qf-api-btn" onclick="testQFApiConfig()">🔌 Test kết nối</button>
-          <button class="qf-api-btn danger" onclick="clearQFApiConfig()">🗑 Xóa</button>
-        </div>
-      </div>
-    </details>
+    <!-- QF Model badge (admin-configured) -->
+    <div id="qf-model-badge" class="qf-model-badge" style="display:none"></div>
 
     <!-- QF History chips (hiện khi có lịch sử) -->
     <div id="qf-history-wrap" class="qf-history-wrap" style="display:none"></div>
@@ -1832,6 +1809,7 @@ function getApiConfig() {
   return DB.get('api_config', {
     provider: 'anthropic', api_key: '',
     model_simple: 'claude-haiku-4-5-20251001', model_complex: 'claude-sonnet-4-6',
+    qf_model: '',
     custom_endpoint: '', custom_model_simple: '', custom_model_complex: '',
   });
 }
@@ -1840,6 +1818,7 @@ function loadApiConfig() {
   const cfg = getApiConfig();
   document.getElementById('cfg-provider').value = cfg.provider;
   document.getElementById('cfg-custom-endpoint').value = cfg.custom_endpoint || '';
+  document.getElementById('cfg-qf-model').value = cfg.qf_model || '';
   updateModelDropdowns(cfg.provider, cfg.model_simple, cfg.model_complex, cfg.custom_model_simple, cfg.custom_model_complex);
 }
 
@@ -1880,6 +1859,7 @@ function saveApiConfig() {
     api_key: '',
     model_simple:         isCustom ? '' : document.getElementById('cfg-model-simple').value,
     model_complex:        isCustom ? '' : document.getElementById('cfg-model-complex').value,
+    qf_model:             document.getElementById('cfg-qf-model').value.trim(),
     custom_endpoint:      isCustom ? document.getElementById('cfg-custom-endpoint').value.trim() : '',
     custom_model_simple:  isCustom ? document.getElementById('cfg-custom-model-simple').value.trim() : '',
     custom_model_complex: isCustom ? document.getElementById('cfg-custom-model-complex').value.trim() : '',
@@ -4904,9 +4884,22 @@ function initCLChecklist() {
 // QUERY FAN-OUT — v2 (TPI Land Edition)
 // ============================================================
 
+function _renderQFModelBadge() {
+  const el = document.getElementById('qf-model-badge');
+  if (!el) return;
+  const cfg = getApiConfig();
+  const model = cfg.qf_model || cfg.model_complex || '';
+  if (model) {
+    el.style.display = 'inline-flex';
+    el.innerHTML = `🤖 Model: <span class="qf-model-name">${_esc(model)}</span>`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function renderQueryPage() {
-  _updateQFApiStatus();
   _renderQFHistoryChips();
+  _renderQFModelBadge();
   // Ctrl+Enter shortcut to submit
   ['qf-seed', 'qf-entity', 'qf-context'].forEach(id => {
     const el = document.getElementById(id);
@@ -4933,108 +4926,13 @@ function _renderQFHistoryChips() {
     '</div>';
 }
 
-// ── QF Custom API Config ───────────────────────────────────────
-function _qfApiKey() {
-  const u = DB.get('session', 'anon');
-  return `qf_api_${u}`;
-}
-
-function loadQFApiConfig() {
-  return DB.get(_qfApiKey(), { endpoint: '', api_key: '', model: '' });
-}
-
-function _updateQFApiStatus() {
-  const cfg = loadQFApiConfig();
-  const el = document.getElementById('qf-api-status');
-  if (!el) return;
-  if (cfg.api_key && cfg.model) {
-    el.innerHTML = `<span class="qf-api-status-ok">✅ ${_esc(cfg.model)}</span>`;
-    // pre-fill inputs
-    document.getElementById('qf-api-endpoint').value = cfg.endpoint || '';
-    document.getElementById('qf-api-model').value    = cfg.model || '';
-  } else {
-    el.innerHTML = '<span class="qf-api-status-err">Chưa cấu hình</span>';
-  }
-}
-
-function saveQFApiConfig() {
-  const cfg = {
-    endpoint: document.getElementById('qf-api-endpoint').value.trim(),
-    api_key:  document.getElementById('qf-api-key').value.trim(),
-    model:    document.getElementById('qf-api-model').value.trim(),
-  };
-  if (!cfg.api_key || !cfg.model) { _showToast('Cần điền API Key và Model', 'error'); return; }
-  DB.set(_qfApiKey(), cfg);
-  _updateQFApiStatus();
-  _showToast('Đã lưu cấu hình AI riêng cho Query Fan-out ✅', 'success');
-}
-
-async function testQFApiConfig() {
-  const cfg = loadQFApiConfig();
-  if (!cfg.api_key || !cfg.model) { _showToast('Lưu cấu hình trước', 'error'); return; }
-  const btn = event?.target;
-  const orig = btn?.textContent;
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang test...'; }
-  _showToast('Đang test kết nối...', 'info');
-  try {
-    await _callLLM_QF('Trả lời đúng 1 từ tiếng Việt: "xin chào"', 20);
-    _showToast('Kết nối thành công ✅ AI phản hồi OK', 'success');
-  } catch(e) {
-    _showToast('Lỗi: ' + e.message, 'error');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = orig; }
-  }
-}
-
-function clearQFApiConfig() {
-  DB.set(_qfApiKey(), { endpoint: '', api_key: '', model: '' });
-  ['qf-api-endpoint','qf-api-key','qf-api-model'].forEach(id => { document.getElementById(id).value = ''; });
-  _updateQFApiStatus();
-  _showToast('Đã xóa cấu hình AI riêng', 'info');
-}
 
 async function _callLLM_QF(prompt, maxTokens = 6500) {
-  const cfg = loadQFApiConfig();
-  if (!cfg.api_key || !cfg.model) {
-    throw new Error('Chưa cấu hình AI riêng cho QF — bấm 🔑 Cấu hình AI riêng phía trên để thiết lập.');
-  }
-  const endpoint = cfg.endpoint || '';
-  const model    = cfg.model;
-  const isAnthropic = model.startsWith('ant/') || model.includes('claude');
-
-  if (isAnthropic) {
-    // Anthropic /messages format
-    const base = endpoint.replace(/\/$/, '');
-    const url  = base.includes('/messages') ? base : base + '/messages';
-    const res  = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.api_key },
-      body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
-    });
-    if (!res.ok) {
-      let msg = 'HTTP ' + res.status;
-      try { msg = (await res.json())?.error?.message || msg; } catch {}
-      throw new Error('LLM error ' + msg);
-    }
-    const data = await res.json();
-    return data?.content?.[0]?.text || '';
-  } else {
-    // OpenAI-compatible /chat/completions
-    const base = endpoint.replace(/\/$/, '');
-    const url  = base.includes('/chat/completions') ? base : base + '/chat/completions';
-    const res  = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.api_key },
-      body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
-    });
-    if (!res.ok) {
-      let msg = 'HTTP ' + res.status;
-      try { msg = (await res.json())?.error?.message || msg; } catch {}
-      throw new Error('LLM error ' + msg);
-    }
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.content || '';
-  }
+  // Dùng chung key server-side, model riêng do admin cấu hình (qf_model)
+  const apiCfg = getApiConfig();
+  const model  = apiCfg.qf_model || apiCfg.model_complex || '';
+  if (!model) throw new Error('Admin chưa cấu hình QF Model — vào Admin → API & Model để thiết lập.');
+  return callProxy(prompt, model, maxTokens);
 }
 
 // ── Main orchestrator ──────────────────────────────────────────
@@ -5048,13 +4946,6 @@ async function runQueryFanout() {
 
   if (!seedQuery) { _showToast('Vui lòng nhập Seed Query', 'error'); return; }
   if (!entity)    { _showToast('Vui lòng nhập Entity/Dự án', 'error'); return; }
-
-  const cfg = loadQFApiConfig();
-  if (!cfg.api_key || !cfg.model) {
-    _showToast('Chưa cấu hình AI riêng — bấm 🔑 Cấu hình AI riêng phía trên', 'error');
-    document.getElementById('qf-api-config-panel').open = true;
-    return;
-  }
 
   const btn = document.getElementById('qf-run-btn');
   btn.disabled = true;
