@@ -5124,7 +5124,7 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
 7. Trả về JSON thuần — KHÔNG markdown block (\`\`\`), KHÔNG cắt cụt, KHÔNG comment ngoài JSON.`;
 
   try {
-    const raw    = await _callLLM_QF(prompt, 8000);
+    const raw    = await _callLLM_QF(prompt, 5500);
     let result;
     try {
       result = safeParseJSON(raw);
