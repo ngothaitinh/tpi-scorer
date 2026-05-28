@@ -1,9 +1,9 @@
-# CONTEXT — cập nhật: 28/05/2026 (session 16)
+# CONTEXT — cập nhật: 28/05/2026 (session 17)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 352dc99)
+## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 097415b)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
 Live: **https://tpi-scorer.vercel.app**
@@ -20,14 +20,33 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 
 ## Đang làm dở
 - [ ] **Test QF v2** — nhập seed query thật, admin cấu hình `qf_model` trong Admin panel, verify:
-  - ≥10 branches sinh ra
+  - ≥10 branches sinh ra + "📤 Brief cho Gem" button hoạt động
   - `fan_out_queries` (SEO, monospace cam) hiện trước `user_questions` (NLP, xanh)
   - Semantic keywords chips (core_entities / supporting_terms / action_modifiers)
-  - Intent label hiện tiếng Việt
-  - History chips (5 lần gần nhất)
-  - Export Markdown hoạt động
 - [ ] **Test scoring v3.0** — chấm bài thật trên live site, xác nhận E1/E2/E3/G2/G3/HC1 chấm đúng
+- [ ] **[ USER ]** Update Gemini Gem prompt → paste nội dung `prompt-gem-v3.2.txt` (trên Desktop)
 - [ ] **(Tuỳ chọn)** Rubric v3 documentation page trong app
+
+## Vừa xong (session 17 — 28/05/2026)
+- [x] **Workflow QF → Gem → Scorer — Phase 1** (commit 1b89373)
+  - `exportQFBriefForGem()` — tạo brief tối ưu cho Gemini Gem từ QF result
+  - Button "📤 Brief cho Gem" (indigo) trong QF summary bar
+  - File: `tpi-brief-gem-{entity}-{ts}.md` gồm: keyword table, top branch H2 gợi ý + SEO queries,
+    semantic keywords, Hub & Spoke, Golden paragraphs, all fan-out queries,
+    phần ⚠️ nhắc Gem hỏi thêm: data TPI độc quyền + quote + NAP
+- [x] **Workflow QF → Gem → Scorer — Phase 2** (file Desktop)
+  - `prompt-gem-v3.2.txt` — cập nhật Gemini Gem prompt
+  - **Bỏ**: tự chấm rubric (bảng 4 tầng + checklist 21 mục) trong BƯỚC 3
+  - **Thêm**: section [NHẬN BRIEF TỪ TPI SCORER] — đọc ⚠️, hỏi đúng 3 mục thiếu,
+    dùng H2/keywords từ brief, không hỏi lại keyword đã có
+  - **Cập nhật** tin nhắn mở đầu — gợi ý dùng "📤 Brief cho Gem" để tiết kiệm bước
+  - **BƯỚC 3 mới**: chỉ check placeholder count → kết thúc bằng "paste lên Scorer"
+- [x] **Workflow QF → Gem → Scorer — Phase 3** (commit 097415b)
+  - `exportFixesForGem()` — tạo fix brief từ Scorer result cho Gemini Gem
+  - Button "📤 Sửa với Gem" (indigo) trong result-actions panel (sau Export MD)
+  - File: `tpi-fix-gem-{keyword}-{date}.md` gồm: score summary + tier breakdown + ⚠️ weak tiers,
+    fix cards 🔴→🟡→🟢 (ID, điểm đạt, vị trí, vấn đề, cách sửa),
+    top-8 losing criteria table, 6-step instructions cho Gem
 
 ## Vừa xong (session 16 — 28/05/2026)
 - [x] **API key architecture** — user không nhập key, admin cấu hình 1 lần server-side (Vercel env vars)
@@ -109,8 +128,8 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **QF v2**: Custom AI key riêng (tách biệt scoring), 2 nhóm query, 13-category BĐS framework
 - **_callLLM_QF**: ant/* hoặc includes 'claude' → /messages, others → /chat/completions
 
-## Số liệu hiện tại (v3.0 + QF v2)
-- `public/index.html`: **5371 dòng** (main file — commit 352dc99)
+## Số liệu hiện tại (v3.0 + QF v2 + Gem workflow)
+- `public/index.html`: **5869 dòng** (main file — commit 097415b)
 - `src/rubric.tpi-v3.json`: 28 tiêu chí (E1/E2/E3/G2/G3/HC1 mới), 100đ, pass=70
   - Loại bỏ: S6, R6 | Thêm: E1(4pt), E2(2pt), E3(2pt), G2(3pt), G3(2pt), HC1(3pt)
 - Ước tính chi phí v3.0: ~540đ/bài (balanced), ~$0.008 (economy), ~$0.05 (accurate)
@@ -129,6 +148,9 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **QF history**: localStorage `tpi_qf_hist_<user>` — last 10 runs
 - **QF JSON editor**: `openQFJsonEditor / closeQFJsonEditor / applyQFJsonEdit`
 - **QF Markdown export**: `exportQFMarkdown()` — download .md file
+- **QF Brief for Gem**: `exportQFBriefForGem()` — brief tối ưu Gem, file `tpi-brief-gem-*.md`
+- **Scorer Fix for Gem**: `exportFixesForGem()` — fix brief từ result, file `tpi-fix-gem-*.md`
+- **Gem prompt**: `C:\Users\ASUS\Desktop\prompt-gem-v3.2.txt` — v3.2 (bỏ self-QA, thêm brief handler)
 - **Hash routing**: `#submit`, `#history`, `#query`, `#aeo`, `#admin` — mỗi page có link riêng
 - **rubric-guide.html**: tài liệu hướng dẫn chấm bài, font Poppins
 
@@ -141,8 +163,9 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 5. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
 
 ### P1 — V3.0 Stabilization
+- [ ] **[ USER ]** Update Gemini Gem: paste `prompt-gem-v3.2.txt` (Desktop) vào Gem Settings
+- [ ] **[ USER ]** Test full workflow: QF → Brief cho Gem → viết → Scorer → Sửa với Gem → Scorer
 - [ ] Rubric v3.0 in-app documentation page
-- [ ] Export báo cáo ra Markdown/PDF (scoring result)
 - [ ] Notes field UX improvement (nếu cần)
 
 ### P2 — Next Track
