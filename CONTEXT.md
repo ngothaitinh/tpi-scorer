@@ -1,9 +1,9 @@
-# CONTEXT — cập nhật: 27/05/2026 (session 15)
+# CONTEXT — cập nhật: 28/05/2026 (session 16)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 7ba4b32)
+## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 352dc99)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
 Live: **https://tpi-scorer.vercel.app**
@@ -19,7 +19,7 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - [ ] Đổi mật khẩu admin khỏi `admin2024` trong app UI
 
 ## Đang làm dở
-- [ ] **Test QF v2** — nhập seed query thật, điền custom AI key (chiasegpu/Gemini), verify:
+- [ ] **Test QF v2** — nhập seed query thật, admin cấu hình `qf_model` trong Admin panel, verify:
   - ≥10 branches sinh ra
   - `fan_out_queries` (SEO, monospace cam) hiện trước `user_questions` (NLP, xanh)
   - Semantic keywords chips (core_entities / supporting_terms / action_modifiers)
@@ -29,12 +29,26 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - [ ] **Test scoring v3.0** — chấm bài thật trên live site, xác nhận E1/E2/E3/G2/G3/HC1 chấm đúng
 - [ ] **(Tuỳ chọn)** Rubric v3 documentation page trong app
 
+## Vừa xong (session 16 — 28/05/2026)
+- [x] **API key architecture** — user không nhập key, admin cấu hình 1 lần server-side (Vercel env vars)
+  - Xóa tất cả api_key field khỏi user UI
+  - `callProxy()` — single function gọi `/api/claude` proxy, server giữ key
+  - `callLLM()` + `callAnthropic()` simplified → gọi `callProxy()`
+  - Xóa guard api_key trong `submitArticle` + `autoCheckWithAI`
+- [x] **QF model admin-once** (commit 352dc99) — admin nhập `qf_model` 1 lần, tất cả user dùng
+  - Xóa `<details class="qf-api-config">` HTML block (per-user QF API config)
+  - Xóa CSS `.qf-api-config` + `.qf-api-btn` + `.qf-api-row` (16 dòng)
+  - Xóa JS: `_qfApiKey / loadQFApiConfig / saveQFApiConfig / testQFApiConfig / clearQFApiConfig / _updateQFApiStatus`
+  - Thêm `qf_model` field vào admin panel (shared config)
+  - `_callLLM_QF()` → đọc `apiCfg.qf_model` → `callProxy()`
+  - `_renderQFModelBadge()` — hiện model badge cho user (read-only)
+- [x] **Hash routing** — mỗi page có link riêng: `#submit`, `#history`, `#query`, `#aeo`, `#admin`
+- [x] **rubric-guide.html** — tài liệu hướng dẫn chấm bài v3.0, font Poppins
+
 ## Vừa xong (session 15 — 27/05/2026)
 - [x] **Query Fan-out v2 — TPI Land Edition** (commits 599f320 → 7ba4b32, 5060 dòng)
   - `TPI_BRAND` constant + `_tpiBrandContext()` — inject context thương hiệu vào mọi LLM call QF
-  - **Custom AI Config per-user** (localStorage `tpi_qf_api_<user>`) — endpoint/key/model riêng
-    - `saveQFApiConfig / loadQFApiConfig / testQFApiConfig / clearQFApiConfig`
-    - `_callLLM_QF()` — route `ant/*` hoặc includes 'claude' → `/messages`, others → `/chat/completions`
+  - (Per-user API config đã bị xóa ở session 16 — replaced bằng admin qf_model)
   - **Simplified Form** — 3 fields (seed, entity, context), bỏ radios journey/persona/type
   - **Prompt 3-layer**: brand context + NLP rules (≥10 từ/query) + 13-category BĐS framework
   - **2 nhóm query tách biệt**: `fan_out_queries` (SEO, 4-8 từ) + `user_questions` (NLP, ≥10 từ)
@@ -96,28 +110,35 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **_callLLM_QF**: ant/* hoặc includes 'claude' → /messages, others → /chat/completions
 
 ## Số liệu hiện tại (v3.0 + QF v2)
-- `public/index.html`: **5060 dòng** (main file — commit 7ba4b32)
+- `public/index.html`: **5371 dòng** (main file — commit 352dc99)
 - `src/rubric.tpi-v3.json`: 28 tiêu chí (E1/E2/E3/G2/G3/HC1 mới), 100đ, pass=70
   - Loại bỏ: S6, R6 | Thêm: E1(4pt), E2(2pt), E3(2pt), G2(3pt), G3(2pt), HC1(3pt)
 - Ước tính chi phí v3.0: ~540đ/bài (balanced), ~$0.008 (economy), ~$0.05 (accurate)
 
 ## Lưu ý quan trọng (v3.0 + QF v2)
-- **File chính**: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (5060 dòng)
+- **File chính**: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (5371 dòng)
 - **KHÔNG sửa file worktree** — làm thẳng trên master
 - **Rubric v3.0**: `src/rubric.tpi-v3.json` — loaded in-code, all criteria active
 - **New scorers v3.0**: E1/E2/E3 (E-E-A-T), G2/G3 (GEO), HC1 (HCU) — trong `RULE_SCORERS`
 - **Removed scorers**: S6, R6 — đã xóa khỏi `RULE_SCORERS`
 - **LLM proxy**: `api/claude.js` — ant/* → /messages (Anthropic), others → /chat/completions
-- **QF v2 functions**: `_tpiBrandContext`, `_callLLM_QF`, `loadQFApiConfig`, `saveQFApiConfig`
+- **API key architecture**: server-side only (`ANTHROPIC_API_KEY` hoặc `LLM_ENDPOINT+LLM_API_KEY` trong Vercel env), user không nhập
+- **callProxy()**: single function gọi `/api/claude` — tất cả LLM calls đi qua đây
+- **QF model**: admin cấu hình `qf_model` 1 lần trong Admin panel (shared, tất cả user dùng)
+- **QF v2 functions còn active**: `_tpiBrandContext`, `_callLLM_QF`, `_renderQFModelBadge`
 - **QF history**: localStorage `tpi_qf_hist_<user>` — last 10 runs
 - **QF JSON editor**: `openQFJsonEditor / closeQFJsonEditor / applyQFJsonEdit`
 - **QF Markdown export**: `exportQFMarkdown()` — download .md file
+- **Hash routing**: `#submit`, `#history`, `#query`, `#aeo`, `#admin` — mỗi page có link riêng
+- **rubric-guide.html**: tài liệu hướng dẫn chấm bài, font Poppins
 
 ## Backlog ưu tiên
 ### P0 — Test live (user action)
-1. **[ USER ]** Test QF v2 với seed query thật + custom AI key
-2. **[ USER ]** Chấm bài thật v3.0 — xác nhận E1/E2/E3/G2/G3/HC1
-3. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
+1. **[ USER ]** Set Vercel env vars: `LLM_ENDPOINT` + `LLM_API_KEY` (hoặc `ANTHROPIC_API_KEY`) trong Vercel Dashboard
+2. **[ USER ]** Admin vào app → Admin panel → API & Model → nhập `model` + `qf_model` → Test → Lưu
+3. **[ USER ]** Test QF v2 với seed query thật — verify ≥10 branches + model badge hiện đúng
+4. **[ USER ]** Chấm bài thật v3.0 — xác nhận E1/E2/E3/G2/G3/HC1
+5. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
 
 ### P1 — V3.0 Stabilization
 - [ ] Rubric v3.0 in-app documentation page
