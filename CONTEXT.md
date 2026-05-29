@@ -3,7 +3,7 @@
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 469c734)
+## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit dd9d8d3)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
 Live: **https://tpi-scorer.vercel.app**
@@ -19,18 +19,48 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - [ ] Đổi mật khẩu admin khỏi `admin2024` trong app UI
 
 ## Đang làm dở
-- [ ] **[ USER ] Admin setup Phase 1 Backup** — theo `docs/PHASE1-BACKUP-SETUP.md`:
-  1. Tạo Google Sheet + Apps Script (6 bước)
-  2. Set Vercel env `GSHEETS_WEBHOOK_URL`
-  3. Test webhook từ Admin panel → kiểm tra Sheet
-- [ ] **Phase 2 Analytics** — in-app Admin dashboard (chart.js), criterion fail tracking — TẠM NGƯNG, nhắc sau
-- [ ] **Phase 3 Cloud sync** (optional) — Vercel KV dual-write — TẠM NGƯNG
-- [ ] **Test QF v2** — nhập seed query thật, verify ≥10 branches + brief export
-- [ ] **Test scoring v3.0** — chấm bài thật, xác nhận E1/E2/E3/G2/G3/HC1
-- [ ] **Fix stale footer** `exportMarkdown()` — còn "Rubric v2.1" + URL Netlify cũ
-- [ ] **(Tuỳ chọn)** Rubric v3 documentation page trong app
+- [ ] **VERIFICATION PROTOCOL** (P0 — blocking mọi feature mới) — xem backlog P0 dưới
+- [ ] **Quick Polish Pack** (P1 — code) — fix exportMarkdown footer, in-app rubric docs,
+  TPI_BLOCK_TEMPLATES constants, Brief Preview, auto-update CONTEXT.md
+- [ ] **Phase 2 Analytics** (P2 — cần Phase 1 setup xong + ≥10 bài data)
+- [ ] **Cluster Tracker** (P3 — build trên Pillar/Spoke vừa làm)
 
-## Vừa xong (session 18 — 29/05/2026)
+## Vừa xong (session 18 — 29/05/2026 — phần 2)
+- [x] **Pillar + per-branch Spoke briefs** (commit dd9d8d3, 6223 dòng)
+  - Pillar Brief (top button "📤 Brief Pillar (Top 5)"): Section 3 đổi từ
+    "1 nhánh trọng tâm" → "Top 5 branches = 5 H2 outline" (mỗi branch H3 từ user_q + SEO queries)
+  - Spoke Brief (`exportQFBranchBrief(idx)` — mới): mỗi branch có nút indigo riêng
+    dưới priority badge → outline = user_questions của branch đó
+  - Auto-gen URL pillar slug để Gem link UP
+  - Internal Link Strategy section: 1 link UP pillar + 1-2 chéo spoke
+  - Lọc golden paragraphs match queries của branch
+  - 2 mục tiêu khác nhau: Pillar 2.500-4.000 từ vs Spoke 1.500-2.500 từ
+- [x] **Brief content upgrade — anti-halu + AEO directives** (commit 0dded19, 6057 dòng)
+  - Brief mới 10 sections (cũ 7): Section 2 (context 4 trục từ qf-context),
+    Section 8 (11 AEO/GEO directives + criterion ID), Section 9 (chống halu —
+    source tag mandatory + self-check), Section 10 (4 block data code templates)
+  - Lưu `window._qfLastContext` để brief đọc lại
+- [x] **prompt-gem-v3.3.txt** (file Desktop, 343 dòng từ 239 v3.2)
+  - Nguyên tắc số 1: chống halu cứng hơn — source tag bắt buộc, self-check 3 phase
+  - Cấm thêm: "khoảng/ước tính/tầm/xấp xỉ" cho số chính
+  - Cấm trích "theo nghiên cứu/chuyên gia" không tên + năm
+  - Section mới [NHẬN FIX BRIEF] — xử lý fix workflow Scorer → Gem
+  - Mandatory Elements rõ hơn: Byline E2+E3 (4đ rẻ), Definition sentence pattern,
+    ≥3 Citable Chunks, FAQ schema-ready câu hỏi đầy đủ
+  - Section mới [NGÔN NGỮ — SÚC TÍCH]: 7 nguyên tắc (1 câu = 1 ý, ≤25 từ,
+    bỏ filler "đáng chú ý/cần lưu ý", bố cục ngược tháp, cắt từ thừa)
+- [x] **workflow-guide.html review + 8 fixes** (commits e11237b, 84920d7)
+  - QF example: Thanh Phú Centre Point thay cho condotel Vũng Tàu mơ hồ
+  - Context field hướng dẫn 4 trục: Persona / Journey Stage / Micro-Intent / Related Entities
+  - Score table 70-84: "Đạt — ưu tiên sửa Tầng yếu nhất, nếu deadline → publish được"
+  - Bước 2.5 mới: 4 block tài liệu TPI với color-coded cards + link sang user-guide.html#gem
+  - FAQ Tầng 4 sửa đúng: liệt kê E1/E2/I1/I2/G2 thay vì gợi ý chung
+  - Bước 5: thêm giới hạn 2 vòng sửa (vòng 3 → viết lại từ Bước 1)
+  - Thêm callout "Không có brief?" — 5 mục Gem cần
+  - Timeline mẫu 20-25 phút từ keyword đến publish
+  - Tip công cụ nâng cao QF: branch count, kw count, intent filter, JSON Editor, Copy all LSI
+
+## Vừa xong (session 18 — 29/05/2026 — phần 1)
 - [x] **user-guide.html — Gemini Gem section** (commit f575fda)
   - Section 1 updated: "2 công cụ" → "3 công cụ phối hợp" (thêm Gem row vào bảng)
   - Section 2 updated: bước 3-4 dẫn đến Gem, "📤 Brief cho Gem" + "📤 Sửa với Gem"
@@ -151,9 +181,11 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **QF v2**: Custom AI key riêng (tách biệt scoring), 2 nhóm query, 13-category BĐS framework
 - **_callLLM_QF**: ant/* hoặc includes 'claude' → /messages, others → /chat/completions
 
-## Số liệu hiện tại (v3.0 + QF v2 + Gem workflow + Phase 1 Backup)
-- `public/index.html`: **5980 dòng** (main file — commit 469c734)
+## Số liệu hiện tại (v3.0 + Pillar/Spoke briefs + anti-halu + Phase 1 Backup)
+- `public/index.html`: **6223 dòng** (main file — commit dd9d8d3)
+- `public/workflow-guide.html`: 902 dòng (Pillar/Spoke workflow + 4 block + timeline)
 - `api/log.js`: 38 dòng (webhook proxy)
+- `prompt-gem-v3.3.txt`: 343 dòng (Desktop) — anti-halu mạnh + concise rules
 - `src/rubric.tpi-v3.json`: 28 tiêu chí (E1/E2/E3/G2/G3/HC1 mới), 100đ, pass=70
   - Loại bỏ: S6, R6 | Thêm: E1(4pt), E2(2pt), E3(2pt), G2(3pt), G3(2pt), HC1(3pt)
 - Ước tính chi phí v3.0: ~540đ/bài (balanced), ~$0.008 (economy), ~$0.05 (accurate)
@@ -172,9 +204,12 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **QF history**: localStorage `tpi_qf_hist_<user>` — last 10 runs
 - **QF JSON editor**: `openQFJsonEditor / closeQFJsonEditor / applyQFJsonEdit`
 - **QF Markdown export**: `exportQFMarkdown()` — download .md file
-- **QF Brief for Gem**: `exportQFBriefForGem()` — brief tối ưu Gem, file `tpi-brief-gem-*.md`
+- **QF Pillar Brief**: `exportQFBriefForGem()` — Top 5 branches = 5 H2, file `tpi-brief-gem-*.md`
+- **QF Spoke Brief**: `exportQFBranchBrief(idx)` — per-branch, file `tpi-spoke-*.md`
 - **Scorer Fix for Gem**: `exportFixesForGem()` — fix brief từ result, file `tpi-fix-gem-*.md`
-- **Gem prompt**: `C:\Users\ASUS\Desktop\prompt-gem-v3.2.txt` — v3.2 (bỏ self-QA, thêm brief handler)
+- **Brief content**: 10 sections (context 4 trục + 11 AEO directives + chống halu + 4 block data templates)
+- **Per-branch button**: nằm dưới priority badge mỗi branch card (indigo)
+- **Gem prompt**: `C:\Users\ASUS\Desktop\prompt-gem-v3.3.txt` — v3.3 (anti-halu mạnh, source tag, concise rules)
 - **Hash routing**: `#submit`, `#history`, `#query`, `#aeo`, `#admin` — mỗi page có link riêng
 - **rubric-guide.html**: tài liệu hướng dẫn chấm bài, font Poppins
 - **Backup webhook**: `api/log.js` → proxy tới `GSHEETS_WEBHOOK_URL` (Vercel env)
@@ -185,23 +220,38 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **workflow-guide.html**: ~1050 dòng (user-facing 5-step guide)
 
 ## Backlog ưu tiên
-### P0 — Admin setup (user action)
-1. **[ USER ]** Set Vercel env vars: `LLM_ENDPOINT` + `LLM_API_KEY` + `GSHEETS_WEBHOOK_URL`
-2. **[ USER ]** Setup Google Sheet + Apps Script theo `docs/PHASE1-BACKUP-SETUP.md`
-3. **[ USER ]** Admin panel → Test Webhook → verify Sheet nhận row
-4. **[ USER ]** Admin panel → API & Model → nhập `model` + `qf_model` → Test → Lưu
-5. **[ USER ]** Test QF v2 với seed query thật → verify ≥10 branches
-6. **[ USER ]** Chấm bài thật v3.0 → xác nhận E1/E2/E3/G2/G3/HC1
-7. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
-8. **[ USER ]** Test full workflow: QF → Brief cho Gem → viết → Scorer → Sửa với Gem
+### P0 — VERIFICATION PROTOCOL (chưa làm — quan trọng nhất)
+**Toàn bộ feature 3 session qua chưa test với bài thật. Trước khi build thêm, phải:**
+1. **[ USER ]** Paste `prompt-gem-v3.3.txt` lên Gem dashboard
+2. **[ USER ]** Set Vercel env: `LLM_ENDPOINT` + `LLM_API_KEY` + `GSHEETS_WEBHOOK_URL`
+3. **[ USER ]** Setup Google Sheet + Apps Script theo `docs/PHASE1-BACKUP-SETUP.md`
+4. **[ USER ]** Đổi mật khẩu admin khỏi `admin2024`
+5. **[ USER ]** Chạy 1 bài thật end-to-end: QF Thanh Phú Centre Point →
+   Pillar Brief → Gem viết → Scorer chấm → verify E1/E2/E3/G2/G3/HC1 hiển thị đúng
+6. **[ USER ]** Test Spoke Brief: chọn 1 branch → nút "📤 Brief cho Gem" dưới badge
+   → Gem viết spoke 1.500 từ → chấm
+7. **[ USER ]** Test Phase 1 webhook: Admin → Test Webhook → kiểm tra Google Sheet
+8. **[ USER ]** Test fix workflow: chấm bài thiếu data → Sửa với Gem → chấm lại
 
-### P1 — Phase 2 Analytics + Stabilization (TẠM NGƯNG — nhắc sau)
-- [ ] In-app Admin Analytics tab (chart.js CDN): avg score/tuần, top criterion fail, leaderboard
-- [ ] Criterion fail tracking: parse allScores từ Sheet → tỷ lệ fail mỗi criterion
+### P1 — Quick Polish Pack (1 buổi code, sau khi P0 done)
 - [ ] Fix stale footer `exportMarkdown()` — "Rubric v2.1" → v3.0, Netlify → Vercel URL
 - [ ] Rubric v3.0 in-app documentation page
+- [ ] Constants `TPI_BLOCK_TEMPLATES` — gom 4 block 1 chỗ (đỡ sửa 4 file)
+- [ ] Brief Preview tool — admin xem brief mẫu không cần chạy QF
+- [ ] Auto-update CONTEXT.md từ git log (bớt sửa tay)
 
-### P2 — Next Track
+### P2 — Phase 2 Analytics (1 tuần, cần Phase 1 setup + ≥10 bài data)
+- [ ] In-app Admin Analytics tab (chart.js CDN): avg score/tuần, top criterion fail, leaderboard
+- [ ] Criterion fail tracking: parse allScores từ Sheet → tỷ lệ fail mỗi criterion
+- [ ] Trend chart 4 tuần
+
+### P3 — Cluster Tracker (1 tuần, build trên Pillar/Spoke)
+- [ ] Cluster Map visual: 1 pillar + 5 spokes, tick xanh khi publish
+- [ ] Cluster status table cho admin
+- [ ] Next Spoke Suggestion (auto-rank)
+- [ ] Spoke→Pillar link checker
+
+### P4 — Next Track
 - [ ] Webhook n8n/Telegram sau khi chấm xong
 - [ ] Thống kê điểm trung bình theo tuần (chart)
 - [ ] V3-WordPress-Plugin track (khi v3.0 stable)
