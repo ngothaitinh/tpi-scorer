@@ -386,20 +386,52 @@
               <tr><th>Ô</th><th>Điền gì</th><th>Ví dụ</th></tr>
               <tr>
                 <td><strong>Seed query</strong></td>
-                <td>Từ khóa chính cần viết</td>
-                <td><code>condotel Vũng Tàu giá bao nhiêu</code></td>
+                <td>Đúng câu hỏi người dùng gõ trên Google</td>
+                <td><code>nhà phố Thanh Phú Centre Point giá bao nhiêu</code></td>
               </tr>
               <tr>
                 <td><strong>Entity chính</strong></td>
-                <td>Tên dự án hoặc chủ đề</td>
-                <td><code>Blanca City Vũng Tàu</code></td>
+                <td>Tên chính xác dự án / sản phẩm</td>
+                <td><code>Nhà phố Thanh Phú Centre Point</code></td>
               </tr>
               <tr>
-                <td><strong>Ngữ cảnh</strong> <em style="color:var(--ink3)">(tùy chọn)</em></td>
-                <td>Thêm thông tin nếu muốn AI hiểu rõ hơn</td>
-                <td><code>condotel 5 sao, sổ 50 năm, CĐT Danh Khôi</code></td>
+                <td><strong>Ngữ cảnh</strong></td>
+                <td>Mô tả chi tiết theo 4 trục bên dưới</td>
+                <td><em>Xem hướng dẫn ngay sau bảng này ↓</em></td>
               </tr>
             </table>
+
+            <div class="callout tip" style="margin-top:12px">
+              <div class="callout-icon">📝</div>
+              <div>
+                <strong>Cách viết Ngữ cảnh cho kết quả tốt nhất — 4 trục:</strong>
+              </div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 0 6px;font-size:13.5px;line-height:1.75">
+              <strong style="color:var(--indigo)">① Chân dung người dùng (User Persona)</strong><br>
+              Ai đang hỏi câu này? Nhà đầu tư lướt sóng, đầu tư dài hạn, hay mua để ở thực?<br><br>
+              <strong style="color:var(--indigo)">② Giai đoạn hành trình (Journey Stage)</strong><br>
+              Họ đang ở bước nào? Mới tìm hiểu ↔ Đang so sánh ↔ Sẵn sàng mua?<br><br>
+              <strong style="color:var(--indigo)">③ Ý định cốt lõi (Micro-Intent)</strong><br>
+              Đằng sau câu hỏi "giá bao nhiêu", thực chất họ muốn biết gì? Con số tổng, khả năng trả góp, hay giá so với khu vực lân cận?<br><br>
+              <strong style="color:var(--indigo)">④ Thực thể liên quan (Related Entities)</strong><br>
+              CĐT là ai? Nằm ở đâu (phường/xã/huyện)? Gần trục đường chính nào? Hạ tầng nổi bật?
+            </div>
+
+            <div style="margin:10px 0 0">
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);margin-bottom:6px">Ví dụ ngữ cảnh đúng chuẩn:</div>
+              <div class="code-block">
+<span class="cm"># Ngữ cảnh mẫu — nhà phố Thanh Phú Centre Point</span>
+
+<span class="ck">Persona:</span> <span class="cv">Người mua ở thực (gia đình trẻ HCM) + nhà đầu tư dài hạn</span>
+<span class="ck">Journey:</span> <span class="cv">Giữa phễu — đang tìm giá bán cụ thể, hoặc cuối phễu sẵn sàng mua</span>
+<span class="ck">Micro-intent:</span> <span class="cv">Muốn biết tổng giá + khả năng trả góp + giá so với
+khu vực Bến Lức/Cần Giuộc lân cận</span>
+<span class="ck">Related entities:</span> <span class="cv">CĐT Bim Land (đã thành công với dự án Phú Quốc,
+Thanh Xuân), đối tác Vietcombank. Hạ tầng: Vành đai 3, Vành đai 4
+đang dần hoàn thiện. Vị trí: xã Thanh Phú, huyện Bến Lức, Long An.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -472,7 +504,13 @@
               </div>
             </a>
             Tạo chat mới → paste nội dung file brief vào → gửi.<br><br>
-            Gem sẽ đọc và <strong>tự động hỏi đúng 3 mục còn thiếu</strong>:
+
+            <div class="callout warn" style="margin-bottom:12px">
+              <div class="callout-icon">⚠️</div>
+              <div><strong>Không có brief?</strong> Nếu mở Gem trực tiếp mà không qua Query Fan-out, Gem sẽ hỏi <strong>5 thông tin</strong>: (1) Keyword + loại bài, (2) Người đọc đang vướng gì, (3) Data thực tế TPI, (4) Quote người TPI, (5) Internal links + NAP. Nên dùng brief từ QF để tiết kiệm bước.</div>
+            </div>
+
+            Gem sẽ đọc brief và <strong>tự động hỏi đúng 3 mục còn thiếu</strong>:
             <div class="code-block">
 <span class="cm"># Gem sẽ phản hồi kiểu này:</span>
 Tôi đã đọc brief. Để viết bài, tôi cần thêm:
@@ -512,6 +550,40 @@ Tòa nhà đang xây tầng 12/22, dự kiến bàn giao Q4/2027.</span>
             <div class="callout danger">
               <div class="callout-icon">🚫</div>
               <div><strong>Không bịa số liệu.</strong> Nếu chưa có data, hỏi team sales trước. Gem sẽ từ chối viết bài thiếu dữ liệu thực — đây là đúng, bài sẽ không đạt điểm nếu không có data TPI độc quyền.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-dot dot-indigo">5</div>
+        <div class="substep-body">
+          <div class="substep-title">💡 Nâng cao: paste tài liệu TPI theo 4 block chuẩn</div>
+          <div class="substep-desc">
+            Thay vì gõ tự do, dùng <strong>4 block template</strong> để Gem nhận diện chính xác từng loại data. Copy block rồi điền nội dung vào:
+
+            <div style="display:grid;gap:8px;margin:12px 0">
+              <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:8px;padding:10px 14px;font-size:13px">
+                <strong style="color:var(--orange)">Block 1:</strong> <code>=== BẢNG GIÁ & THÔNG SỐ DỰ ÁN ===</code><br>
+                <span style="color:var(--ink2)">Loại hình, diện tích, giá/m², tổng giá, tiến độ thanh toán, CĐT</span>
+              </div>
+              <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:8px;padding:10px 14px;font-size:13px">
+                <strong style="color:var(--blue)">Block 2:</strong> <code>=== SỐ LIỆU GIAO DỊCH TPI ===</code><br>
+                <span style="color:var(--ink2)">Số căn bán/quý, % khách theo khu vực, phân khúc hot, case khách thực</span>
+              </div>
+              <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 14px;font-size:13px">
+                <strong style="color:var(--green)">Block 3:</strong> <code>=== THÔNG TIN CÔNG TY TPI LAND (NAP) ===</code><br>
+                <span style="color:var(--ink2)">Tên đầy đủ, địa chỉ, hotline, website, quote CEO/TGĐ, internal links</span>
+              </div>
+              <div style="background:var(--indigo-bg);border:1px solid var(--indigo-border);border-radius:8px;padding:10px 14px;font-size:13px">
+                <strong style="color:var(--indigo)">Block 4:</strong> <code>=== TÀI LIỆU PHÁP LÝ & ĐẶC ĐIỂM DỰ ÁN ===</code><br>
+                <span style="color:var(--ink2)">Sổ hồng/sổ đỏ, GPXD, 1/500, tiện ích nội/ngoại khu, tình trạng xây dựng</span>
+              </div>
+            </div>
+
+            <div class="callout tip">
+              <div class="callout-icon">📋</div>
+              <div>Xem mẫu chi tiết và copy template tại <a href="user-guide.html#gem" target="_blank" style="color:var(--blue);font-weight:700">Hướng dẫn sử dụng → Mục 5b.2</a>. Paste 4 block vào <strong>cùng 1 tin nhắn</strong> với phần trả lời 3 mục ở trên.</div>
             </div>
           </div>
         </div>
@@ -626,22 +698,22 @@ Tòa nhà đang xây tầng 12/22, dự kiến bàn giao Q4/2027.</span>
               <tr>
                 <td><span class="score-badge s-pass">≥ 85</span></td>
                 <td>Xuất sắc</td>
-                <td>✅ Xuất bản ngay</td>
+                <td>✅ <strong>Xuất bản ngay</strong></td>
               </tr>
               <tr>
-                <td><span class="score-badge s-pass">70 – 84</span></td>
-                <td>Đạt chuẩn</td>
-                <td>Cân nhắc sửa thêm hoặc xuất bản</td>
+                <td><span class="score-badge s-mid" style="color:#b45309">70 – 84</span></td>
+                <td>Đạt — còn dư địa</td>
+                <td>Cân nhắc sửa nếu có thời gian — <strong>ưu tiên Tầng yếu nhất</strong>. Nếu deadline → xuất bản được</td>
               </tr>
               <tr>
                 <td><span class="score-badge s-mid">50 – 69</span></td>
                 <td>Chưa đạt</td>
-                <td>→ Tiếp tục <strong>Bước 5</strong></td>
+                <td>→ <strong>Bước 5</strong> bắt buộc (sửa với Gem)</td>
               </tr>
               <tr>
                 <td><span class="score-badge s-fail">&lt; 50</span></td>
-                <td>Thiếu data nhiều</td>
-                <td>Bổ sung thêm data TPI rồi chạy lại từ Bước 2</td>
+                <td>Thiếu data nghiêm trọng</td>
+                <td>Bổ sung data TPI → chạy lại <strong>từ Bước 2</strong></td>
               </tr>
             </table>
           </div>
@@ -710,11 +782,46 @@ Tòa nhà đang xây tầng 12/22, dự kiến bàn giao Q4/2027.</span>
               <div class="callout-icon">🔁</div>
               <div>Thường <strong>1–2 vòng sửa</strong> là đủ. Lần 1 thường lên 80–88đ, lần 2 thêm minor polish là đạt mục tiêu.</div>
             </div>
+            <div class="callout danger">
+              <div class="callout-icon">⛔</div>
+              <div><strong>Tối đa 2 vòng sửa.</strong> Nếu chấm vòng 3 vẫn chưa qua 85đ → bài đang bị vấn đề gốc (thiếu data, sai intent, cấu trúc lệch). Quay lại <strong>Bước 1</strong> và viết lại từ đầu — sửa vá nhiều vòng sẽ tạo bài chắp vá.</div>
+            </div>
           </div>
         </div>
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ── TIMELINE MẪU ── -->
+<div class="sec-title">⏱ Timeline mẫu — 1 bài từ keyword đến publish</div>
+
+<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:28px;font-size:13.5px;line-height:1.75">
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline">
+    <span style="color:var(--orange);font-weight:700">0:00</span>
+    <span>Mở Query Fan-out → điền seed + entity + ngữ cảnh 4 trục</span>
+    <span style="color:var(--orange);font-weight:700">0:02</span>
+    <span>AI phân tích xong → review 10+ branches → nhấn <strong>📤 Brief cho Gem</strong></span>
+    <span style="color:var(--indigo);font-weight:700">0:03</span>
+    <span>Mở Gem → paste brief + paste 4 block tài liệu TPI</span>
+    <span style="color:var(--indigo);font-weight:700">0:06</span>
+    <span>Gem hỏi 3 mục thiếu → trả lời 1 tin nhắn</span>
+    <span style="color:var(--green);font-weight:700">0:08</span>
+    <span>Gem trình outline → duyệt hoặc yêu cầu chỉnh</span>
+    <span style="color:var(--green);font-weight:700">0:10</span>
+    <span>Gem viết bài 1.500–2.500 từ (chờ 1–2 phút)</span>
+    <span style="color:var(--teal);font-weight:700">0:12</span>
+    <span>Copy bài → Scorer → paste → <strong>Chấm bài</strong> → chờ ~20 giây</span>
+    <span style="color:var(--teal);font-weight:700">0:13</span>
+    <span>Đọc kết quả. Ví dụ: 78đ → Tầng 4 yếu nhất (thiếu E1+I1)</span>
+    <span style="color:var(--red);font-weight:700">0:14</span>
+    <span>Nhấn <strong>📤 Sửa với Gem</strong> → paste fix brief + bài vào Gem chat mới</span>
+    <span style="color:var(--red);font-weight:700">0:20</span>
+    <span>Gem sửa xong → copy → Scorer chấm lại → <strong>87đ ✅ Publish!</strong></span>
+  </div>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-weight:700;color:var(--green)">
+    Tổng: ~20–25 phút cho 1 bài đạt ≥85đ · Tối đa 2 vòng sửa
   </div>
 </div>
 
@@ -751,7 +858,16 @@ Tòa nhà đang xây tầng 12/22, dự kiến bàn giao Q4/2027.</span>
 
 <div class="faq">
   <div class="faq-q">Điểm Tầng 4 luôn thấp dù bài viết tốt?</div>
-  <div class="faq-a">Tầng 4 chấm E-E-A-T và Information Gain. Thêm vào bài: (1) cụm "Khảo sát thực địa ngày X/2026 của TPI..."; (2) tên tác giả + chức vụ đầu bài; (3) ghi rõ "Cập nhật: tháng 5/2026". Sau đó chấm lại.</div>
+  <div class="faq-a">Tầng 4 ("Information Gain & GEO & E-E-A-T", max 27đ) chấm 5 nhóm tiêu chí — thiếu bất kỳ nhóm nào đều mất nhiều điểm:
+    <ul style="margin:8px 0 0 16px;line-height:2">
+      <li><strong>E1 (4đ)</strong> — cụm first-hand experience: <em>"Khảo sát thực địa ngày X/2026 của TPI..."</em>, <em>"Từ 47 giao dịch Q1/2026..."</em></li>
+      <li><strong>E2 (2đ)</strong> — tên tác giả + chức vụ TPI ở đầu bài hoặc byline</li>
+      <li><strong>I1 (7đ)</strong> — dữ liệu nội bộ TPI mà Google không có (giá thực, case khách, insight sales)</li>
+      <li><strong>I2 (5đ)</strong> — góc nhìn phân tích riêng, không sao chép bài khác</li>
+      <li><strong>G2 (3đ)</strong> — có ≥1 bảng HTML + ≥1 danh sách &lt;ol&gt; (structured data cho AI)</li>
+    </ul>
+    Thêm: ghi rõ <em>"Cập nhật: tháng X/2026"</em> cho E3 (nằm Tầng 1, 2đ freshness signal).
+  </div>
 </div>
 
 <div class="faq">
