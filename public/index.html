@@ -1287,6 +1287,24 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
       <h3 class="syne">Danh sách tài khoản</h3>
       <div class="user-list" id="user-list"></div>
     </div>
+
+    <div class="config-section">
+      <h3 class="syne">💾 Backup &amp; Restore (Phase 1)</h3>
+      <p style="color:var(--ink3);font-size:12px;margin:6px 0 12px">
+        Export toàn bộ data trong browser (users, submissions, configs) ra file <code>.json</code> —
+        Import để khôi phục khi user xóa cache hoặc chuyển máy.
+        Mỗi bài chấm cũng tự push sang Google Sheets (nếu admin đã cấu hình
+        <code>GSHEETS_WEBHOOK_URL</code> trong Vercel env).
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-outline" onclick="exportAllData()" style="padding:8px 16px">📥 Export All Data (.json)</button>
+        <button class="btn-outline" onclick="importAllData()" style="padding:8px 16px">📤 Import Data (.json)</button>
+        <button class="btn-outline" onclick="_logToSheet('ping',{at:new Date().toISOString(),by:currentUser?.username}).then(()=>_showToast('✓ Đã ping webhook — kiểm tra Google Sheet','success'))" style="padding:8px 16px">🔔 Test Webhook</button>
+      </div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:10px">
+        💡 Nên export 1 lần/tuần. File backup chỉ chứa data localStorage (không có API key — key nằm server-side Vercel env).
+      </div>
+    </div>
   </div>
 
   <!-- AEO CHECKLIST -->
@@ -2877,6 +2895,23 @@ async function submitArticle() {
     DB.set('submissions', subs.slice(0, 200));
     if (llmUsed) { incrementDaily(); incrementMonthly(); renderLimitBar(); }
 
+    // Phase 1 — backup webhook (silent, không chặn UI)
+    _logToSheet('submission', {
+      timestamp: submission.date,
+      user: submission.submitter,
+      keyword: submission.keyword,
+      entity: submission.entity,
+      intent: submission.intent,
+      wordCount: submission.wordCount,
+      total: submission.total,
+      passed: submission.passed,
+      llmUsed: submission.llmUsed,
+      tiers: (submission.tierBreakdown || []).map(t => ({ name: t.name, score: t.score, max: t.max })),
+      top5: (submission.top5 || []).map(t => ({ id: t.criterion_id, sev: t.severity, issue: (t.issue || '').slice(0, 200) })),
+      tokens: submission.tokens?.total || 0,
+      rubric: submission.rubric_version,
+    }).catch(() => {});
+
     // Render result
     renderResult(resultWrap, submission, allReasons, allScores);
 
@@ -3842,6 +3877,81 @@ async function removeUser(username) {
   } catch (e) {
     _showToast(e.message, 'err');
   }
+}
+
+// ============================================================
+// PHASE 1 — BACKUP & SYNC
+// ============================================================
+
+// Gửi event lên Google Sheets qua /api/log proxy (silent)
+async function _logToSheet(type, payload) {
+  try {
+    await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, payload }),
+    });
+  } catch (e) {
+    console.warn('[log] webhook failed', e.message);
+  }
+}
+
+// Export toàn bộ localStorage tpi_* ra file JSON
+function exportAllData() {
+  const data = {
+    _exported_at: new Date().toISOString(),
+    _exported_by: currentUser?.username || 'unknown',
+    _version: 'tpi-backup-v1',
+    keys: {},
+  };
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith('tpi_')) continue;
+    data.keys[k] = localStorage.getItem(k);
+  }
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const ts = new Date().toISOString().slice(0, 10);
+  a.download = `tpi-backup-${ts}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const count = Object.keys(data.keys).length;
+  _showToast(`✓ Đã tải backup: ${count} keys`, 'success');
+}
+
+// Import file JSON về localStorage (merge — không xóa key cũ)
+function importAllData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.keys || typeof data.keys !== 'object') {
+        _showToast('File không đúng format tpi-backup-v1', 'err'); return;
+      }
+      const keys = Object.keys(data.keys);
+      const msg = `Restore ${keys.length} keys từ file "${file.name}"?\nMerge với data hiện tại (key trùng sẽ ghi đè).\nExported by: ${data._exported_by || 'unknown'} · ${data._exported_at || '?'}`;
+      if (!confirm(msg)) return;
+      let n = 0;
+      for (const k of keys) {
+        if (!k.startsWith('tpi_')) continue;
+        localStorage.setItem(k, data.keys[k]);
+        n++;
+      }
+      _showToast(`✓ Restored ${n} keys. Reload trang để áp dụng.`, 'success');
+      setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+      _showToast('Lỗi đọc file: ' + err.message, 'err');
+    }
+  };
+  input.click();
 }
 
 // ============================================================
