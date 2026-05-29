@@ -5767,7 +5767,9 @@ function exportQFBriefForGem() {
   }
 
   // 7. All SEO queries (long-tail reference)
-  if (allFanoutQ.length > topFanoutQ.length) {
+  // Gộp queries của top 5 branches để so sánh — nếu allFanoutQ nhiều hơn → có long-tail extra ngoài top 5
+  const top5FanoutCount = top5.reduce((sum, b) => sum + ((b.fan_out_queries || b.queries || []).length), 0);
+  if (allFanoutQ.length > top5FanoutCount) {
     md += `## 7. Toàn bộ Query Fan-out (tham khảo long-tail)\n\n`;
     allFanoutQ.forEach(q => md += `- ${q}\n`);
     md += `\n`;
