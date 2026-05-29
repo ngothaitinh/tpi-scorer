@@ -1,9 +1,9 @@
-# CONTEXT — cập nhật: 28/05/2026 (session 17)
+# CONTEXT — cập nhật: 29/05/2026 (session 18)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 097415b)
+## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit 469c734)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
 Live: **https://tpi-scorer.vercel.app**
@@ -19,13 +19,36 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - [ ] Đổi mật khẩu admin khỏi `admin2024` trong app UI
 
 ## Đang làm dở
-- [ ] **Test QF v2** — nhập seed query thật, admin cấu hình `qf_model` trong Admin panel, verify:
-  - ≥10 branches sinh ra + "📤 Brief cho Gem" button hoạt động
-  - `fan_out_queries` (SEO, monospace cam) hiện trước `user_questions` (NLP, xanh)
-  - Semantic keywords chips (core_entities / supporting_terms / action_modifiers)
-- [ ] **Test scoring v3.0** — chấm bài thật trên live site, xác nhận E1/E2/E3/G2/G3/HC1 chấm đúng
-- [ ] **[ USER ]** Update Gemini Gem prompt → paste nội dung `prompt-gem-v3.2.txt` (trên Desktop)
+- [ ] **[ USER ] Admin setup Phase 1 Backup** — theo `docs/PHASE1-BACKUP-SETUP.md`:
+  1. Tạo Google Sheet + Apps Script (6 bước)
+  2. Set Vercel env `GSHEETS_WEBHOOK_URL`
+  3. Test webhook từ Admin panel → kiểm tra Sheet
+- [ ] **Phase 2 Analytics** — in-app Admin dashboard (chart.js), criterion fail tracking — TẠM NGƯNG, nhắc sau
+- [ ] **Phase 3 Cloud sync** (optional) — Vercel KV dual-write — TẠM NGƯNG
+- [ ] **Test QF v2** — nhập seed query thật, verify ≥10 branches + brief export
+- [ ] **Test scoring v3.0** — chấm bài thật, xác nhận E1/E2/E3/G2/G3/HC1
+- [ ] **Fix stale footer** `exportMarkdown()` — còn "Rubric v2.1" + URL Netlify cũ
 - [ ] **(Tuỳ chọn)** Rubric v3 documentation page trong app
+
+## Vừa xong (session 18 — 29/05/2026)
+- [x] **user-guide.html — Gemini Gem section** (commit f575fda)
+  - Section 1 updated: "2 công cụ" → "3 công cụ phối hợp" (thêm Gem row vào bảng)
+  - Section 2 updated: bước 3-4 dẫn đến Gem, "📤 Brief cho Gem" + "📤 Sửa với Gem"
+  - Section 5b mới (id="gem"): Viết bài với Gemini Gem
+    - Link trực tiếp: gemini.google.com/u/2/gem/ce399149b789
+    - 3-bước workflow (paste brief → paste 4 block data → Gem viết)
+    - 4 document block templates cho exclusive TPI content:
+      BẢNG GIÁ & THÔNG SỐ / SỐ LIỆU GIAO DỊCH / NAP cố định / PHÁP LÝ & ĐẶC ĐIỂM
+    - Section 5b.3: hướng dẫn dùng "📤 Sửa với Gem"
+- [x] **Phase 1 Backup & Webhook** (commit 469c734, 5980 dòng)
+  - `api/log.js` (38 dòng) — Vercel proxy forward POST → `GSHEETS_WEBHOOK_URL`
+  - `_logToSheet(type, payload)` — helper gọi /api/log (silent, không chặn UI)
+  - Sau `saveSubmission()`: auto push submission lên Google Sheet (tiers + top5 summary)
+  - `exportAllData()` — tải tpi-backup-YYYY-MM-DD.json (toàn bộ keys tpi_*)
+  - `importAllData()` — restore merge từ file .json (confirm + reload)
+  - Admin panel section mới: 💾 Backup & Restore (3 nút: Export/Import/Test Webhook)
+  - `docs/PHASE1-BACKUP-SETUP.md` — 6-bước setup guide cho admin
+- [x] **Đánh giá hệ thống** — review quy trình, SOP tối ưu, capacity estimate, khuyến nghị P0-P2
 
 ## Vừa xong (session 17 — 28/05/2026)
 - [x] **Workflow QF → Gem → Scorer — Phase 1** (commit 1b89373)
@@ -128,14 +151,15 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **QF v2**: Custom AI key riêng (tách biệt scoring), 2 nhóm query, 13-category BĐS framework
 - **_callLLM_QF**: ant/* hoặc includes 'claude' → /messages, others → /chat/completions
 
-## Số liệu hiện tại (v3.0 + QF v2 + Gem workflow)
-- `public/index.html`: **5869 dòng** (main file — commit 097415b)
+## Số liệu hiện tại (v3.0 + QF v2 + Gem workflow + Phase 1 Backup)
+- `public/index.html`: **5980 dòng** (main file — commit 469c734)
+- `api/log.js`: 38 dòng (webhook proxy)
 - `src/rubric.tpi-v3.json`: 28 tiêu chí (E1/E2/E3/G2/G3/HC1 mới), 100đ, pass=70
   - Loại bỏ: S6, R6 | Thêm: E1(4pt), E2(2pt), E3(2pt), G2(3pt), G3(2pt), HC1(3pt)
 - Ước tính chi phí v3.0: ~540đ/bài (balanced), ~$0.008 (economy), ~$0.05 (accurate)
 
-## Lưu ý quan trọng (v3.0 + QF v2)
-- **File chính**: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (5371 dòng)
+## Lưu ý quan trọng (v3.0 + QF v2 + Phase 1 Backup)
+- **File chính**: `C:\Users\ASUS\Desktop\tpi-scorer\public\index.html` (5980 dòng)
 - **KHÔNG sửa file worktree** — làm thẳng trên master
 - **Rubric v3.0**: `src/rubric.tpi-v3.json` — loaded in-code, all criteria active
 - **New scorers v3.0**: E1/E2/E3 (E-E-A-T), G2/G3 (GEO), HC1 (HCU) — trong `RULE_SCORERS`
@@ -153,20 +177,29 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 - **Gem prompt**: `C:\Users\ASUS\Desktop\prompt-gem-v3.2.txt` — v3.2 (bỏ self-QA, thêm brief handler)
 - **Hash routing**: `#submit`, `#history`, `#query`, `#aeo`, `#admin` — mỗi page có link riêng
 - **rubric-guide.html**: tài liệu hướng dẫn chấm bài, font Poppins
+- **Backup webhook**: `api/log.js` → proxy tới `GSHEETS_WEBHOOK_URL` (Vercel env)
+- **Backup UI**: Admin panel → 💾 Backup & Restore (Export/Import JSON + Test Webhook)
+- **_logToSheet()**: silent push submission lên Google Sheet sau saveSubmission()
+- **Setup guide**: `docs/PHASE1-BACKUP-SETUP.md` — 6 bước cho admin
+- **user-guide.html**: 1306 dòng (Section 5b Gem workflow + 4 block data templates)
+- **workflow-guide.html**: ~1050 dòng (user-facing 5-step guide)
 
 ## Backlog ưu tiên
-### P0 — Test live (user action)
-1. **[ USER ]** Set Vercel env vars: `LLM_ENDPOINT` + `LLM_API_KEY` (hoặc `ANTHROPIC_API_KEY`) trong Vercel Dashboard
-2. **[ USER ]** Admin vào app → Admin panel → API & Model → nhập `model` + `qf_model` → Test → Lưu
-3. **[ USER ]** Test QF v2 với seed query thật — verify ≥10 branches + model badge hiện đúng
-4. **[ USER ]** Chấm bài thật v3.0 — xác nhận E1/E2/E3/G2/G3/HC1
-5. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
+### P0 — Admin setup (user action)
+1. **[ USER ]** Set Vercel env vars: `LLM_ENDPOINT` + `LLM_API_KEY` + `GSHEETS_WEBHOOK_URL`
+2. **[ USER ]** Setup Google Sheet + Apps Script theo `docs/PHASE1-BACKUP-SETUP.md`
+3. **[ USER ]** Admin panel → Test Webhook → verify Sheet nhận row
+4. **[ USER ]** Admin panel → API & Model → nhập `model` + `qf_model` → Test → Lưu
+5. **[ USER ]** Test QF v2 với seed query thật → verify ≥10 branches
+6. **[ USER ]** Chấm bài thật v3.0 → xác nhận E1/E2/E3/G2/G3/HC1
+7. **[ USER ]** Đổi mật khẩu admin (`admin2024`) trong app UI
+8. **[ USER ]** Test full workflow: QF → Brief cho Gem → viết → Scorer → Sửa với Gem
 
-### P1 — V3.0 Stabilization
-- [ ] **[ USER ]** Update Gemini Gem: paste `prompt-gem-v3.2.txt` (Desktop) vào Gem Settings
-- [ ] **[ USER ]** Test full workflow: QF → Brief cho Gem → viết → Scorer → Sửa với Gem → Scorer
+### P1 — Phase 2 Analytics + Stabilization (TẠM NGƯNG — nhắc sau)
+- [ ] In-app Admin Analytics tab (chart.js CDN): avg score/tuần, top criterion fail, leaderboard
+- [ ] Criterion fail tracking: parse allScores từ Sheet → tỷ lệ fail mỗi criterion
+- [ ] Fix stale footer `exportMarkdown()` — "Rubric v2.1" → v3.0, Netlify → Vercel URL
 - [ ] Rubric v3.0 in-app documentation page
-- [ ] Notes field UX improvement (nếu cần)
 
 ### P2 — Next Track
 - [ ] Webhook n8n/Telegram sau khi chấm xong
