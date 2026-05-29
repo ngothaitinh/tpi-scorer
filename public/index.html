@@ -5408,9 +5408,10 @@ NHÓM B — "fan_out_queries" (Query SEO Fan-out — TỐI ƯU TÌM KIẾM):
       throw new Error('AI trả về JSON nhưng thiếu fan_out_branches — xem console.');
     }
     // lưu result để Edit JSON dùng
-    window._qfLastResult = result;
-    window._qfLastSeed   = seedQuery;
-    window._qfLastEntity = entity;
+    window._qfLastResult  = result;
+    window._qfLastSeed    = seedQuery;
+    window._qfLastEntity  = entity;
+    window._qfLastContext = context;
     _renderQueryResult(result, seedQuery, entity);
     _saveQFHistory(result, seedQuery, entity);
     document.getElementById('qf-result').style.display = '';
@@ -5657,9 +5658,10 @@ function exportQFMarkdown() {
 
 // ── QF Export Brief cho Gemini Gem ────────────────────────────
 function exportQFBriefForGem() {
-  const r      = window._qfLastResult;
-  const seed   = window._qfLastSeed   || '';
-  const entity = window._qfLastEntity || '';
+  const r       = window._qfLastResult;
+  const seed    = window._qfLastSeed    || '';
+  const entity  = window._qfLastEntity  || '';
+  const context = window._qfLastContext || '';
   if (!r) { _showToast('Chưa có kết quả để export', 'warn'); return; }
 
   const sa = r.seed_analysis || {};
@@ -5667,7 +5669,7 @@ function exportQFBriefForGem() {
   const hs = r.hub_spoke_architecture || r.hub_spoke || {};
 
   // Pick top branch (highest priority_score)
-  const branches = (r.fan_out_branches || []);
+  const branches  = (r.fan_out_branches || []);
   const topBranch = branches.reduce((best, b) =>
     (parseInt(b.priority_score) || 0) > (parseInt(best.priority_score) || 0) ? b : best,
     branches[0] || {});
@@ -5681,97 +5683,172 @@ function exportQFBriefForGem() {
   // ── Build brief ─────────────────────────────────────────────
   let md = '';
   md += `# ✍️ BRIEF VIẾT BÀI — ${entity || seed}\n\n`;
-  md += `> Brief này được tạo tự động từ TPI Scorer / Query Fan-out.\n`;
-  md += `> Dán vào Gemini Gem để viết bài chuẩn rubric TPI v3.0.\n\n`;
+  md += `> Brief tự động từ TPI Scorer · Query Fan-out v2 · Rubric v3.0\n`;
+  md += `> Mục tiêu: bài ≥85/100đ, chuẩn AEO/GEO/E-E-A-T.\n\n`;
   md += `---\n\n`;
 
   // 1. Keyword & meta
   md += `## 1. Keyword & Thông tin cơ bản\n\n`;
   md += `| Trường | Giá trị |\n`;
   md += `|--------|----------|\n`;
-  md += `| **Keyword chính** | ${seed} |\n`;
+  md += `| **Keyword chính (seed)** | ${seed} |\n`;
   md += `| **Entity chính** | ${entity} |\n`;
   md += `| **Search Intent** | ${sa.intent_type || '—'} |\n`;
   md += `| **AEO Difficulty** | ${sa.aeo_difficulty || '—'} |\n`;
   md += `| **Ngày tạo brief** | ${new Date().toLocaleDateString('vi-VN')} |\n\n`;
 
-  // 2. Top branch info
-  md += `## 2. Nhánh Trọng Tâm (Branch ưu tiên cao nhất)\n\n`;
-  md += `**Branch:** ${topBranch.branch_name || topBranch.theme || '—'}`;
-  if (topBranch.priority_score) md += ` (Priority: ${topBranch.priority_score}/10)`;
+  // 2. Ngữ cảnh người dùng (NEW — từ ô context user nhập)
+  if (context) {
+    md += `## 2. Ngữ cảnh người tìm kiếm & thực thể liên quan\n\n`;
+    md += `> Trích nguyên từ input của người dùng. Gem dùng để định hình tone, journey, và Related Entities.\n\n`;
+    md += `${context}\n\n`;
+  }
+
+  // 3. Top branch info (Outline starter)
+  md += `## 3. Nhánh Trọng Tâm — Outline Gợi Ý\n\n`;
+  md += `**Branch ưu tiên cao nhất:** ${topBranch.branch_name || topBranch.theme || '—'}`;
+  if (topBranch.priority_score) md += ` _(Priority: ${topBranch.priority_score}/10)_`;
   md += `\n\n`;
 
   if (topUserQ.length) {
-    md += `### Đề xuất H2 cho bài viết (từ user questions)\n\n`;
+    md += `### H2 đề xuất (dùng nguyên — đây là cách user thật tìm kiếm)\n\n`;
     topUserQ.forEach((q, i) => md += `${i+1}. ${q}\n`);
     md += `\n`;
   }
 
   if (topFanoutQ.length) {
-    md += `### Query SEO cần tích hợp tự nhiên\n\n`;
-    topFanoutQ.forEach(q => md += `- ${q}\n`);
+    md += `### Query SEO ngắn (tích hợp tự nhiên — không nhồi)\n\n`;
+    topFanoutQ.forEach(q => md += `- \`${q}\`\n`);
     md += `\n`;
   }
 
-  // 3. Semantic keywords
-  md += `## 3. Từ Khoá Ngữ Nghĩa (Tích hợp tự nhiên vào bài)\n\n`;
+  // 4. Semantic keywords
+  md += `## 4. Từ Khoá Ngữ Nghĩa (LSI)\n\n`;
   if ((sk.core_entities || []).length) {
-    md += `**Core Entities (bắt buộc xuất hiện):**\n`;
+    md += `**🎯 Core Entities — BẮT BUỘC xuất hiện (in đậm lần đầu):**\n`;
     sk.core_entities.forEach(k => md += `- ${k}\n`);
     md += `\n`;
   }
   if ((sk.supporting_terms || []).length) {
-    md += `**Supporting Terms (hỗ trợ ngữ nghĩa):**\n`;
+    md += `**🔗 Supporting Terms — hỗ trợ ngữ nghĩa:**\n`;
     sk.supporting_terms.forEach(k => md += `- ${k}\n`);
     md += `\n`;
   }
   if ((sk.action_modifiers || []).length) {
-    md += `**Action Modifiers (intent signals):**\n`;
+    md += `**⚡ Action Modifiers — intent signals:**\n`;
     sk.action_modifiers.forEach(k => md += `- ${k}\n`);
     md += `\n`;
   }
 
-  // 4. Hub & Spoke (bài nào sẽ viết trong tương lai)
+  // 5. Hub & Spoke
   if (hs.pillar_title || spokes.length) {
-    md += `## 4. Hub & Spoke — Vị trí bài trong Content Cluster\n\n`;
-    md += `**Pillar (bài trụ cột):** ${hs.pillar_title || (hs.pillar || {}).title || '—'}\n\n`;
+    md += `## 5. Hub & Spoke — Internal Link Strategy\n\n`;
+    md += `**Pillar (bài trụ cột — bài này LINK VỀ):** ${hs.pillar_title || (hs.pillar || {}).title || '—'}\n\n`;
     if (spokes.length) {
-      md += `**Spoke topics liên quan:**\n`;
+      md += `**Spoke topics (bài liên quan — có thể link CHÉO):**\n`;
       spokes.forEach((s, i) => md += `${i+1}. ${s}\n`);
       md += `\n`;
     }
   }
 
-  // 5. Golden paragraphs
+  // 6. Golden paragraphs (Answer-First mẫu)
   if ((r.golden_paragraphs || []).length) {
-    md += `## 5. "60 Chữ Vàng" — Đoạn Answer-First Gợi ý\n\n`;
-    md += `> Dùng làm mẫu cho phần mở đầu (Answer-First 40-70 từ) và FAQ.\n\n`;
+    md += `## 6. "60 Chữ Vàng" — Citable Chunks mẫu\n\n`;
+    md += `> Dùng làm:\n`;
+    md += `> - Đoạn Answer-First sau H1 (40–70 từ)\n`;
+    md += `> - Đoạn mở mỗi H2 quan trọng (Citable Chunk 50–120 từ)\n`;
+    md += `> - Mẫu câu trả lời FAQ (≤100 từ/câu)\n\n`;
     (r.golden_paragraphs || []).forEach((g, i) => {
-      md += `### ${i+1}. ${g.target_query || g.h2 || ''}\n\n`;
+      md += `### ${i+1}. Cho query: "${g.target_query || g.h2 || ''}"\n\n`;
       md += `> ${g.bite_sized_answer || g.sample_50_words || ''}\n\n`;
     });
   }
 
-  // 6. All SEO queries (for long-tail coverage reference)
+  // 7. All SEO queries (long-tail reference)
   if (allFanoutQ.length > topFanoutQ.length) {
-    md += `## 6. Toàn bộ Query Fan-out (tham khảo long-tail)\n\n`;
+    md += `## 7. Toàn bộ Query Fan-out (tham khảo long-tail)\n\n`;
     allFanoutQ.forEach(q => md += `- ${q}\n`);
     md += `\n`;
   }
 
-  // 7. Instructions for Gem — what to ask next
+  // 8. AEO/GEO DIRECTIVES — bắt buộc thi hành
   md += `---\n\n`;
-  md += `## ⚠️ GEM CẦN HỎI THÊM TRƯỚC KHI VIẾT\n\n`;
-  md += `Brief này đã có keyword + H2 gợi ý + từ khoá ngữ nghĩa. Gem cần bổ sung:\n\n`;
-  md += `1. **Dữ liệu độc quyền TPI** — con số thực, case study, giá thực tế TPI Land\n`;
-  md += `   *Ví dụ: "Căn 2PN tại dự án X giá Y tỷ, đã bán Z căn trong tháng 5/2026"*\n\n`;
-  md += `2. **Trích dẫn từ chuyên gia nội bộ** — Tên + chức danh + câu nói thực\n`;
-  md += `   *Ví dụ: "Anh Nguyễn Văn A – Trưởng phòng Kinh doanh TPI Land: '...'"*\n\n`;
-  md += `3. **Liên kết nội bộ + NAP cuối bài**\n`;
-  md += `   - 2-3 URL trang liên quan trên tpiland.vn\n`;
-  md += `   - Xác nhận NAP: Tên công ty, địa chỉ, SĐT chính xác\n\n`;
+  md += `## 🎯 AEO / GEO DIRECTIVES — BẮT BUỘC THI HÀNH\n\n`;
+  md += `Gem phải đảm bảo bài có ĐỦ các yếu tố sau (rubric v3.0):\n\n`;
+  md += `1. **Byline đầu bài** (E2+E3 = 4đ rẻ):\n`;
+  md += `   \`Người viết: [Tên] — [Chức vụ TPI Land] · Cập nhật: [tháng/năm]\`\n\n`;
+  md += `2. **Answer-First 40–70 từ** ngay sau H1 — trả lời TRỰC TIẾP seed query, có ≥1 số + Entity chính\n\n`;
+  md += `3. **Definition sentence** trong 1.500 ký tự đầu (G1):\n`;
+  md += `   \`${entity || '[Entity]'} là [loại hình] của [CĐT] tại [vị trí cụ thể].\`\n\n`;
+  md += `4. **≥3 Citable Chunks** 50–120 từ — 1 ý/đoạn, có dữ kiện cụ thể (G1, HC1)\n\n`;
+  md += `5. **≥1 bảng HTML** so sánh hoặc EAV (G2 — 9 trục: Tên/Loại/Vị trí/Quy mô/Diện tích/Giá/CĐT/Pháp lý/Tình trạng)\n\n`;
+  md += `6. **≥1 danh sách \`<ol>\`** quy trình hoặc top X (G2)\n\n`;
+  md += `7. **FAQ 4–6 câu hỏi DẠNG ĐẦY ĐỦ** (A2 — Schema-ready, ≤100 từ/answer):\n`;
+  md += `   - 1 câu Cân nhắc · 1 câu So sánh · 1 câu Pháp lý/Tài chính · 1 câu Objection\n\n`;
+  md += `8. **≥2 cụm first-hand experience** (E1 — 4đ):\n`;
+  md += `   "Khảo sát thực địa [ngày]/2026...", "Từ [X] giao dịch Q[Y]/2026 của TPI..."\n\n`;
+  md += `9. **≥1 quote người thật** + tên + chức vụ TPI Land\n\n`;
+  md += `10. **NAP cuối bài** (G3 — 2đ): Tên đầy đủ + Địa chỉ + Hotline\n\n`;
+  md += `11. **2–3 internal link** anchor tự nhiên (KHÔNG "click vào đây")\n\n`;
+
+  // 9. ANTI-HALU — chống bịa số
+  md += `## 🛡 CHỐNG HALU — Quy tắc số liệu\n\n`;
+  md += `Mọi con số PHẢI có nguồn ngay sau (data TPI / CĐT / SGTVT / báo chí + ngày tháng).\n\n`;
+  md += `**Cấm:**\n`;
+  md += `- Suy luận con số từ chủ đề liên quan\n`;
+  md += `- Dùng "khoảng / ước tính / có thể đạt / tầm / xấp xỉ" cho số chính\n`;
+  md += `- Trích "theo nghiên cứu / chuyên gia" mà không có TÊN + NĂM\n`;
+  md += `- Bịa tên người, chức vụ, dự án không tồn tại\n\n`;
+  md += `**Self-check trước khi gửi:** quét bài, mọi số không nguồn → hỏi user, không lấp.\n\n`;
+
+  // 10. GEM CẦN HỎI USER — 4 block data
   md += `---\n\n`;
-  md += `*Brief tạo bởi TPI Scorer — ${new Date().toLocaleString('vi-VN')}*\n`;
+  md += `## ⚠️ GEM CẦN HỎI USER TRƯỚC KHI VIẾT\n\n`;
+  md += `Brief đã có: keyword + ngữ cảnh + H2 gợi ý + semantic keywords + golden chunks.\n`;
+  md += `Gem cần USER bổ sung **4 BLOCK TÀI LIỆU TPI** (gộp 1 tin nhắn):\n\n`;
+  md += `### Block 1 — Bảng giá & thông số dự án\n`;
+  md += `\`\`\`\n`;
+  md += `=== BẢNG GIÁ & THÔNG SỐ DỰ ÁN ===\n`;
+  md += `Loại hình: [nhà phố / căn hộ / shophouse / condotel]\n`;
+  md += `Diện tích: [từ – đến m²]\n`;
+  md += `Giá: [từ – đến VND, cập nhật tháng/năm]\n`;
+  md += `Tiến độ thanh toán: [đợt 1: X%, đợt 2: Y%...]\n`;
+  md += `CĐT: [tên đầy đủ, lịch sử dự án thành công]\n`;
+  md += `\`\`\`\n\n`;
+  md += `### Block 2 — Số liệu giao dịch TPI (data nội bộ)\n`;
+  md += `\`\`\`\n`;
+  md += `=== SỐ LIỆU GIAO DỊCH TPI (Q.../20...) ===\n`;
+  md += `Số căn bán: [X căn]\n`;
+  md += `Phân khúc khách: [% HCM / Hà Nội / nội tỉnh]\n`;
+  md += `Insight sales: [câu khách hỏi nhiều nhất, objection chính]\n`;
+  md += `Case khách thực: [tên/khu vực/lý do mua]\n`;
+  md += `\`\`\`\n\n`;
+  md += `### Block 3 — NAP + Quote người TPI\n`;
+  md += `\`\`\`\n`;
+  md += `=== THÔNG TIN CÔNG TY TPI LAND (NAP cố định) ===\n`;
+  md += `Tên: Công ty Cổ phần TPI Land\n`;
+  md += `Địa chỉ: [địa chỉ đầy đủ]\n`;
+  md += `Hotline: [số điện thoại]\n`;
+  md += `Website: tpiland.vn\n`;
+  md += `\n`;
+  md += `Quote: [Tên] – [Chức vụ TPI Land]:\n`;
+  md += `"[câu nói thực về chủ đề bài viết]"\n`;
+  md += `\n`;
+  md += `Internal links:\n`;
+  md += `- tpiland.vn/[url-1] (mô tả ngữ cảnh)\n`;
+  md += `- tpiland.vn/[url-2] (mô tả ngữ cảnh)\n`;
+  md += `\`\`\`\n\n`;
+  md += `### Block 4 — Pháp lý & đặc điểm\n`;
+  md += `\`\`\`\n`;
+  md += `=== TÀI LIỆU PHÁP LÝ & ĐẶC ĐIỂM DỰ ÁN ===\n`;
+  md += `Pháp lý: [sổ hồng riêng / sổ chung / quy hoạch 1/500 / GPXD]\n`;
+  md += `Tiện ích nội khu: [danh sách cụ thể]\n`;
+  md += `Tiện ích ngoại khu: [khoảng cách đến trung tâm, sân bay, trục giao thông]\n`;
+  md += `Tình trạng xây dựng: [tháng/năm, % hoàn thiện]\n`;
+  md += `\`\`\`\n\n`;
+  md += `**Nếu user không có block nào → Gem hỏi cụ thể, KHÔNG bịa.**\n\n`;
+  md += `---\n\n`;
+  md += `*Brief generated by TPI Scorer · ${new Date().toLocaleString('vi-VN')}*\n`;
 
   // Trigger download
   const fname = `tpi-brief-gem-${(entity || seed).slice(0, 35).replace(/[^a-zA-Z0-9-_]/g, '_')}-${Date.now()}.md`;
