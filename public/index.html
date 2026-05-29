@@ -5668,23 +5668,20 @@ function exportQFBriefForGem() {
   const sk = r.semantic_keywords || {};
   const hs = r.hub_spoke_architecture || r.hub_spoke || {};
 
-  // Pick top branch (highest priority_score)
-  const branches  = (r.fan_out_branches || []);
-  const topBranch = branches.reduce((best, b) =>
-    (parseInt(b.priority_score) || 0) > (parseInt(best.priority_score) || 0) ? b : best,
-    branches[0] || {});
+  // Sort branches by priority desc
+  const branches = (r.fan_out_branches || []).slice()
+    .sort((a, b) => (parseInt(b.priority_score) || 0) - (parseInt(a.priority_score) || 0));
+  const top5     = branches.slice(0, 5);
 
   const allFanoutQ = branches.flatMap(b => b.fan_out_queries || b.queries || []);
-  const topUserQ   = topBranch.user_questions || [];
-  const topFanoutQ = topBranch.fan_out_queries || topBranch.queries || [];
-
   const spokes = hs.spoke_topics || (hs.spokes || []).map(s => (typeof s === 'string' ? s : s.title));
 
-  // ── Build brief ─────────────────────────────────────────────
+  // ── Build PILLAR brief ──────────────────────────────────────
   let md = '';
-  md += `# ✍️ BRIEF VIẾT BÀI — ${entity || seed}\n\n`;
+  md += `# ✍️ BRIEF PILLAR — ${entity || seed}\n\n`;
+  md += `> **Loại bài:** Pillar Article (bài trụ cột — bao quát toàn chủ đề, top 5 H2 lấy từ 5 branch ưu tiên cao nhất)\n`;
   md += `> Brief tự động từ TPI Scorer · Query Fan-out v2 · Rubric v3.0\n`;
-  md += `> Mục tiêu: bài ≥85/100đ, chuẩn AEO/GEO/E-E-A-T.\n\n`;
+  md += `> Mục tiêu: bài ≥85/100đ, dài 2.500–4.000 từ, chuẩn AEO/GEO/E-E-A-T.\n\n`;
   md += `---\n\n`;
 
   // 1. Keyword & meta
@@ -5704,23 +5701,28 @@ function exportQFBriefForGem() {
     md += `${context}\n\n`;
   }
 
-  // 3. Top branch info (Outline starter)
-  md += `## 3. Nhánh Trọng Tâm — Outline Gợi Ý\n\n`;
-  md += `**Branch ưu tiên cao nhất:** ${topBranch.branch_name || topBranch.theme || '—'}`;
-  if (topBranch.priority_score) md += ` _(Priority: ${topBranch.priority_score}/10)_`;
-  md += `\n\n`;
+  // 3. Top 5 Branches — Outline cho Pillar
+  md += `## 3. Outline Pillar — Top 5 Branch ưu tiên cao nhất\n\n`;
+  md += `> Mỗi branch dưới đây = 1 H2 trong pillar. Gem tổng hợp 5 H2 thành 1 bài bao quát.\n`;
+  md += `> Mỗi H2 có 2–3 H3 dùng từ "câu hỏi người dùng" của branch tương ứng.\n\n`;
+  top5.forEach((b, idx) => {
+    const userQ   = b.user_questions || [];
+    const fanoutQ = b.fan_out_queries || b.queries || [];
+    const score   = b.priority_score || '—';
+    md += `### H2 ${idx+1}. ${b.branch_name || b.theme || 'Nhánh ' + (idx+1)}  _(Priority: ${score}/10)_\n\n`;
+    if (userQ.length) {
+      md += `**H3 đề xuất (dùng nguyên câu hỏi user):**\n`;
+      userQ.slice(0, 3).forEach((q, i) => md += `${i+1}. ${q}\n`);
+      md += `\n`;
+    }
+    if (fanoutQ.length) {
+      md += `**Query SEO tích hợp tự nhiên:**\n`;
+      fanoutQ.forEach(q => md += `- \`${q}\`\n`);
+      md += `\n`;
+    }
+  });
 
-  if (topUserQ.length) {
-    md += `### H2 đề xuất (dùng nguyên — đây là cách user thật tìm kiếm)\n\n`;
-    topUserQ.forEach((q, i) => md += `${i+1}. ${q}\n`);
-    md += `\n`;
-  }
-
-  if (topFanoutQ.length) {
-    md += `### Query SEO ngắn (tích hợp tự nhiên — không nhồi)\n\n`;
-    topFanoutQ.forEach(q => md += `- \`${q}\`\n`);
-    md += `\n`;
-  }
+  md += `**💡 Tip:** Nếu muốn viết bài chuyên sâu (Spoke article) cho 1 branch cụ thể → quay lại app, nhấn nút **📤 Brief cho Gem** ngay dưới priority badge của branch đó.\n\n`;
 
   // 4. Semantic keywords
   md += `## 4. Từ Khoá Ngữ Nghĩa (LSI)\n\n`;
@@ -5861,7 +5863,168 @@ function exportQFBriefForGem() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  _showToast('✅ Đã tải brief cho Gem', 'success');
+  _showToast('✅ Đã tải Pillar Brief cho Gem', 'success');
+}
+
+// ── Per-branch Brief (Spoke article) ───────────────────────────
+function exportQFBranchBrief(idx) {
+  const r       = window._qfLastResult;
+  const seed    = window._qfLastSeed    || '';
+  const entity  = window._qfLastEntity  || '';
+  const context = window._qfLastContext || '';
+  if (!r) { _showToast('Chưa có kết quả để export', 'warn'); return; }
+
+  const branches = r.fan_out_branches || [];
+  const b = branches[idx];
+  if (!b) { _showToast('Không tìm thấy branch', 'warn'); return; }
+
+  const sk = r.semantic_keywords || {};
+  const hs = r.hub_spoke_architecture || r.hub_spoke || {};
+  const pillarTitle = hs.pillar_title || (hs.pillar || {}).title || '';
+
+  const userQ   = b.user_questions || [];
+  const fanoutQ = b.fan_out_queries || b.queries || [];
+  const branchName = b.branch_name || b.theme || ('Nhánh ' + (idx+1));
+  const score = b.priority_score || '—';
+
+  // Golden paragraph relevant to this branch (if any)
+  const goldenForBranch = (r.golden_paragraphs || []).filter(g => {
+    const q = (g.target_query || g.h2 || '').toLowerCase();
+    return fanoutQ.some(fq => q.includes((fq || '').toLowerCase().slice(0, 15))) ||
+           userQ.some(uq => q.includes((uq || '').toLowerCase().slice(0, 15)));
+  });
+
+  // ── Build SPOKE brief ───────────────────────────────────────
+  let md = '';
+  md += `# ✍️ BRIEF SPOKE — ${branchName}\n\n`;
+  md += `> **Loại bài:** Spoke Article (bài chuyên sâu — focus 1 góc nhìn cụ thể)\n`;
+  md += `> **Branch:** ${branchName} _(Priority: ${score}/10)_\n`;
+  md += `> **Pillar trỏ về:** ${pillarTitle || (entity || seed)}\n`;
+  md += `> Mục tiêu: bài 1.500–2.500 từ, ≥85/100đ, đào sâu góc nhìn này.\n\n`;
+  md += `---\n\n`;
+
+  // 1. Meta
+  md += `## 1. Thông tin Spoke\n\n`;
+  md += `| Trường | Giá trị |\n`;
+  md += `|--------|----------|\n`;
+  md += `| **Keyword chính (seed pillar)** | ${seed} |\n`;
+  md += `| **Entity chính** | ${entity} |\n`;
+  md += `| **Branch focus** | ${branchName} |\n`;
+  md += `| **Priority** | ${score}/10 |\n`;
+  md += `| **Pillar URL (link UP)** | tpiland.vn/${(pillarTitle || entity || seed).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)} |\n`;
+  md += `| **Ngày tạo brief** | ${new Date().toLocaleDateString('vi-VN')} |\n\n`;
+
+  // 2. Context (nếu có)
+  if (context) {
+    md += `## 2. Ngữ cảnh người tìm kiếm\n\n`;
+    md += `> Trích từ input người dùng — Gem dùng để định hình Persona/Journey/Micro-Intent.\n\n`;
+    md += `${context}\n\n`;
+  }
+
+  // 3. Outline H2/H3 từ user questions
+  md += `## 3. Outline — H2 & H3 đề xuất\n\n`;
+  md += `**H1 đề xuất:** Lấy 1 trong các câu hỏi user dưới đây, ưu tiên câu chứa keyword chính.\n\n`;
+  if (userQ.length) {
+    md += `**H2/H3 — dùng nguyên câu hỏi user (đây là cách họ thật sự tìm kiếm):**\n\n`;
+    userQ.forEach((q, i) => md += `${i+1}. ${q}\n`);
+    md += `\n`;
+  } else {
+    md += `⚠️ Branch này không có user_questions — Gem cần tự suy nghĩ H2/H3 từ tên branch + keyword.\n\n`;
+  }
+
+  if (fanoutQ.length) {
+    md += `## 4. Query SEO ngắn — tích hợp tự nhiên\n\n`;
+    md += `> Đưa vào title, meta description, anchor text. KHÔNG nhồi nhét.\n\n`;
+    fanoutQ.forEach(q => md += `- \`${q}\`\n`);
+    md += `\n`;
+  }
+
+  // 5. Semantic keywords (giữ nguyên từ pillar — bài spoke vẫn cần)
+  md += `## 5. Từ Khoá Ngữ Nghĩa\n\n`;
+  if ((sk.core_entities || []).length) {
+    md += `**🎯 Core Entities — BẮT BUỘC (in đậm lần đầu):**\n`;
+    sk.core_entities.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+  if ((sk.supporting_terms || []).length) {
+    md += `**🔗 Supporting Terms:**\n`;
+    sk.supporting_terms.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+  if ((sk.action_modifiers || []).length) {
+    md += `**⚡ Action Modifiers:**\n`;
+    sk.action_modifiers.forEach(k => md += `- ${k}\n`);
+    md += `\n`;
+  }
+
+  // 6. Golden paragraph (nếu match)
+  if (goldenForBranch.length) {
+    md += `## 6. Citable Chunks mẫu (cho branch này)\n\n`;
+    goldenForBranch.forEach((g, i) => {
+      md += `### Cho query: "${g.target_query || g.h2 || ''}"\n\n`;
+      md += `> ${g.bite_sized_answer || g.sample_50_words || ''}\n\n`;
+    });
+  } else if ((r.golden_paragraphs || []).length) {
+    md += `## 6. Citable Chunks mẫu (từ pillar — Gem tham khảo format)\n\n`;
+    (r.golden_paragraphs || []).slice(0, 2).forEach(g => {
+      md += `### "${g.target_query || g.h2 || ''}"\n\n`;
+      md += `> ${g.bite_sized_answer || g.sample_50_words || ''}\n\n`;
+    });
+  }
+
+  // 7. Spoke-specific linking strategy
+  md += `## 7. Internal Link Strategy (Spoke)\n\n`;
+  md += `**Bài này là SPOKE — phải có link sau:**\n`;
+  md += `1. ✅ **1 link UP → Pillar** "${pillarTitle || entity || seed}" (anchor: tên pillar + năm hiện tại)\n`;
+  md += `2. ✅ **1–2 link CHÉO → spoke khác** trong cùng cluster (anchor: câu hỏi cụ thể của spoke đó)\n`;
+  md += `3. ✅ Anchor text tự nhiên, KHÔNG "click vào đây" / "xem tại đây"\n\n`;
+
+  // 8. AEO/GEO Directives (gọn hơn pillar — vẫn đủ rubric)
+  md += `---\n\n`;
+  md += `## 🎯 AEO / GEO DIRECTIVES — BẮT BUỘC\n\n`;
+  md += `1. **Byline đầu bài** (E2+E3): \`Người viết: [Tên] — [Chức vụ TPI Land] · Cập nhật: [tháng/năm]\`\n`;
+  md += `2. **Answer-First 40–70 từ** sau H1 — trả lời TRỰC TIẾP câu hỏi branch, có ≥1 số + Entity\n`;
+  md += `3. **Definition sentence** trong 1.500 ký tự đầu (G1)\n`;
+  md += `4. **≥2 Citable Chunks** 50–120 từ (G1, HC1)\n`;
+  md += `5. **≥1 bảng HTML** + **≥1 \`<ol>\`** (G2)\n`;
+  md += `6. **FAQ 4–6 câu** dạng câu hỏi đầy đủ, ≤100 từ/answer (A2)\n`;
+  md += `7. **≥2 cụm first-hand** "Khảo sát thực địa..." / "Từ X giao dịch Q.../2026..." (E1)\n`;
+  md += `8. **≥1 quote người TPI** + tên + chức vụ\n`;
+  md += `9. **NAP cuối bài** (G3)\n`;
+  md += `10. **Link UP về pillar** + 1–2 link chéo spoke\n\n`;
+
+  // 9. Anti-halu
+  md += `## 🛡 CHỐNG HALU\n\n`;
+  md += `Mọi số PHẢI có nguồn ngay sau (data TPI / CĐT / SGTVT + ngày tháng).\n\n`;
+  md += `**Cấm:** suy luận số · "khoảng/ước tính" cho số chính · trích "theo chuyên gia" không tên · bịa tên/chức vụ.\n\n`;
+  md += `**Self-check:** quét bài, số không nguồn → hỏi user, không lấp.\n\n`;
+
+  // 10. Gem cần hỏi user (gọn — chỉ data đặc thù branch)
+  md += `---\n\n`;
+  md += `## ⚠️ GEM CẦN HỎI USER\n\n`;
+  md += `Brief đã có: keyword, outline H2/H3, semantic keywords, link strategy.\n`;
+  md += `Gem cần USER bổ sung dữ kiện CỤ THỂ cho góc nhìn "${branchName}":\n\n`;
+  md += `1. **Data thực TPI** liên quan branch này (con số/case/insight sales)\n`;
+  md += `2. **Quote người TPI** có chức danh thật + 1 câu nói về chủ đề\n`;
+  md += `3. **NAP + 2-3 internal link** (URL tpiland.vn cụ thể)\n`;
+  md += `4. **Bảng EAV 9 trục** nếu bài về dự án cụ thể\n\n`;
+  md += `**Nếu user thiếu data → Gem hỏi cụ thể, KHÔNG bịa.**\n\n`;
+  md += `---\n\n`;
+  md += `*Spoke brief generated by TPI Scorer · ${new Date().toLocaleString('vi-VN')}*\n`;
+
+  // Download
+  const safeBranch = branchName.slice(0, 30).replace(/[^a-zA-Z0-9-_]/g, '_');
+  const fname = `tpi-spoke-${safeBranch}-${Date.now()}.md`;
+  const blob  = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  _showToast(`✅ Đã tải Spoke Brief: "${branchName}"`, 'success');
 }
 
 // ── JSON Editor helpers ────────────────────────────────────────
@@ -5899,7 +6062,10 @@ function _renderQueryResult(r, seed, entity) {
     return `<div class="qf-branch-card" id="qf-branch-${i}">
       <div class="qf-branch-header">
         <span class="qf-branch-theme">${_esc(b.branch_name || b.theme || 'Nhánh ' + (i+1))}</span>
-        <span class="qf-priority-score ${scoreClass}">${score}/10</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="qf-priority-score ${scoreClass}">${score}/10</span>
+          <button class="qf-api-btn" onclick="exportQFBranchBrief(${i})" style="background:#6366f1;color:#fff;border-color:#6366f1;padding:3px 10px;font-size:11px;white-space:nowrap" title="Tải brief riêng cho branch này — viết bài Spoke chuyên sâu 1 góc nhìn">📤 Brief cho Gem</button>
+        </div>
       </div>
       ${fanoutQ.length ? `
         <div class="qf-q-group qf-q-fanout">
@@ -5976,7 +6142,7 @@ function _renderQueryResult(r, seed, entity) {
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
         <button class="qf-api-btn" id="qf-cluster-btn" onclick="runSemanticClustering()" style="white-space:nowrap" title="Tìm nhóm nhánh trùng ngữ nghĩa (Keyword Cannibalization)">🔗 Cụm ngữ nghĩa</button>
-        <button class="qf-api-btn" onclick="exportQFBriefForGem()" style="white-space:nowrap;background:#6366f1;color:#fff;border-color:#6366f1" title="Tạo brief tối ưu cho Gemini Gem — gồm H2 gợi ý, từ khoá, Hub &amp; Spoke, 60 Chữ Vàng">📤 Brief cho Gem</button>
+        <button class="qf-api-btn" onclick="exportQFBriefForGem()" style="white-space:nowrap;background:#6366f1;color:#fff;border-color:#6366f1" title="Tạo Pillar Brief — bài trụ cột bao quát chủ đề, top 5 branches = 5 H2. Mỗi branch riêng → dùng nút Brief dưới priority badge">📤 Brief Pillar (Top 5)</button>
         <button class="qf-api-btn" onclick="exportQFMarkdown()" style="white-space:nowrap">📥 Markdown</button>
         <button class="qf-api-btn" onclick="openQFJsonEditor()" style="white-space:nowrap">🗒 Edit JSON</button>
       </div>
