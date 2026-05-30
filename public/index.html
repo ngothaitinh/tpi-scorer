@@ -927,6 +927,13 @@ body {
 .qf-adv-num-wrap input[type=number]:focus { border-color: var(--accent); }
 .qf-adv-unit { font-size: 11px; color: var(--ink3); }
 
+/* Agent Check results */
+.preflight-agent-box { background: #fff; border: 1.5px solid var(--line2); border-radius: 10px; padding: 14px 16px; }
+.agent-group { margin-top: 10px; }
+.agent-group-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink3); margin-bottom: 5px; }
+.agent-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink2); line-height: 1.85; }
+.agent-list li { margin-bottom: 3px; }
+
 /* Phase A — Outline modal */
 .outline-modal-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--line2); }
 .outline-modal-body { padding: 16px 22px; overflow-y: auto; flex: 1; }
@@ -1143,9 +1150,16 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
         <input type="checkbox" id="force-llm">
         Chấm đầy đủ với AI (tốn lượt, chính xác hơn)
       </label>
-      <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
-        Chấm bài →
-      </button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn-primary syne" id="submit-btn" onclick="submitArticle()">
+          Chấm bài →
+        </button>
+        <button class="btn-outline syne" id="preflight-agent-btn" onclick="runPreflightAgentCheck()" title="Agent kiểm lỗi trước khi chấm — phát hiện số không nguồn, quote bịa, cliché AI (~250đ)">
+          🛡 Kiểm lỗi
+        </button>
+      </div>
+      <!-- Preflight agent result -->
+      <div id="preflight-agent-result" style="display:none;margin-top:12px"></div>
     </div>
 
     <!-- Preflight fail -->
@@ -3976,6 +3990,299 @@ function importAllData() {
 }
 
 // ============================================================
+// AGENT CHECKS (Option 1+2: Halu+Source / Option 3: Brief Cross-check)
+// ============================================================
+
+// ── Option 1+2: Pre-flight Hallucination + Source Validator ──
+// Cost: ~250đ per run (800 in + 500 out tokens)
+// Trigger: nút "🛡 Kiểm lỗi" trong Submit page
+async function runPreflightAgentCheck() {
+  const content = document.getElementById('f-content')?.value?.trim() || '';
+  const keyword = document.getElementById('f-keyword')?.value?.trim() || '';
+  const entity  = document.getElementById('f-entity')?.value?.trim()  || '';
+  if (content.length < 200) { _showToast('Paste bài trước khi kiểm lỗi', 'warn'); return; }
+
+  const btn = document.getElementById('preflight-agent-btn');
+  const res = document.getElementById('preflight-agent-result');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang kiểm...'; }
+  if (res) res.style.display = 'none';
+
+  // Phase 1 — regex free scan (không tốn token)
+  const snippet = content.slice(0, 8000); // cap gửi LLM
+  const regexFlags = _regexScanArticle(content);
+
+  // Phase 2 — LLM deep scan
+  const prompt = `Bạn là agent kiểm lỗi nội dung BĐS. Phân tích bài viết sau và trả về JSON.
+
+Keyword: ${keyword}
+Entity: ${entity}
+
+--- BÀI VIẾT (tối đa 8000 ký tự) ---
+${snippet}
+--- HẾT ---
+
+Trả về JSON với cấu trúc CHÍNH XÁC (không thêm field, không wrap markdown):
+
+{
+  "unsourced_numbers": [
+    {"text": "con số hoặc % không có nguồn", "location": "đoạn/vị trí mô tả ngắn", "severity": "high|med|low"}
+  ],
+  "suspect_quotes": [
+    {"text": "câu trích dẫn", "reason": "lý do nghi ngờ (không tên, không chức vụ TPI, không năm...)"}
+  ],
+  "ai_cliches": [
+    {"text": "cụm sáo rỗng hoặc văn phong AI", "location": "đoạn mô tả"}
+  ],
+  "hedge_words": [
+    {"text": "từ né tránh cho số chính", "context": "câu chứa từ đó"}
+  ],
+  "missing_elements": {
+    "byline": true,
+    "definition_sentence": true,
+    "answer_first": true,
+    "nap_block": true
+  },
+  "overall_risk": "high|med|low",
+  "summary": "1-2 câu tóm tắt vấn đề chính"
+}
+
+Chỉ trả JSON thuần. Nếu không có vấn đề ở mục nào → mảng rỗng [].`;
+
+  try {
+    const apiCfg = getApiConfig();
+    const model = apiCfg.model_simple || apiCfg.model_complex || '';
+    if (!model) throw new Error('Chưa cấu hình model — Admin panel');
+
+    const raw = await callProxy(prompt, model, 1200);
+    let data;
+    try {
+      const m = raw.match(/\{[\s\S]*\}/);
+      data = JSON.parse(m ? m[0] : raw);
+    } catch (e) { throw new Error('Agent trả JSON không hợp lệ'); }
+
+    _renderPreflightAgentResult(data, regexFlags);
+    _logToSheet('agent_check', {
+      type: 'preflight',
+      user: currentUser?.username,
+      keyword, entity,
+      risk: data.overall_risk,
+      issues: (data.unsourced_numbers?.length || 0) + (data.suspect_quotes?.length || 0) + (data.ai_cliches?.length || 0),
+    }).catch(() => {});
+
+  } catch (e) {
+    if (res) {
+      res.style.display = '';
+      res.innerHTML = `<div class="preflight-agent-box risk-high"><strong>⚠ Lỗi agent:</strong> ${_esc(e.message)}</div>`;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '🛡 Kiểm lỗi'; }
+  }
+}
+
+// Regex scan (free — không tốn token)
+function _regexScanArticle(text) {
+  const flags = [];
+  // Từ né tránh cho con số chính
+  const hedgePattern = /\b(khoảng|ước tính|tầm|xấp xỉ|dao động|có thể đạt|khoảng tầm)\b.{0,30}\d/gi;
+  const hedges = [...text.matchAll(hedgePattern)].slice(0, 5);
+  if (hedges.length) flags.push({ type: 'hedge_regex', count: hedges.length });
+  // AI clichés phổ biến
+  const clichePattern = /trong bối cảnh hiện nay|như vậy có thể thấy|không thể phủ nhận|trong cuộc sống hiện đại|bài viết này sẽ giúp|đáng chú ý là|cần lưu ý rằng|điều thú vị là/gi;
+  const cliches = text.match(clichePattern) || [];
+  if (cliches.length) flags.push({ type: 'ai_cliche_regex', terms: [...new Set(cliches)].slice(0, 5) });
+  return flags;
+}
+
+function _renderPreflightAgentResult(data, regexFlags) {
+  const res = document.getElementById('preflight-agent-result');
+  if (!res) return;
+
+  const risk = data.overall_risk || 'low';
+  const riskColor = risk === 'high' ? '#dc2626' : risk === 'med' ? '#d97706' : '#16a34a';
+  const riskLabel = risk === 'high' ? '🔴 Rủi ro CAO' : risk === 'med' ? '🟡 Rủi ro VỪA' : '🟢 Ổn';
+  const missing = data.missing_elements || {};
+
+  const badge = (label, color) =>
+    `<span style="background:${color}20;color:${color};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-right:4px">${label}</span>`;
+
+  let html = `<div class="preflight-agent-box" style="border-color:${riskColor}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <strong style="color:${riskColor}">🛡 Kết quả kiểm lỗi — ${riskLabel}</strong>
+      <button onclick="document.getElementById('preflight-agent-result').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--ink2);margin-bottom:10px"><em>${_esc(data.summary || '')}</em></div>`;
+
+  if ((data.unsourced_numbers || []).length) {
+    html += `<div class="agent-group"><div class="agent-group-title">📊 Số liệu chưa có nguồn (${data.unsourced_numbers.length})</div><ul class="agent-list">`;
+    data.unsourced_numbers.forEach(n =>
+      html += `<li>${badge(n.severity === 'high' ? '🔴' : '🟡', n.severity === 'high' ? '#dc2626' : '#d97706')} <strong>"${_esc(n.text)}"</strong> — ${_esc(n.location || '')}</li>`
+    );
+    html += `</ul></div>`;
+  }
+
+  if ((data.suspect_quotes || []).length) {
+    html += `<div class="agent-group"><div class="agent-group-title">💬 Quote nghi ngờ (${data.suspect_quotes.length})</div><ul class="agent-list">`;
+    data.suspect_quotes.forEach(q =>
+      html += `<li>${badge('⚠', '#d97706')} <em>"${_esc((q.text || '').slice(0, 120))}"</em><br><span style="color:var(--ink3);font-size:12px">${_esc(q.reason || '')}</span></li>`
+    );
+    html += `</ul></div>`;
+  }
+
+  if ((data.ai_cliches || []).length || regexFlags.some(f => f.type === 'ai_cliche_regex')) {
+    const combined = [
+      ...(data.ai_cliches || []).map(c => c.text || ''),
+      ...(regexFlags.find(f => f.type === 'ai_cliche_regex')?.terms || []),
+    ];
+    html += `<div class="agent-group"><div class="agent-group-title">🤖 Văn phong AI sáo rỗng (${combined.length})</div><ul class="agent-list">`;
+    combined.slice(0, 8).forEach(t => html += `<li><code>${_esc(t)}</code></li>`);
+    html += `</ul></div>`;
+  }
+
+  if ((data.hedge_words || []).length || regexFlags.some(f => f.type === 'hedge_regex')) {
+    const hedgeItems = data.hedge_words || [];
+    html += `<div class="agent-group"><div class="agent-group-title">⚠ Từ né tránh cho số liệu (${hedgeItems.length + (regexFlags.find(f => f.type === 'hedge_regex')?.count || 0)})</div><ul class="agent-list">`;
+    hedgeItems.forEach(h => html += `<li><code>${_esc(h.text || '')}</code> — <em>${_esc(h.context || '')}</em></li>`);
+    html += `</ul></div>`;
+  }
+
+  const missingList = [
+    missing.byline && '❌ Thiếu byline đầu bài (E2+E3 = 4đ rẻ)',
+    missing.definition_sentence && '❌ Thiếu definition sentence "[Entity] là..."',
+    missing.answer_first && '❌ Thiếu đoạn Answer-First 40-70 từ ngay sau H1',
+    missing.nap_block && '❌ Thiếu NAP cuối bài (G3)',
+  ].filter(Boolean);
+  if (missingList.length) {
+    html += `<div class="agent-group"><div class="agent-group-title">📋 Phần bắt buộc còn thiếu</div><ul class="agent-list">`;
+    missingList.forEach(m => html += `<li>${_esc(m)}</li>`);
+    html += `</ul></div>`;
+  }
+
+  if (risk === 'low' && !missingList.length) {
+    html += `<div style="color:#16a34a;font-size:13px;padding:6px 0">✅ Không phát hiện vấn đề nghiêm trọng — bài sẵn sàng chấm điểm.</div>`;
+  } else {
+    html += `<div style="margin-top:10px;display:flex;gap:8px">
+      <button class="qf-api-btn" onclick="document.getElementById('preflight-agent-result').style.display='none';exportFixesForGem?.()" style="background:#6366f1;color:#fff;border-color:#6366f1">📤 Sửa với Gem</button>
+      <button class="qf-api-btn" onclick="submitArticle()" style="background:var(--ink2);color:#fff">Chấm bài anyway →</button>
+    </div>`;
+  }
+
+  html += `</div>`;
+  res.innerHTML = html;
+  res.style.display = '';
+  res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Option 3: Brief Cross-check ──────────────────────────────
+// Verify bài viết đã dùng đúng outline/keyword từ QF brief
+// Cost: ~400đ per run
+async function runBriefCrossCheck() {
+  const r      = window._qfLastResult;
+  const seed   = window._qfLastSeed   || '';
+  const entity = window._qfLastEntity || '';
+  const lastArticle = window._lastArticleText || '';
+
+  if (!r) { _showToast('Chưa có kết quả QF', 'warn'); return; }
+  if (lastArticle.length < 200) {
+    _showToast('Paste bài vào tab Nộp bài trước, rồi quay lại đây Cross-check', 'warn');
+    return;
+  }
+
+  const btn = document.getElementById('qf-crosscheck-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Cross-check...'; }
+
+  const sk = r.semantic_keywords || {};
+  const branches = (r.fan_out_branches || []).slice()
+    .sort((a, b) => (parseInt(b.priority_score) || 0) - (parseInt(a.priority_score) || 0));
+  const top5H2 = branches.slice(0, 5).map(b =>
+    b.user_questions?.[0] || b.branch_name || b.theme || ''
+  ).filter(Boolean);
+  const coreEnts = (sk.core_entities || []).slice(0, 8);
+  const articleSnippet = lastArticle.slice(0, 6000);
+
+  const prompt = `Bạn là QA agent. Cross-check bài viết với brief từ Query Fan-out.
+
+**Brief:**
+- Seed query: ${seed}
+- Entity chính: ${entity}
+- Top 5 H2 gợi ý: ${top5H2.map((h, i) => `${i+1}. ${h}`).join(' | ')}
+- Core Entities bắt buộc: ${coreEnts.join(', ')}
+
+--- BÀI VIẾT (tối đa 6000 ký tự) ---
+${articleSnippet}
+--- HẾT ---
+
+Trả về JSON CHÍNH XÁC:
+{
+  "h2_coverage": [
+    {"brief_h2": "H2 từ brief", "found_in_article": true, "matched_text": "H2 tương tự trong bài hoặc null"}
+  ],
+  "missing_core_entities": ["entity chưa xuất hiện trong bài"],
+  "anchor_quality": {
+    "has_natural_anchors": true,
+    "issues": ["vấn đề cụ thể nếu có"]
+  },
+  "faq_format_ok": true,
+  "overall_alignment": "high|med|low",
+  "recommendation": "1-2 câu khuyến nghị cụ thể"
+}
+
+Chỉ trả JSON thuần.`;
+
+  try {
+    const apiCfg = getApiConfig();
+    const model = apiCfg.model_simple || apiCfg.model_complex || '';
+    const raw = await callProxy(prompt, model, 1000);
+    let data;
+    try { const m = raw.match(/\{[\s\S]*\}/); data = JSON.parse(m ? m[0] : raw); }
+    catch (e) { throw new Error('JSON không hợp lệ'); }
+
+    _renderCrossCheckResult(data, top5H2);
+  } catch (e) {
+    _showToast('Cross-check lỗi: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '🔍 Cross-check'; }
+  }
+}
+
+function _renderCrossCheckResult(data, top5H2) {
+  const alignment = data.overall_alignment || 'low';
+  const color = alignment === 'high' ? '#16a34a' : alignment === 'med' ? '#d97706' : '#dc2626';
+  const label = alignment === 'high' ? '🟢 Khớp tốt' : alignment === 'med' ? '🟡 Khớp một phần' : '🔴 Lệch brief';
+
+  const h2Rows = (data.h2_coverage || []).map(h =>
+    `<tr><td style="font-size:12px;max-width:240px">${_esc(h.brief_h2 || '')}</td>
+     <td style="text-align:center">${h.found_in_article ? '✅' : '❌'}</td>
+     <td style="font-size:11px;color:var(--ink3)">${_esc(h.matched_text || '—')}</td></tr>`
+  ).join('');
+
+  const html = `<div class="preflight-agent-box" style="border-color:${color};margin:12px 0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <strong style="color:${color}">🔍 Cross-check Brief vs Bài — ${label}</strong>
+      <button onclick="this.closest('.preflight-agent-box').remove()" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--ink2);margin-bottom:10px"><em>${_esc(data.recommendation || '')}</em></div>
+    ${h2Rows ? `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px">
+      <thead><tr><th style="text-align:left;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--line2)">H2 từ brief</th><th style="padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--line2)">Có trong bài</th><th style="text-align:left;padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--line2)">Tương ứng</th></tr></thead>
+      <tbody>${h2Rows}</tbody></table>` : ''}
+    ${(data.missing_core_entities || []).length ? `<div class="agent-group"><div class="agent-group-title">❌ Core Entity chưa xuất hiện</div><ul class="agent-list">${data.missing_core_entities.map(e => `<li><code>${_esc(e)}</code></li>`).join('')}</ul></div>` : ''}
+    ${!(data.faq_format_ok) ? `<div style="color:#d97706;font-size:13px;margin-top:6px">⚠ FAQ chưa dạng câu hỏi đầy đủ — sửa trước khi submit</div>` : ''}
+    ${(data.anchor_quality?.issues || []).length ? `<div class="agent-group"><div class="agent-group-title">🔗 Internal link issues</div><ul class="agent-list">${data.anchor_quality.issues.map(i => `<li>${_esc(i)}</li>`).join('')}</ul></div>` : ''}
+  </div>`;
+
+  // Inject vào QF result bar
+  let target = document.getElementById('qf-result-inner');
+  if (target) {
+    let existing = document.getElementById('crosscheck-result-box');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.id = 'crosscheck-result-box';
+    div.innerHTML = html;
+    target.prepend(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ============================================================
 // UTILS
 // ============================================================
 function selectIntent(el) {
@@ -6407,6 +6714,7 @@ function _renderQueryResult(r, seed, entity) {
         <strong>${(sk.core_entities?.length || 0) + (sk.supporting_terms?.length || 0)} từ</strong>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <button class="qf-api-btn" id="qf-crosscheck-btn" onclick="runBriefCrossCheck()" style="white-space:nowrap" title="Cross-check: verify bài đã dùng đúng outline/keyword từ brief (~400đ)">🔍 Cross-check</button>
         <button class="qf-api-btn" id="qf-cluster-btn" onclick="runSemanticClustering()" style="white-space:nowrap" title="Tìm nhóm nhánh trùng ngữ nghĩa (Keyword Cannibalization)">🔗 Cụm ngữ nghĩa</button>
         <button class="qf-api-btn" id="qf-outline-btn" onclick="generateOutline()" style="white-space:nowrap;background:#16a34a;color:#fff;border-color:#16a34a" title="Tạo outline H1+H2+H3+FAQ trong app (~600đ). Cắt bước Gem hỏi outline.">📋 Tạo Outline</button>
         <button class="qf-api-btn" onclick="exportQFBriefForGem()" style="white-space:nowrap;background:#6366f1;color:#fff;border-color:#6366f1" title="Tạo Pillar Brief — bài trụ cột bao quát chủ đề, top 5 branches = 5 H2. Mỗi branch riêng → dùng nút Brief dưới priority badge">📤 Brief Pillar (Top 5)</button>
