@@ -4050,7 +4050,9 @@ Chỉ trả JSON thuần. Nếu không có vấn đề ở mục nào → mảng
 
   try {
     const apiCfg = getApiConfig();
-    const model = apiCfg.model_simple || apiCfg.model_complex || '';
+    const model = apiCfg.provider === 'custom'
+      ? (apiCfg.custom_model_simple || apiCfg.custom_model_complex || '')
+      : (apiCfg.model_simple || apiCfg.model_complex || '');
     if (!model) throw new Error('Chưa cấu hình model — Admin panel');
 
     const raw = await callProxy(prompt, model, 1200);
@@ -4230,7 +4232,9 @@ Chỉ trả JSON thuần.`;
 
   try {
     const apiCfg = getApiConfig();
-    const model = apiCfg.model_simple || apiCfg.model_complex || '';
+    const model = apiCfg.provider === 'custom'
+      ? (apiCfg.custom_model_simple || apiCfg.custom_model_complex || '')
+      : (apiCfg.model_simple || apiCfg.model_complex || '');
     const raw = await callProxy(prompt, model, 1000);
     let data;
     try { const m = raw.match(/\{[\s\S]*\}/); data = JSON.parse(m ? m[0] : raw); }
