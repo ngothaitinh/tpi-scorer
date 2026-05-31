@@ -1,9 +1,9 @@
-# CONTEXT — cập nhật: 29/05/2026 (session 18)
+# CONTEXT — cập nhật: 31/05/2026 (session 19)
 
 > File này anh Jimmy T7 cập nhật cuối mỗi session Claude Code.
 > Claude Code đọc file này ĐẦU TIÊN để biết đang ở đâu.
 
-## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit dd9d8d3)
+## Trạng thái hiện tại: v3.0.0 — DEPLOYED to Vercel (GitHub: commit fabc977)
 
 Repo: `github.com/ngothaitinh/tpi-scorer` → Vercel auto-deploy mỗi lần push.
 Live: **https://tpi-scorer.vercel.app**
@@ -20,10 +20,27 @@ Provider LLM: **chiasegpu.vn** (OpenAI-compatible + Anthropic-compatible) qua `a
 
 ## Đang làm dở
 - [ ] **VERIFICATION PROTOCOL** (P0 — blocking mọi feature mới) — xem backlog P0 dưới
+- [ ] **Phase 1 Backup PENDING** — Apps Script 401 + Vercel env vars chưa xong:
+  - Apps Script cần redeploy "Anyone" access → https://script.google.com → Manage deployments → Edit → Who has access: Anyone
+  - Vercel env var cần add: `LLM_MODEL` (e.g. `gx/gpt-5.5`) + `HEALTHCHECK_SECRET` → Redeploy
+  - Sau khi sửa: test `/api/healthcheck` → 3 checks đều PASS
+- [ ] **🛡 Kiểm lỗi fix deployed** (commit fabc977) — user cần Vercel redeploy + Ctrl+Shift+R
 - [ ] **Quick Polish Pack** (P1 — code) — fix exportMarkdown footer, in-app rubric docs,
   TPI_BLOCK_TEMPLATES constants, Brief Preview, auto-update CONTEXT.md
 - [ ] **Phase 2 Analytics** (P2 — cần Phase 1 setup xong + ≥10 bài data)
 - [ ] **Cluster Tracker** (P3 — build trên Pillar/Spoke vừa làm)
+
+## Vừa xong (session 19 — 31/05/2026)
+- [x] **Fix agent model resolution bug** (commit fabc977, 6802 dòng)
+  - Root cause: `runPreflightAgentCheck` + `runBriefCrossCheck` đọc `model_simple`/`model_complex`
+    — luôn là `''` khi `provider='custom'`; model thật lưu ở `custom_model_simple`/`custom_model_complex`
+  - Fix: thêm `provider === 'custom'` branch trong cả 2 hàm — đồng nhất với pattern ở dòng 2734/2779/4828
+  - Kết quả: "🛡 Kiểm lỗi" không còn throw "Chưa cấu hình model — Admin panel"
+- [x] **Diagnose Phase 1 Backup issues** — 3 vấn đề xác định qua `/api/healthcheck`:
+  - Webhook 401: Apps Script deploy không có "Anyone" access — user cần redeploy
+  - Env var `LLM_MODEL` chưa set trong Vercel — cần add + redeploy
+  - Google Sheet không nhận row vì 401 (không phải bug code, là config)
+- [x] **Fix Apps Script syntax error** — `doPost`/`doGet` clean version cung cấp (session đầu)
 
 ## Vừa xong (session 18 — 29/05/2026 — phần 2)
 - [x] **Pillar + per-branch Spoke briefs** (commit dd9d8d3, 6223 dòng)
