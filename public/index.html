@@ -2489,7 +2489,7 @@ function runPreflight(parsed, meta) {
   const fails = [];
   if (parsed.h1.length === 0) fails.push('Bài viết không có H1. Thêm dòng # Tiêu đề chính ở đầu bài.');
   if (parsed.h2.length < 3) fails.push(`Bài chỉ có ${parsed.h2.length} H2. Cần ít nhất 3 H2.`);
-  if (parsed.wordCount < 800) fails.push(`Bài có ${parsed.wordCount} từ, cần ít nhất 800 từ.`);
+  if (parsed.wordCount < 500) fails.push(`Bài có ${parsed.wordCount} từ, cần ít nhất 500 từ.`);
   if (parsed.wordCount > 10000) fails.push(`Bài có ${parsed.wordCount} từ, vượt giới hạn 10.000 từ.`);
 
   const h1text = parsed.h1[0]?.text.toLowerCase() || '';
@@ -2610,7 +2610,7 @@ const TERM_TOOLTIPS = {
   'EAV':
     `EAV = Entity · Attribute · Value\nCấu trúc dữ liệu Google dùng để hiểu bài viết.\n\nEntity: Metropolis Vũng Tàu\nAttribute: diện tích, giá, pháp lý...\nValue: 1.500m², từ 3,8 tỷ, sổ hồng lâu dài`,
   'Preflight':
-    `Preflight Checks — 5 điều kiện bắt buộc\nBài phải pass hết 5 điều kiện này trước khi được chấm.\n\n① Có ít nhất 1 H1\n② Có ít nhất 3 H2\n③ Từ 800 từ trở lên\n④ Không quá 10.000 từ\n⑤ H1 phải chứa keyword hoặc main entity`,
+    `Preflight Checks — 5 điều kiện bắt buộc\nBài phải pass hết 5 điều kiện này trước khi được chấm.\n\n① Có ít nhất 1 H1\n② Có ít nhất 3 H2\n③ Từ 500 từ trở lên (mục tiêu GEO: 500–1.200 từ)\n④ Không quá 10.000 từ\n⑤ H1 phải chứa keyword hoặc main entity`,
   'Information Gain':
     `Information Gain — Tầng 4 (20đ)\nNhững gì bài cung cấp mà Google / AI chưa có sẵn.\n\nI1 — data độc quyền TPI\nI2 — góc nhìn phân tích riêng\nI3 — văn phong tự nhiên (không AI)\nI4 — trích dẫn nguồn uy tín`,
   'T1':
@@ -6087,7 +6087,7 @@ function exportQFBriefForGem() {
   md += `# ✍️ BRIEF PILLAR — ${entity || seed}\n\n`;
   md += `> **Loại bài:** Pillar Article (bài trụ cột — bao quát toàn chủ đề, top 5 H2 lấy từ 5 branch ưu tiên cao nhất)\n`;
   md += `> Brief tự động từ TPI Scorer · Query Fan-out v2 · Rubric v3.0\n`;
-  md += `> Mục tiêu: bài ≥85/100đ, dài 1.500–1.800 từ (GEO-optimized), chuẩn AEO/GEO/E-E-A-T.\n\n`;
+  md += `> Mục tiêu: bài ≥85/100đ, dài 800–1.200 từ (GEO-optimized — KHÔNG quá dài), chuẩn AEO/GEO/E-E-A-T.\n\n`;
   md += `---\n\n`;
 
   // 1. Keyword & meta
@@ -6308,7 +6308,7 @@ function exportQFBranchBrief(idx) {
   md += `> **Loại bài:** Spoke Article (bài chuyên sâu — focus 1 góc nhìn cụ thể)\n`;
   md += `> **Branch:** ${branchName} _(Priority: ${score}/10)_\n`;
   md += `> **Pillar trỏ về:** ${pillarTitle || (entity || seed)}\n`;
-  md += `> Mục tiêu: bài 800–1.200 từ (GEO-optimized), ≥85/100đ, đào sâu góc nhìn này.\n\n`;
+  md += `> Mục tiêu: bài 500–800 từ (GEO-optimized — KHÔNG quá dài), ≥85/100đ, đào sâu góc nhìn này.\n\n`;
   md += `---\n\n`;
 
   // 1. Meta
