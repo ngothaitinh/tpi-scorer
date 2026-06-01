@@ -504,6 +504,9 @@ body {
   cursor: pointer; transition: all .15s; text-align: center;
 }
 .btn-action:hover { border-color: var(--accent); color: var(--accent); }
+.btn-action.rescoring { background: var(--accent); color: #fff; border-color: var(--accent); pointer-events: none; }
+.btn-action.rescoring::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin-left: 6px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
 /* Detail tab */
 .detail-tier { margin-bottom: 20px; }
 .detail-tier-header {
@@ -780,6 +783,22 @@ body {
 .acl-kw-tag { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; margin-top: 12px; }
 .acl-auto-tag { font-size: 10px; color: var(--blue); background: rgba(91,141,217,.15); border-radius: 3px; padding: 1px 5px; margin-left: 5px; vertical-align: middle; white-space: nowrap; pointer-events: none; }
 .cl-item.auto-checked > label { color: var(--ink2); }
+/* Checklist UX v2 — summary bar, tab badges, tips toggle */
+.acl-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.acl-sum-chip { font-size: 11px; padding: 4px 10px; border-radius: 100px; font-family: 'DM Mono', monospace; border: 1px solid var(--line); }
+.acl-sum-chip.auto { background: rgba(76,175,130,.1); color: var(--green); border-color: rgba(76,175,130,.3); }
+.acl-sum-chip.ai { background: rgba(91,141,217,.1); color: var(--blue); border-color: rgba(91,141,217,.3); }
+.acl-sum-chip.manual { background: rgba(155,163,184,.08); color: var(--ink3); border-color: var(--line); }
+.acl-sum-chip.pending { background: rgba(224,92,58,.08); color: var(--red); border-color: rgba(224,92,58,.25); }
+.acl-guide { font-size: 12px; color: var(--ink3); line-height: 1.6; padding: 10px 14px; background: var(--bg2); border-radius: 6px; margin-bottom: 14px; border: 1px solid var(--line); }
+.acl-guide strong { color: var(--ink2); }
+.cl-tab .tab-ct { font-size: 10px; opacity: .7; margin-left: 3px; }
+.acl-tips-toggle { font-size: 11px; color: var(--blue); background: none; border: 1px solid rgba(91,141,217,.3); border-radius: 4px; padding: 3px 10px; cursor: pointer; font-family: 'Be Vietnam Pro', sans-serif; margin-left: auto; transition: all .15s; }
+.acl-tips-toggle:hover { background: rgba(91,141,217,.1); }
+.acl-wrap.show-tips .cl-tt { position: static; display: block; margin-top: 6px; padding: 8px 10px; font-size: 11px; visibility: visible; opacity: 1; pointer-events: auto; transform: none; background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; white-space: normal; max-width: 100%; box-shadow: none; }
+.acl-wrap.show-tips .cl-tt::before { display: none; }
+.cl-item.needs-action:not(.done) { border-color: rgba(224,92,58,.2); background: rgba(224,92,58,.03); }
+.cl-item.needs-ai:not(.done) { border-color: rgba(91,141,217,.2); background: rgba(91,141,217,.03); }
 .acl-ai-row { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .acl-ai-btn { background: rgba(91,141,217,.1); border: 1px solid rgba(91,141,217,.3); color: var(--blue); border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; transition: background .15s; font-family: 'Be Vietnam Pro', sans-serif; }
 .acl-ai-btn:hover:not(:disabled) { background: rgba(91,141,217,.22); }
@@ -2966,6 +2985,34 @@ async function submitArticle() {
   }
 }
 
+// Nút "Chấm lại" — tick force-LLM, scroll lên form, submit, hiệu ứng loading
+async function rescoreArticle(btn) {
+  if (!btn) return;
+  // Kiểm tra còn nội dung không
+  const content = document.getElementById('f-content')?.value?.trim();
+  if (!content) {
+    _showToast('Không có bài viết để chấm lại — hãy dán nội dung trước.', 'error');
+    return;
+  }
+  // Tự động bật AI cho chấm lại
+  const forceLLM = document.getElementById('force-llm');
+  if (forceLLM && !forceLLM.checked) forceLLM.checked = true;
+  // Loading state trên nút
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Đang chấm…';
+  btn.classList.add('rescoring');
+  try {
+    // Scroll lên form để user thấy loader
+    document.querySelector('.submit-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    await new Promise(r => setTimeout(r, 400)); // chờ scroll
+    await submitArticle();
+  } finally {
+    // Khôi phục nút (renderResult sẽ vẽ lại nhưng cần safety net)
+    btn.classList.remove('rescoring');
+    btn.textContent = origText;
+  }
+}
+
 // evidence: object từ scoreRules — tránh scan lại text
 function generateRuleFixes(ruleScores, parsed, evidence) {
   const text      = parsed?.text || '';
@@ -3273,7 +3320,7 @@ function renderResult(wrap, sub, reasons, allScores) {
         ${scorecardHtml}
       </div>
       <div class="result-actions">
-        <button class="btn-action" onclick="document.getElementById('form-wrap')?.scrollIntoView({behavior:'smooth'})">🔄 Chấm lại</button>
+        <button class="btn-action" id="btn-rescore" onclick="rescoreArticle(this)">🔄 Chấm lại</button>
         <button class="btn-action" id="btn-export-md" onclick="exportMarkdown && exportMarkdown()">📤 Export MD</button>
         <button class="btn-action" onclick="exportFixesForGem()" style="background:#6366f1;border-color:#6366f1;color:#fff" title="Tạo file fix brief tối ưu cho Gemini Gem — gồm issues cần sửa, vị trí cụ thể, hướng dẫn cho Gem">📤 Sửa với Gem</button>
       </div>
@@ -4892,9 +4939,22 @@ function _drawACL() {
   const prog    = getACLProgress(_aclKW, _aclEntity);
   const isDone  = prog.done === prog.total && prog.total > 0;
 
-  const tabBtns = Object.keys(clData).map(k =>
-    `<button class="cl-tab${k === _aclTab ? ' active' : ''}" onclick="_switchACLTab('${k}')">${clData[k].label}</button>`
-  ).join('');
+  // Đếm theo mode (toàn bộ checklist, không chỉ tab hiện tại)
+  let cAuto = 0, cAutoOk = 0, cAi = 0, cAiOk = 0, cMan = 0, cManOk = 0;
+  Object.values(clData).forEach(t => t.groups.forEach(g => g.items.forEach(it => {
+    const d = !!state[it.id];
+    if (it.checkMode === 'auto')   { cAuto++; if (d) cAutoOk++; }
+    else if (it.checkMode === 'ai') { cAi++;  if (d) cAiOk++; }
+    else                            { cMan++; if (d) cManOk++; }
+  })));
+
+  // Tab buttons with per-tab count
+  const tabBtns = Object.keys(clData).map(k => {
+    const t = clData[k];
+    const total = t.groups.reduce((n, g) => n + g.items.length, 0);
+    const done = t.groups.reduce((n, g) => n + g.items.filter(it => !!state[it.id]).length, 0);
+    return `<button class="cl-tab${k === _aclTab ? ' active' : ''}" onclick="_switchACLTab('${k}')">${t.label}<span class="tab-ct">${done}/${total}</span></button>`;
+  }).join('');
 
   const tab = clData[_aclTab];
   let itemsHtml = '';
@@ -4903,36 +4963,50 @@ function _drawACL() {
     g.items.forEach(item => {
       const done   = !!state[item.id];
       const isAuto = !!autoSet[item.id];
-      itemsHtml += _clItemHtml(item, done, isAuto, 'acl', 'toggleACLItem');
+      // Thêm class highlight cho item cần action
+      const extraCls = !done && item.checkMode === 'manual' ? ' needs-action'
+                     : !done && item.checkMode === 'ai'     ? ' needs-ai' : '';
+      const html = _clItemHtml(item, done, isAuto, 'acl', 'toggleACLItem');
+      // Inject extra class vào cl-item div
+      itemsHtml += html.replace('class="cl-item', 'class="cl-item' + extraCls);
     });
   });
 
-  const uncheckedCount = prog.total - prog.done;
   const kwEsc  = _aclKW.replace(/'/g, "\\'");
   const entEsc = _aclEntity.replace(/'/g, "\\'");
-  // Đếm riêng items 🤝 AI chưa được check
-  const state2 = loadACL(_aclKW, _aclEntity);
-  const aiUnchecked = Object.values(clData).reduce((n, tab) =>
-    n + tab.groups.reduce((m, g) =>
-      m + g.items.filter(it => !state2[it.id] && it.checkMode === 'ai').length, 0), 0);
+  const aiUnchecked = cAi - cAiOk;
   const aiLabel = aiUnchecked > 0
-    ? `🤝 Phân tích AI (${aiUnchecked} tiêu chí 🤝)`
+    ? `🤝 Phân tích AI (${aiUnchecked} tiêu chí)`
     : `✓ Tất cả tiêu chí AI đã kiểm tra`;
+  const manPending = cMan - cManOk;
+  const showTips = container.querySelector('.acl-wrap.show-tips') ? ' show-tips' : '';
 
   container.innerHTML = `
-    <div class="acl-wrap">
+    <div class="acl-wrap${showTips}">
       <div class="acl-header">
         <span class="acl-title">📋 Checklist Viết Bài</span>
         <span class="acl-badge${isDone ? ' done' : ''}" id="acl-badge">${prog.done}/${prog.total} (${prog.pct}%)</span>
-        <button class="acl-new-btn" onclick="resetACL()">↺ Bài mới</button>
+        <button class="acl-tips-toggle" onclick="this.closest('.acl-wrap').classList.toggle('show-tips');this.textContent=this.closest('.acl-wrap').classList.contains('show-tips')?'🔽 Ẩn tips':'💡 Hiện tips'">💡 Hiện tips</button>
+        <button class="acl-new-btn" onclick="resetACL()">↺ Reset</button>
       </div>
       <div class="acl-progress-bar"><div class="acl-progress-fill" id="acl-fill" style="width:${prog.pct}%"></div></div>
       ${isDone ? '<div class="acl-complete-msg" id="acl-done-msg">🎉 Tất cả tiêu chí đã hoàn thành — Bài viết sẵn sàng publish!</div>' : '<div id="acl-done-msg" style="display:none"></div>'}
+      <div class="acl-summary">
+        <span class="acl-sum-chip auto">🤖 Auto: ${cAutoOk}/${cAuto} ✓</span>
+        <span class="acl-sum-chip ai">🤝 AI: ${cAiOk}/${cAi}${aiUnchecked > 0 ? ' — bấm nút dưới' : ' ✓'}</span>
+        <span class="acl-sum-chip manual">👁 Tự review: ${cManOk}/${cMan}</span>
+        ${manPending > 0 ? `<span class="acl-sum-chip pending">⚡ Còn ${manPending} mục cần review tay</span>` : ''}
+      </div>
+      ${!isDone && prog.done === 0 ? `<div class="acl-guide">
+        <strong>📌 Cách dùng:</strong> Sau khi chấm bài, các mục <strong>🤖 auto</strong> đã tự tick.
+        Bấm <strong>🤝 Phân tích AI</strong> để AI kiểm tra thêm.
+        Còn lại <strong>👁 manual</strong> (viền đỏ nhạt) — anh tự đọc bài rồi tick.
+        Bấm <strong>💡 Hiện tips</strong> để xem hướng dẫn chi tiết mỗi mục.
+      </div>` : ''}
       <div class="cl-tabs">${tabBtns}</div>
       <div id="acl-items">${itemsHtml}</div>
       <div class="acl-ai-row">
         <button class="acl-ai-btn" id="acl-ai-btn" ${aiUnchecked === 0 ? 'disabled' : ''} onclick="autoCheckWithAI('${kwEsc}','${entEsc}')">${aiLabel}</button>
-        <span class="acl-ai-note">🤖 auto=từ rubric · 🤝 AI=nút này kiểm tra · 👁 manual=tự review · ~$0.002/lần</span>
       </div>
       <div class="acl-kw-tag">📌 ${_aclKW} × ${_aclEntity}</div>
     </div>`;
