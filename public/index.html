@@ -1497,23 +1497,29 @@ Ví dụ: "TPI Land website", "showroom Metropolis Vũng Tàu"</span></span> —
         </div>
       </details>
 
-      <button class="qf-run-btn" id="qf-run-btn" onclick="runQueryFanout()">
-        🔍 Phân tích Query Fan-out
-      </button>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="qf-run-btn" id="qf-run-btn" onclick="runQueryFanout()" style="flex:1;margin-top:0">
+          🔍 Phân tích Query Fan-out
+        </button>
+        <button class="qf-run-btn" onclick="toggleQFPasteJson()" style="flex:0 0 auto;margin-top:0;background:var(--bg3);color:var(--ink);border:1px solid var(--line2);min-width:140px" title="Paste JSON kết quả QF từ nguồn khác (session cũ, đồng nghiệp gửi...)">
+          📋 Paste JSON
+        </button>
+      </div>
+    </div>
+
+    <!-- JSON Editor — luôn có thể truy cập (ngoài #qf-result) -->
+    <div id="qf-json-editor" style="display:none" class="qf-json-panel">
+      <div class="qf-json-toolbar">
+        <span class="qf-json-title">🗒 Paste / Edit JSON</span>
+        <div style="display:flex;gap:8px">
+          <button class="qf-api-btn primary" onclick="applyQFJsonEdit()">✅ Apply & Render</button>
+          <button class="qf-api-btn" onclick="closeQFJsonEditor()">✖ Đóng</button>
+        </div>
+      </div>
+      <textarea id="qf-json-textarea" class="qf-json-textarea" spellcheck="false" placeholder='Paste JSON kết quả Query Fan-out vào đây...&#10;&#10;JSON phải có "fan_out_branches": [...]'></textarea>
     </div>
 
     <div id="qf-result" style="display:none">
-      <!-- Edit JSON panel (ẩn mặc định) -->
-      <div id="qf-json-editor" style="display:none" class="qf-json-panel">
-        <div class="qf-json-toolbar">
-          <span class="qf-json-title">🗒 Edit JSON</span>
-          <div style="display:flex;gap:8px">
-            <button class="qf-api-btn primary" onclick="applyQFJsonEdit()">✅ Apply & Re-render</button>
-            <button class="qf-api-btn" onclick="closeQFJsonEditor()">✖ Đóng</button>
-          </div>
-        </div>
-        <textarea id="qf-json-textarea" class="qf-json-textarea" spellcheck="false"></textarea>
-      </div>
       <div id="qf-result-inner"></div>
     </div>
   </div>
@@ -5661,17 +5667,68 @@ function _qfRecoverTruncated(raw) {
   }
 }
 
+// ── QF Smart Router — NÊN/KHÔNG NÊN fan-out ──────────────────
+// Phát hiện query đơn giản (fact-check, yes/no, điều hướng) → giảm branches hoặc cảnh báo
+function _qfRouteQuery(seed, intentSel) {
+  const s = seed.toLowerCase().replace(/[.,!?]+/g, '');
+  // Fact-check patterns: hỏi địa chỉ, số điện thoại, giờ mở cửa, ở đâu
+  const factCheck = /\b(ở đâu|địa chỉ|số điện thoại|hotline|liên hệ|giờ (mở cửa|làm việc)|email|sdt|đường nào|phường nào|quận nào)\b/i;
+  // Yes/No đóng: hỏi có/không đơn giản
+  const yesNo = /^(có phải|đã có sổ|có sổ|đã xong|đã bàn giao|có uy tín không|có lừa đảo không|có thật không|có giấy phép)\b/i;
+  // Điều hướng: tìm trang cụ thể
+  const nav = /\b(trang chủ|website|fanpage|facebook|zalo oa|đăng ký|đặt lịch|booking)\b/i;
+
+  if (intentSel === 'Điều hướng' || nav.test(s)) {
+    return { level: 'skip', reason: 'Câu hỏi điều hướng — tra cứu trực tiếp, không cần fan-out.', suggestBranches: 0 };
+  }
+  if (factCheck.test(s)) {
+    return { level: 'reduce', reason: 'Câu hỏi fact-check đơn giản — giảm nhánh để tiết kiệm token.', suggestBranches: 3 };
+  }
+  if (yesNo.test(s)) {
+    return { level: 'reduce', reason: 'Câu hỏi Yes/No — chỉ cần vài nhánh liên quan.', suggestBranches: 5 };
+  }
+  return { level: 'full', reason: null, suggestBranches: null };
+}
+
+// ── Intent → Format guidance cho briefs ──────────────────────
+const QF_INTENT_FORMAT = {
+  'Thông tin':  { format: 'Blog/Cẩm nang', guide: 'Ưu tiên bullet list, bảng so sánh, how-to step-by-step. Mỗi H2 trả lời 1 câu hỏi cụ thể, mở đầu bằng direct answer 40-60 từ.' },
+  'Thương mại': { format: 'Review chuyên sâu', guide: 'Bảng ưu/nhược điểm, so sánh dự án cạnh tranh bằng bảng, ảnh tiến độ thực tế, số liệu giá rõ ràng. Tone: chuyên gia tư vấn, không sale.' },
+  'Giao dịch':  { format: 'Landing page', guide: 'Bảng giá nổi bật đầu bài, CTA liên tục (hotline, Zalo OA), chính sách thanh toán dạng timeline. Ngắn gọn, hành động.' },
+  'Điều hướng': { format: 'Thông tin liên hệ', guide: 'NAP (Name-Address-Phone) rõ ràng, bản đồ embed, giờ làm việc, link trực tiếp. Bài rất ngắn ~500 từ.' },
+};
+
+function _intentFormatBlock(intentType) {
+  const info = QF_INTENT_FORMAT[intentType];
+  if (!info) return '';
+  return `\n## ⚡ Định dạng bài theo Intent: ${intentType}\n\n` +
+    `> **Format đề xuất:** ${info.format}\n` +
+    `> **Hướng dẫn Gem:** ${info.guide}\n\n`;
+}
+
 // ── Main orchestrator ──────────────────────────────────────────
 async function runQueryFanout() {
   const seedQuery   = document.getElementById('qf-seed').value.trim();
   const entity      = document.getElementById('qf-entity').value.trim();
   const context     = document.getElementById('qf-context').value.trim();
   const intentSel   = document.getElementById('qf-intent')?.value || 'auto';
-  const branchCount = parseInt(document.getElementById('qf-branch-count')?.value) || 10;
+  let   branchCount = parseInt(document.getElementById('qf-branch-count')?.value) || 10;
   const kwCount     = parseInt(document.getElementById('qf-kw-count')?.value) || 15;
 
   if (!seedQuery) { _showToast('Vui lòng nhập Seed Query', 'error'); return; }
   if (!entity)    { _showToast('Vui lòng nhập Entity/Dự án', 'error'); return; }
+
+  // ── Smart Router check ──────────────────────────────────────
+  const route = _qfRouteQuery(seedQuery, intentSel);
+  if (route.level === 'skip') {
+    _showToast(`🚫 ${route.reason}`, 'error');
+    return;
+  }
+  if (route.level === 'reduce') {
+    branchCount = Math.min(branchCount, route.suggestBranches);
+    document.getElementById('qf-branch-count').value = branchCount;
+    _showToast(`⚡ ${route.reason} → ${branchCount} nhánh`, 'success');
+  }
 
   const btn = document.getElementById('qf-run-btn');
   btn.disabled = true;
@@ -6100,6 +6157,9 @@ function exportQFBriefForGem() {
   md += `| **AEO Difficulty** | ${sa.aeo_difficulty || '—'} |\n`;
   md += `| **Ngày tạo brief** | ${new Date().toLocaleDateString('vi-VN')} |\n\n`;
 
+  // Intent → Format guidance
+  md += _intentFormatBlock(sa.intent_type);
+
   // 2. Ngữ cảnh người dùng (NEW — từ ô context user nhập)
   if (context) {
     md += `## 2. Ngữ cảnh người tìm kiếm & thực thể liên quan\n\n`;
@@ -6321,6 +6381,10 @@ function exportQFBranchBrief(idx) {
   md += `| **Priority** | ${score}/10 |\n`;
   md += `| **Pillar URL (link UP)** | tpiland.vn/${(pillarTitle || entity || seed).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)} |\n`;
   md += `| **Ngày tạo brief** | ${new Date().toLocaleDateString('vi-VN')} |\n\n`;
+
+  // Intent → Format guidance (Spoke inherits from pillar's seed_analysis)
+  const saSpoke = r.seed_analysis || {};
+  md += _intentFormatBlock(saSpoke.intent_type);
 
   // 2. Context (nếu có)
   if (context) {
@@ -6678,7 +6742,42 @@ function openGemWithOutline() {
   }, () => _showToast('Lỗi copy outline', 'error'));
 }
 
+// ── Copy all LSI keywords ─────────────────────────────────────
+function copyAllLSI() {
+  const r = window._qfLastResult;
+  if (!r) { _showToast('Chưa có kết quả', 'error'); return; }
+  const sk = r.semantic_keywords || {};
+  const all = [
+    ...(sk.core_entities || []),
+    ...(sk.supporting_terms || []),
+    ...(sk.action_modifiers || []),
+  ].join(', ');
+  navigator.clipboard.writeText(all).then(
+    () => _showToast('Đã copy tất cả LSI keywords ✅', 'success'),
+    () => _showToast('Lỗi copy', 'error')
+  );
+}
+
 // ── JSON Editor helpers ────────────────────────────────────────
+function toggleQFPasteJson() {
+  const el = document.getElementById('qf-json-editor');
+  if (el.style.display === 'none' || !el.style.display) {
+    // Nếu đã có result trước → pre-fill, nếu không → trống cho user paste
+    const r = window._qfLastResult;
+    if (r) {
+      document.getElementById('qf-json-textarea').value = JSON.stringify(r, null, 2);
+    } else {
+      document.getElementById('qf-json-textarea').value = '';
+    }
+    el.style.display = '';
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Focus textarea để user Ctrl+V ngay
+    setTimeout(() => document.getElementById('qf-json-textarea').focus(), 200);
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function openQFJsonEditor() {
   const r = window._qfLastResult;
   if (!r) return;
@@ -6692,14 +6791,38 @@ function closeQFJsonEditor() {
 }
 
 function applyQFJsonEdit() {
-  const raw = document.getElementById('qf-json-textarea').value.trim();
+  let raw = document.getElementById('qf-json-textarea').value.trim();
+  // Auto-clean: strip markdown code block wrapper nếu user copy từ ChatGPT/Claude
+  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
   let parsed;
-  try { parsed = JSON.parse(raw); } catch(e) { _showToast('JSON không hợp lệ: ' + e.message, 'error'); return; }
+  try { parsed = JSON.parse(raw); } catch(e) {
+    // Thử recover: tìm JSON object trong text
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) {
+      try { parsed = JSON.parse(m[0]); } catch(_) {}
+    }
+    if (!parsed) { _showToast('JSON không hợp lệ: ' + e.message, 'error'); return; }
+  }
   if (!parsed.fan_out_branches) { _showToast('Thiếu fan_out_branches trong JSON', 'error'); return; }
-  window._qfLastResult = parsed;
-  _renderQueryResult(parsed, window._qfLastSeed || '', window._qfLastEntity || '');
+
+  // Lấy seed/entity từ form hoặc từ JSON
+  const seed   = document.getElementById('qf-seed')?.value?.trim()
+              || parsed.seed_query || parsed.seed || '';
+  const entity = document.getElementById('qf-entity')?.value?.trim()
+              || parsed.entity || '';
+
+  window._qfLastResult  = parsed;
+  window._qfLastSeed    = seed;
+  window._qfLastEntity  = entity;
+  window._qfLastContext = document.getElementById('qf-context')?.value?.trim() || '';
+
+  _renderQueryResult(parsed, seed, entity);
+  _saveQFHistory(parsed, seed, entity);
+  document.getElementById('qf-result').style.display = '';
+  document.getElementById('qf-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   closeQFJsonEditor();
-  _showToast('✅ Đã apply JSON mới', 'success');
+  const bc = parsed.fan_out_branches.length;
+  _showToast(`✅ Đã load ${bc} nhánh từ JSON`, 'success');
 }
 
 function _renderQueryResult(r, seed, entity) {
@@ -6783,6 +6906,10 @@ function _renderQueryResult(r, seed, entity) {
         <span class="qf-sum-label">AEO Difficulty</span>
         <strong>${_esc(sa.aeo_difficulty || '—')}</strong>
       </div>
+      ${QF_INTENT_FORMAT[sa.intent_type] ? `<div>
+        <span class="qf-sum-label">📝 Format</span>
+        <strong title="${_esc(QF_INTENT_FORMAT[sa.intent_type].guide)}">${_esc(QF_INTENT_FORMAT[sa.intent_type].format)}</strong>
+      </div>` : ''}
       <div>
         <span class="qf-sum-label">Fan-out branches</span>
         <strong>${r.fan_out_branches?.length || 0} nhánh</strong>
@@ -6836,7 +6963,7 @@ function _renderQueryResult(r, seed, entity) {
           <div class="qf-chip-wrap">${modChips || '<span style="color:var(--ink3)">—</span>'}</div>
         </div>
       </div>
-      <button class="qf-copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(allLSI)}).then(()=>_showToast('Đã copy tất cả LSI keywords ✅','success'))">📋 Copy tất cả LSI keywords</button>
+      <button class="qf-copy-btn" onclick="copyAllLSI()">📋 Copy tất cả LSI keywords</button>
     </div>
 
     <div class="qf-section">
