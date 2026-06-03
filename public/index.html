@@ -2191,7 +2191,7 @@ function _scoreP3(parsed) {
       if (!/\d/.test(after)) { violations++; if (!foundWords.includes(w)) foundWords.push(w); }
     }
   });
-  return { score: Math.max(0, 3 - violations * 0.5), evidence: { foundWords: foundWords.slice(0, 4) } }; // v2: max 3đ
+  return { score: violations === 0 ? 1 : 0, evidence: { foundWords: foundWords.slice(0, 4) } }; // max 1đ per rubric v3
 }
 
 function _scoreP4(parsed) {
@@ -2447,7 +2447,7 @@ function _scoreG1(parsed, meta) {
   const entityRx = new RegExp(entityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   const numberRx = /\d+[\d.,]*\s*(m²|m2|tầng|tỷ|triệu|km|căn|block|%|phút)/i;
   const attrRx   = /(vị trí|tiện ích|pháp lý|giá|chủ đầu tư|diện tích|view|hướng|thiết kế)/i;
-  const paras = parsed.text.split(/\n{2,}/);
+  const paras = parsed.text.split(/\n/).filter(p => p.trim().length > 0);
   const hasChunk = paras.some(p => {
     const words = p.split(/\s+/).filter(Boolean).length;
     return words >= 30 && words <= 200 && entityRx.test(p) && numberRx.test(p) && attrRx.test(p);
@@ -2858,12 +2858,10 @@ async function submitArticle() {
   try {
     // Step 1: Rule scoring (instant) — trả về evidence để generateRuleFixes dùng lại
     const { scores: ruleScores, total: ruleTotal, evidence: ruleEvidence } = scoreRules(parsed, meta);
-    setLoaderTxt(forceLLM ? 'Chấm rule xong. Đang gọi AI...' : 'Đang phân tích nhanh (không AI)...');
-
     const cfg = DB.get('config', { skip_llm_threshold: 30 });
     let simpleScores = {}, complexScores = {}, top5 = [], allReasons = {}, llmErrors = [];
-    // forceLLM = checkbox "Bật AI" — hoặc rule đủ điểm threshold
     const skipLLM = !forceLLM && ruleTotal < cfg.skip_llm_threshold;
+    setLoaderTxt(skipLLM ? 'Đang phân tích nhanh (không AI)...' : 'Chấm rule xong. Đang gọi AI...');
 
     if (!skipLLM) {
       // Chạy 2 LLM call song song — giảm latency ~50% so với tuần tự
@@ -3058,12 +3056,6 @@ function generateRuleFixes(ruleScores, parsed, evidence) {
     return null;
   })();
 
-  const suppPct      = evidence?.S6?.suppPct ?? (() => {
-    const lines = text.split('\n');
-    const suppLines = lines.slice(-Math.round(lines.length * 0.25)).join(' ');
-    return Math.round(suppLines.split(/\s+/).length / Math.max(1, wordCount) * 100);
-  })();
-  const suppBoundary = evidence?.S6?.suppHeading ?? null;
   const longSentLocation = evidence?.P8?.longSentLocation ?? 'Các đoạn văn mô tả';
 
   const checks = [
@@ -3231,8 +3223,8 @@ function renderResult(wrap, sub, reasons, allScores) {
         <div class="fixes-group-title"${critical.length > 0 ? ' style="margin-top:20px;"' : ''}>🟡🟢 Major & Minor — Polish khi có thời gian (${others.length})</div>
         ${others.map(renderFixCard).join('')}` : ''}`;
 
-  // Rule-only constants (Track B, v3.0): T1=S1h+S3+S4+A3+G3+E3=19, T2=P2-P6+A1+A2+SI2=15, T3=R2h+R5h=7, T4=I3h+I4h+G1+G2+E1+E2=17
-  const RULE_MAX = 58, RULE_MAX_T1 = 19, RULE_MAX_T2 = 15, RULE_MAX_T3 = 7, RULE_MAX_T4 = 17;
+  // Rule-only constants (Track B, v3.0): T1=S1h(5)+S3(4)+S4(4)+A3(2)+G3(2)+E3(2)=19, T2=P2(3)+P3(1)+P4(4)+P5(2)+P6(1)+A1(4)+A2(2)+SI2(1)=18, T3=R2h(4)+R5h(3)=7, T4=I3h(3)+I4h(3)+G1(2)+G2(3)+E1(4)+E2(2)=17
+  const RULE_MAX = 61, RULE_MAX_T1 = 19, RULE_MAX_T2 = 18, RULE_MAX_T3 = 7, RULE_MAX_T4 = 17;
   const ruleT1 = sub.tierBreakdown[0].score;
   const ruleT2 = sub.tierBreakdown[1].score;
   const ruleT3 = sub.tierBreakdown[2].score;
@@ -3246,7 +3238,7 @@ function renderResult(wrap, sub, reasons, allScores) {
         <div class="score-big ${cls}">${totalRnd}<span class="scorecard-max">/100</span></div>
         <div class="scorecard-meta">
           <div class="score-status syne" style="color:${totalColor}">${statusText}</div>
-          <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)} · AI chấm đầy đủ</div>
+          <div class="score-desc">${sub.wordCount} từ · ${_esc(sub.keyword)} · ${sub.date?.slice(0,10) ?? ''} · AI chấm đầy đủ</div>
         </div>
       </div>
       <div class="scorecard-tiers">
@@ -3272,7 +3264,7 @@ function renderResult(wrap, sub, reasons, allScores) {
         <div class="score-big ${rulePct>=75?'pass':rulePct>=50?'mid':'fail'}">${Math.round(sub.total)}<span class="scorecard-max">/${RULE_MAX}</span></div>
         <div class="scorecard-meta">
           <div class="score-status syne" style="color:${ruleClr}">Điểm cốt lõi · ${rulePct}%</div>
-          <div class="score-desc">${sub.wordCount} từ · ${sub.keyword} · ${sub.date.slice(0,10)}</div>
+          <div class="score-desc">${sub.wordCount} từ · ${_esc(sub.keyword)} · ${sub.date?.slice(0,10) ?? ''}</div>
         </div>
       </div>
       <div class="scorecard-tiers">
@@ -3301,7 +3293,7 @@ function renderResult(wrap, sub, reasons, allScores) {
           <span class="tier-score-num mono">${Math.round(ruleT4*10)/10}/${RULE_MAX_T4} <span style="color:var(--ink3);font-size:10px">est.</span></span>
         </div>
       </div>
-      <div class="rule-only-hint">💡 ${['R1','R3','R4','R6','I1','I2'].map(id=>tt(id,id)).join('/')} chưa ước tính — dùng AI để chấm đủ 100 điểm</div>
+      <div class="rule-only-hint">💡 ${['R1','R3','R4','I1','I2'].map(id=>tt(id,id)).join('/')} chưa ước tính — dùng AI để chấm đủ 100 điểm</div>
       <div class="scorecard-preflight">✅ ${tt('Preflight')} PASS (5/5)</div>`;
 
   const fixesTitle = sub.llmUsed ? '🛠 Issues cần xử lý' : '🛠 Sửa ngay — ưu tiên cao nhất';
@@ -3700,14 +3692,14 @@ function renderHistory() {
         : `<span style="color:var(--ink3)">—</span>`;
       const notesFrag = s.notes ? `<div style="font-size:11px;color:var(--ink3);margin-top:3px;white-space:pre-wrap">${_esc(s.notes.length > 80 ? s.notes.slice(0,80) + '…' : s.notes)}</div>` : '';
       return `<tr>
-        <td class="mono" style="color:var(--ink3)">${_esc(s.date.slice(0,10))}</td>
+        <td class="mono" style="color:var(--ink3)">${s.date?.slice(0,10) ?? '—'}</td>
         <td>${_esc(s.keyword)}${notesFrag}</td>
         <td class="mono">${s.wordCount}</td>
         <td class="mono"><strong>${Math.round(s.total)}</strong></td>
         <td><span class="score-pill ${cls}">${s.passed ? 'PASS' : 'FAIL'}</span></td>
         <td class="mono" style="color:var(--ink3);font-size:11px">${s.rubric_version || 'v2.1'}</td>
         <td>${tokLabel}</td>
-        ${currentUser.role === 'admin' ? `<td class="mono" style="color:var(--ink3)">${s.submitter}</td>` : ''}
+        ${currentUser.role === 'admin' ? `<td class="mono" style="color:var(--ink3)">${_esc(s.submitter)}</td>` : ''}
       </tr>`;
     }).join('')}</tbody>
   </table>`;
@@ -3849,24 +3841,24 @@ async function renderAdmin() {
       return `
       <div class="user-row">
         <div class="user-info">
-          <div class="user-name syne">${u.name} <span style="color:var(--ink3);font-size:11px;">(${u.username})</span></div>
-          <div class="user-email mono">${u.role} · Giới hạn: ${u.dailyLimit} bài/ngày · ${cnt} bài · ${tok.toLocaleString('vi-VN')} token</div>
+          <div class="user-name syne">${_esc(u.name)} <span style="color:var(--ink3);font-size:11px;">(${_esc(u.username)})</span></div>
+          <div class="user-email mono">${_esc(u.role)} · Giới hạn: ${u.dailyLimit} bài/ngày · ${cnt} bài · ${tok.toLocaleString('vi-VN')} token</div>
         </div>
         <span class="user-status ${u.status === 'active' ? 'status-active' : 'status-pending'}">
           ${u.status === 'active' ? 'Active' : 'Chờ duyệt'}
         </span>
         <div class="user-actions">
-          ${u.status === 'pending' ? `<button class="btn-sm btn-approve" onclick="approveUser('${u.username}')">Duyệt</button>` : ''}
-          <button class="btn-sm btn-edit" onclick="resetPassword('${u.username}')">🔑 Mật khẩu</button>
+          ${u.status === 'pending' ? `<button class="btn-sm btn-approve" data-u="${_esc(u.username)}" onclick="approveUser(this.dataset.u)">Duyệt</button>` : ''}
+          <button class="btn-sm btn-edit" data-u="${_esc(u.username)}" onclick="resetPassword(this.dataset.u)">🔑 Mật khẩu</button>
           ${u.username !== 'admin' ? `
-            <button class="btn-sm btn-edit" onclick="setLimit('${u.username}')">Giới hạn</button>
-            <button class="btn-sm btn-danger" onclick="removeUser('${u.username}')">Xóa</button>
+            <button class="btn-sm btn-edit" data-u="${_esc(u.username)}" onclick="setLimit(this.dataset.u)">Giới hạn</button>
+            <button class="btn-sm btn-danger" data-u="${_esc(u.username)}" onclick="removeUser(this.dataset.u)">Xóa</button>
           ` : ''}
         </div>
       </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = `<div style="color:var(--err);font-size:13px;padding:12px 0;">Lỗi tải danh sách: ${e.message}</div>`;
+    el.innerHTML = `<div style="color:var(--err);font-size:13px;padding:12px 0;">Lỗi tải danh sách: ${_esc(e.message)}</div>`;
   }
 }
 
